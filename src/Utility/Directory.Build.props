@@ -1,0 +1,7 @@
+<Project>
+    <PropertyGroup>
+        <AssemblyName Condition="$(AssemblyName) == ''">Solid.$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
+    </PropertyGroup>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+</Project>

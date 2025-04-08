@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Solid.Identity</RootNamespace>
+    <Product>Solid softworks WS-Trust STS hosting for asp.net core</Product>
+    <PackageTags>authentication wstrust sts idp identity identityprovider aspnetcore</PackageTags>
+    <Description>A simple WS-Trust protocol library for aspnetcore</Description>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  
+  <ItemGroup>    
+    <PackageReference Include="System.ServiceModel.Security" Version="4.7.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Tokens.Saml\Tokens.Saml.csproj" />
+    <ProjectReference Include="..\..\Utility\Extensions.AspNetCore.Soap\Extensions.AspNetCore.Soap.csproj" />
+  </ItemGroup>
+
+</Project>

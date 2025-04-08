@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Solid.IdentityModel.Tokens</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="Saml2\Metadata\.xsd\saml-schema-assertion-2.0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Saml2\Metadata\.xsd\saml-schema-metadata-2.0.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Saml2\Metadata\.xsd\xenc-schema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Saml2\Metadata\.xsd\xmldsig-core-schema.xsd">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="$(MicrosoftIdentityModelVersion)" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Tokens\Tokens.csproj" />
+    <ProjectReference Include="..\Xml\Xml.csproj" />
+  </ItemGroup>
+
+</Project>

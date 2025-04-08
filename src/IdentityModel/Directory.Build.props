@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+        <AssemblyName Condition="$(AssemblyName) == ''">Solid.IdentityModel.$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
+        <Product>SOLID Softworks identity model</Product>
+    </PropertyGroup>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+</Project>

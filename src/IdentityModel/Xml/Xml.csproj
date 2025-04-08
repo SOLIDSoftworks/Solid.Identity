@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Solid.IdentityModel</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.IdentityModel.Xml" Version="8.7.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'net6.0'">
+    <PackageReference Include="Microsoft.IdentityModel.Xml" Version="6.36.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="6.0.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'net8.0'">
+    <PackageReference Include="Microsoft.IdentityModel.Xml" Version="8.7.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'net9.0'">
+    <PackageReference Include="Microsoft.IdentityModel.Xml" Version="8.7.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="9.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Protocols.WsTrust\Protocols.WsTrust.csproj" />
+    <ProjectReference Include="..\Tokens\Tokens.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Tokens\Xml\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>Solid.IdentityModel.Tokens.Saml.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

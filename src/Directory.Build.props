@@ -1,0 +1,43 @@
+<Project>
+    <PropertyGroup>
+        <TargetFrameworks Condition="$(TargetFramework) == '' AND $(TargetFrameworks) == ''">net8.0;net9.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup>        
+        <Copyright>©2025 SOLID Softworks. All rights reserved.</Copyright>
+        <Authors>solidsoftworks gislikonrad</Authors>
+        <Company>SOLID Softworks</Company>
+        <OutputTypeEx>library</OutputTypeEx>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://github.com/SOLIDSoftworks/Solid.Identity</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/SOLIDSoftworks/Solid.Identity</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <OpenApiGenerateDocuments>false</OpenApiGenerateDocuments>
+        <DocumentationFile Condition="'$(IsPackable)' != 'false'">bin/$(Configuration)/$(TargetFramework)/$(AssemblyName).xml</DocumentationFile>
+        <LangVersion>10</LangVersion>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+<!--        <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)' == ''">true</TreatWarningsAsErrors>-->
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <IsNet6_0 Condition="$(TargetFramework) == 'net6.0'">true</IsNet6_0>
+        <IsNet6_0 Condition="$(TargetFramework) != 'net6.0'">false</IsNet6_0>
+        <IsNet8_0 Condition="$(TargetFramework) == 'net8.0'">true</IsNet8_0>
+        <IsNet8_0 Condition="$(TargetFramework) != 'net8.0'">false</IsNet8_0>
+        <IsNet9_0 Condition="$(TargetFramework) == 'net9.0'">true</IsNet9_0>
+        <IsNet9_0 Condition="$(TargetFramework) != 'net9.0'">false</IsNet9_0>
+        <MicrosoftExtensionsVersion Condition="$(IsNet6_0)">6.0.*</MicrosoftExtensionsVersion>
+        <MicrosoftExtensionsVersion Condition="$(IsNet8_0)">8.0.*</MicrosoftExtensionsVersion>
+        <MicrosoftExtensionsVersion Condition="$(IsNet9_0)">9.0.*</MicrosoftExtensionsVersion>
+        <MicrosoftIdentityModelVersion>8.8.*</MicrosoftIdentityModelVersion>
+    </PropertyGroup>
+<!--    <ItemGroup Condition="$(IsNetStandard) == 'false'">-->
+<!--        <FrameworkReference Condition="$(AssemblyName.Contains('AspNetCore')) == 'true'" Include="Microsoft.AspNetCore.App" />-->
+<!--        <FrameworkReference Condition="$(AssemblyName.Contains('AspNetCore')) == 'false'" Include="Microsoft.NetCore.App" />-->
+<!--    </ItemGroup>-->
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+</Project>

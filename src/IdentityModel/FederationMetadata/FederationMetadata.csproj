@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include=".xsd\ws-federation.xsd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".xsd\ws-addressing.xsd" />
+    <None Include=".xsd\ws-authorization.xsd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tokens.Saml\Tokens.Saml.csproj" />
+    <ProjectReference Include="..\Xml\Xml.csproj" />
+  </ItemGroup>
+
+</Project>

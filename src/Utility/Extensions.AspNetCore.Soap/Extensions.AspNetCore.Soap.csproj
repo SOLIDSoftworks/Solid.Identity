@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">  
+<!--  <PropertyGroup>-->
+<!--    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>-->
+<!--    <LangVersion>8.0</LangVersion>-->
+<!--    <Authors>SOLID Softworks</Authors>-->
+<!--    <Copyright>© SOLID Softworks. All rights reserved.</Copyright>-->
+<!--    <OutputTypeEx>library</OutputTypeEx>-->
+<!--    <PackageProjectUrl>https://github.com/SOLIDSoftworks/Solid.Extensions.AspNetCore.Soap</PackageProjectUrl>-->
+<!--    <PackageLicenseExpression>MIT</PackageLicenseExpression>-->
+<!--    <RepositoryUrl>https://github.com/SOLIDSoftworks/Solid.Extensions.AspNetCore.Soap</RepositoryUrl>-->
+<!--    <GenerateDocumentationFile>true</GenerateDocumentationFile>-->
+<!--  </PropertyGroup>-->
+  
+<!--  <ItemGroup>-->
+<!--    <Compile Include=".properties\InternalsVisibleTo.cs" />-->
+<!--  </ItemGroup>-->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+  </ItemGroup>
+</Project>

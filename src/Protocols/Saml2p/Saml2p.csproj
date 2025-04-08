@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <Product>Solid softworks saml2p for asp.net core</Product>
+    <PackageTags>authentication saml2p idp sp identity identityprovider serviceprovider saml2 aspnetcore sso</PackageTags>
+    <Description>A simple SAML2p protocol library for aspnetcore</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Solid.IdentityModel.Tokens.Saml" Version="1.0.6" />
+  </ItemGroup>
+</Project>
