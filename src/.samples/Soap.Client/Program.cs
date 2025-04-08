@@ -1,12 +1,13 @@
-﻿using Sample1.Service;
+﻿
 using System;
 using System.Net.Http;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 using System.Threading;
 using System.Threading.Tasks;
+using Soap.Server.Service;
 
-namespace Sample1.Client
+namespace Soap.Client
 {
     class Program
     {

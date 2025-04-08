@@ -1,6 +1,6 @@
 ﻿using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Protocols.WsAddressing;
-using Microsoft.IdentityModel.Protocols.WsPolicy;
+using Solid.IdentityModel.Protocols.WsAddressing;
+using Solid.IdentityModel.Protocols.WsPolicy;
 using Microsoft.IdentityModel.Protocols.WsTrust;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml2;
@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.ServiceModel;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Solid.IdentityModel.Protocols.WsTrust;
 
 namespace WsTrust.Client.Sample
 {

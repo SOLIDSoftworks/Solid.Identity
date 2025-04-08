@@ -23,7 +23,7 @@ using Solid.Identity.Protocols.Saml2p.Models.Context;
 using Solid.Identity.Protocols.Saml2p.Options;
 using Solid.Identity.Protocols.Saml2p.Serialization;
 
-namespace AspNetCore.SpSample
+namespace Saml2p.SpSample
 {
     public class Startup
     {

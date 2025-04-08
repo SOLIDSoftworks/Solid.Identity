@@ -1,12 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Solid.ServiceModel.Security.WsTrust\Solid.ServiceModel.Security.WsTrust.csproj" />
+    <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
   </ItemGroup>
-
 </Project>

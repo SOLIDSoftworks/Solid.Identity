@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sample1.Service
+namespace Soap.Server.Service
 {
     public class EchoService : IEchoServiceContract, IDisposable
     {

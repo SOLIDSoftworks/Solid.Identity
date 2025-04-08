@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Sample1.Service
+namespace Soap.Server.Service
 {
     [ServiceContract]
     public interface IEchoServiceContract

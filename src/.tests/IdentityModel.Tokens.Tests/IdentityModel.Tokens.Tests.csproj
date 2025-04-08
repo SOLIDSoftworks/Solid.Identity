@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Solid.IdentityModel.Tokens\Solid.IdentityModel.Tokens.csproj" />
+    <ProjectReference Include="..\..\IdentityModel\Tokens\Tokens.csproj" />
   </ItemGroup>
 
 </Project>

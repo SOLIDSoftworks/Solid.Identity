@@ -1,0 +1,17 @@
+<Project>
+    <PropertyGroup>
+        <AssemblyName Condition="$(AssemblyName) == ''">$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
+        <IsPublishable>false</IsPublishable>
+    </PropertyGroup>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
+        <PackageReference Include="xunit" Version="2.5.3" />
+        <PackageReference Include="Xunit.DependencyInjection.Logging" Version="2.1.0" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+        <PackageReference Include="coverlet.collector" Version="6.0.0" />
+        <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+        <PackageReference Include="NSubstitute" Version="5.1.0" />
+    </ItemGroup>
+</Project>

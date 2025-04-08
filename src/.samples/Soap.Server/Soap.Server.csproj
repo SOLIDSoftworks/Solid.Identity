@@ -1,11 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\Solid.Extensions.AspNetCore.Soap\Solid.Extensions.AspNetCore.Soap.csproj" />
+    <ProjectReference Include="..\..\Utility\Extensions.AspNetCore.Soap\Extensions.AspNetCore.Soap.csproj" />
   </ItemGroup>
-
 </Project>
