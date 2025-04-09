@@ -17,6 +17,7 @@
     <None Include="Saml2\Metadata\.xsd\xmldsig-core-schema.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Remove="Saml2\Metadata\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -26,6 +27,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Tokens\Tokens.csproj" />
     <ProjectReference Include="..\Xml\Xml.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Remove="Saml2\Metadata\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Remove="Saml2\Metadata\**" />
   </ItemGroup>
 
 </Project>

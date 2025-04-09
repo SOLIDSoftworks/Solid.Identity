@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <AssemblyName Condition="$(AssemblyName) == ''">$(MSBuildProjectName)</AssemblyName>
+        <AssemblyName Condition="$(AssemblyName) == ''">Solid.$(MSBuildProjectName)</AssemblyName>
         <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
         <IsPublishable>false</IsPublishable>
     </PropertyGroup>

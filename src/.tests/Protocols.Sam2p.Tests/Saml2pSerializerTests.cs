@@ -17,6 +17,8 @@ using FluentAssertions;
 using FluentAssertions.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Logging;
+using NSubstitute;
+using NSubstitute.ReceivedExtensions;
 
 namespace Solid.Identity.Protocols.Saml2p.Tests
 {
@@ -26,20 +28,23 @@ namespace Solid.Identity.Protocols.Saml2p.Tests
         private static readonly string _protocolNamespace = "urn:oasis:names:tc:SAML:2.0:protocol";
 
         private Saml2pSerializer _serializer;
-        private Mock<Saml2SecurityTokenHandler> _mockHandler;
 
         public Saml2pSerializerTests()
         {
             IdentityModelEventSource.ShowPII = true;
-            
-            _mockHandler = new Mock<Saml2SecurityTokenHandler>();
-            _mockHandler.CallBase = true;
-            var mockWriterFactory = new Mock<IXmlWriterFactory>();
-            mockWriterFactory.Setup(f => f.CreateXmlWriter(It.IsAny<TextWriter>())).Returns<TextWriter>(w => XmlWriter.Create(w));
-            var mockReaderFactory = new Mock<IXmlReaderFactory>();
-            mockReaderFactory.Setup(f => f.CreateXmlReader(It.IsAny<TextReader>())).Returns<TextReader>(r => XmlReader.Create(r));
-            var mockLogger = new Mock<ILogger>();
-            _serializer = new Saml2pSerializer(_mockHandler.Object, mockReaderFactory.Object, mockWriterFactory.Object, mockLogger.Object);
+            _serializer = CreateSaml2pSerializer(new Saml2SecurityTokenHandler());
+        }
+
+        private static Saml2pSerializer CreateSaml2pSerializer(Saml2SecurityTokenHandler handler)
+        {
+            var mockWriterFactory = Substitute.For<IXmlWriterFactory>();
+            mockWriterFactory.CreateXmlWriter(Arg.Any<TextWriter>()).Returns(c => XmlWriter.Create(c.ArgAt<TextWriter>(0)));
+            var mockReaderFactory = Substitute.For<IXmlReaderFactory>();
+            mockReaderFactory.CreateXmlReader(Arg.Any<TextReader>()).Returns(c => XmlReader.Create(c.ArgAt<TextReader>(0)));
+            var mockLogger = Substitute.For<ILogger>();
+            var mockLoggerFactory = Substitute.For<ILoggerFactory>();
+            mockLoggerFactory.CreateLogger(Arg.Any<string>()).Returns(_ => mockLogger);
+            return new Saml2pSerializer(handler, mockReaderFactory, mockWriterFactory, mockLoggerFactory);
         }
 
         [Fact]
@@ -262,12 +267,15 @@ namespace Solid.Identity.Protocols.Saml2p.Tests
                 SecurityToken = token
             };
 
-            var serialized = _serializer.SerializeSamlResponse(response);
+            var handler = Substitute.For<Saml2SecurityTokenHandler>();
+            handler.WhenForAnyArgs(h => h.WriteToken(null, null)).CallBase();
+            var serializer = CreateSaml2pSerializer(handler);
+            var serialized = serializer.SerializeSamlResponse(response);
             Assert.NotNull(serialized);
 
             var doc = XDocument.Parse(serialized);
             var root = doc.Root;
-            _mockHandler.Verify(h => h.WriteToken(It.IsAny<XmlWriter>(), token), Times.Once());
+            handler.Received(Quantity.Exactly(1)).WriteToken(Arg.Any<XmlWriter>(), token);
             var element = root.Element(XName.Get("Assertion", _assertionNamespace));
             Assert.NotNull(element);
         }

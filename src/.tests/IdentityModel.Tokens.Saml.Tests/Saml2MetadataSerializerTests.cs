@@ -26,7 +26,7 @@ namespace Solid.IdentityModel.FederationMetadata.Tests
             var reader = CreateReader(xml);
             var metadata = _serializer.ReadMetadata(reader);
             Assert.IsType<EntityDescriptor>(metadata);
-            Assert.True(reader.EOF);
+            Assert.False(reader.Read());
             if (signed) Assert.NotNull(metadata.Signature);
             else Assert.Null(metadata.Signature);
             Assert.Equal(roleCount, metadata.Items.Count);

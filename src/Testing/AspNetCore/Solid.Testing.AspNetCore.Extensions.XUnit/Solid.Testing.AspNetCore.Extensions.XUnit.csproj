@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../../build/core.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\Solid.Testing.AspNetCore\Solid.Testing.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+  </ItemGroup>
+
+</Project>

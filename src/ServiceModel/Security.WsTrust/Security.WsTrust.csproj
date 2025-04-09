@@ -1,11 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Solid.ServiceModel" Version="1.0.1-beta" />
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
   </ItemGroup>
 
 </Project>

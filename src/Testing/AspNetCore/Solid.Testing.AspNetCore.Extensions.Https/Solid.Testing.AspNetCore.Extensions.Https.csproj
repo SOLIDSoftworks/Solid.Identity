@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../../../build/core.props" />  
+  <ItemGroup>
+    <ProjectReference Include="..\Solid.Testing.AspNetCore\Solid.Testing.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

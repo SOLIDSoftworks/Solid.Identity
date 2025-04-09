@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens.Saml2;
 using Solid.IdentityModel.Tokens.Saml2;
-using Solid.IdentityModel.Tokens.Saml2.Metadata;
+// using Solid.IdentityModel.Tokens.Saml2.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -29,14 +29,14 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddSaml2MetadataSerializer(this IServiceCollection services)
-            => services.AddSaml2MetadataSerializer<Saml2MetadataSerializer>();
-
-        public static IServiceCollection AddSaml2MetadataSerializer<TSerializer>(this IServiceCollection services)
-            where TSerializer : Saml2MetadataSerializer
-        {
-            services.TryAddTransient<Saml2MetadataSerializer, TSerializer>();
-            return services;
-        }
+        // public static IServiceCollection AddSaml2MetadataSerializer(this IServiceCollection services)
+        //     => services.AddSaml2MetadataSerializer<Saml2MetadataSerializer>();
+        //
+        // public static IServiceCollection AddSaml2MetadataSerializer<TSerializer>(this IServiceCollection services)
+        //     where TSerializer : Saml2MetadataSerializer
+        // {
+        //     services.TryAddTransient<Saml2MetadataSerializer, TSerializer>();
+        //     return services;
+        // }
     }
 }

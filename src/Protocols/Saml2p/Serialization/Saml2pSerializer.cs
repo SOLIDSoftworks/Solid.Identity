@@ -137,14 +137,11 @@ namespace Solid.Identity.Protocols.Saml2p.Serialization
         /// <returns>An XML string.</returns>
         public string SerializeSamlResponse(SamlResponse response)
         {
-            using (var inner = new StringWriter())
-            {
-                using (var writer = XmlWriterFactory.CreateXmlWriter(inner))
-                {
-                    SerializeSamlResponse(writer, response);
-                }
-                return inner.ToString();
-            }
+            using var inner = new StringWriter();
+            using (var writer = XmlWriterFactory.CreateXmlWriter(inner))
+                SerializeSamlResponse(writer, response);
+            
+            return inner.ToString();
         }
         
         /// <summary>
@@ -1053,8 +1050,8 @@ namespace Solid.Identity.Protocols.Saml2p.Serialization
         /// </summary>
         /// <param name="writer">The <see cref="XmlDictionaryWriter"/> used to write <paramref name="token"/>.</param>
         /// <param name="token">The <see cref="Saml2SecurityToken"/> to write using <paramref name="writer"/>.</param>
-        protected virtual void WriteSecurityToken(XmlDictionaryWriter writer, Saml2SecurityToken token) =>
-            SecurityTokenHandler.WriteToken(writer, token);
+        protected virtual void WriteSecurityToken(XmlDictionaryWriter writer, Saml2SecurityToken token) 
+            => SecurityTokenHandler.WriteToken(writer, token);
 
         /// <summary>
         /// Attempts to read an attribute as a <see cref="DateTime"/> value.

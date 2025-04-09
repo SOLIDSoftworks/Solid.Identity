@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netcoreapp3.1</TargetFrameworks>
+    <VersionPrefix></VersionPrefix>
+    <AssemblyVersion></AssemblyVersion>
+    <FileVersion></FileVersion>
+    <InformationalVersion></InformationalVersion>
+    
+    <Authors>solidsoftworks;gislikonrad</Authors>
+    <PackageDescription>Solid.Http.Json is an extension to Solid.Http.Core for working with json http responses using System.Text.Json.</PackageDescription>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>http;gluent;async;csharp;rest;rest-api;httpapi;http-api;fluent-api;fluentapi;restapi;restful-api;restfulapi;json;json-deserialization</PackageTags>
+    <RepositoryUrl>https://github.com/SOLIDSoftworks/Solid.Http</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+  </PropertyGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Solid.Http.Json.Core\Solid.Http.Json.Core.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>Solid.Http.Json.xml</DocumentationFile>
+  </PropertyGroup>
+
+</Project>

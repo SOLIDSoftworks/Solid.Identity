@@ -2,4 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\IdentityModel\Tokens.Saml\Tokens.Saml.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Saml2MetadataSerializerTests.cs" />
+  </ItemGroup>
 </Project>
