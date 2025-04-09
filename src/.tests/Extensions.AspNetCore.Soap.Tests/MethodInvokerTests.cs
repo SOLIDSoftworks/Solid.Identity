@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Logging;
-using Moq;
 using Solid.Extensions.AspNetCore.Soap.Models;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using NSubstitute;
 using Xunit;
 
 namespace Solid.Extensions.AspNetCore.Soap.Tests
@@ -21,7 +21,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Tests
         public async Task ShouldInvokeSynchronousMethod(string expected)
         {
             var method = GetMethod(nameof(SynchronousEcho));
-            var invoker = new MethodInvoker(Mock.Of<ILogger<MethodInvoker>>());
+            var invoker = new MethodInvoker(Substitute.For<ILogger<MethodInvoker>>());
             var result = await invoker.InvokeMethodAsync(this, method, new[] { expected });
 
             Assert.NotNull(result);
@@ -37,7 +37,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Tests
         public async Task ShouldInvokeSynchronousVoidMethod(string expected)
         {
             var method = GetMethod(nameof(SynchronousVoid));
-            var invoker = new MethodInvoker(Mock.Of<ILogger<MethodInvoker>>());
+            var invoker = new MethodInvoker(Substitute.For<ILogger<MethodInvoker>>());
             var result = await invoker.InvokeMethodAsync(this, method, new[] { expected });
 
             Assert.NotNull(result);
@@ -54,7 +54,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Tests
         public async Task ShouldInvokeSynchronousOutVoidMethod(string expected)
         {
             var method = GetMethod(nameof(SynchronousOutVoid));
-            var invoker = new MethodInvoker(Mock.Of<ILogger<MethodInvoker>>());
+            var invoker = new MethodInvoker(Substitute.For<ILogger<MethodInvoker>>());
             var arguments = new MethodParameter[] { new MethodParameter { Name = "value", Value = expected }, new MethodParameter { Name = "copy", Out = true } };
             var result = await invoker.InvokeMethodAsync(this, method, arguments);
 
@@ -74,7 +74,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Tests
         public async Task ShouldInvokeAsynchronousMethod(string expected)
         {
             var method = GetMethod(nameof(AsynchronousEcho));
-            var invoker = new MethodInvoker(Mock.Of<ILogger<MethodInvoker>>());
+            var invoker = new MethodInvoker(Substitute.For<ILogger<MethodInvoker>>());
             var result = await invoker.InvokeMethodAsync(this, method, new[] { expected });
 
             Assert.NotNull(result);
@@ -90,7 +90,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Tests
         public async Task ShouldInvokeAsynchronousVoidMethod(string expected)
         {
             var method = GetMethod(nameof(AsynchronousVoid));
-            var invoker = new MethodInvoker(Mock.Of<ILogger<MethodInvoker>>());
+            var invoker = new MethodInvoker(Substitute.For<ILogger<MethodInvoker>>());
             var result = await invoker.InvokeMethodAsync(this, method, new[] { expected });
 
             Assert.NotNull(result);

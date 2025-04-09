@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="System.ServiceModel.Http" Version="4.7.0" />
+    <PackageReference Include="System.ServiceModel.Http" Version="$(MicrosoftExtensionsVersion)" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,22 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net6.0;net8.0;net9.0</TargetFrameworks>
-
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="4.7.0" />
-    <PackageReference Include="xunit" Version="2.4.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
-    <PackageReference Include="coverlet.collector" Version="1.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
     <ProjectReference Include="..\..\IdentityModel\Tokens\Tokens.csproj" />
+    <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
   </ItemGroup>
 
 </Project>

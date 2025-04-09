@@ -5,4 +5,5 @@
         <Product>SOLID Softworks identity model</Product>
     </PropertyGroup>
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
 </Project>

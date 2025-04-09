@@ -20,13 +20,10 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <IsNet6_0 Condition="$(TargetFramework) == 'net6.0'">true</IsNet6_0>
-        <IsNet6_0 Condition="$(TargetFramework) != 'net6.0'">false</IsNet6_0>
         <IsNet8_0 Condition="$(TargetFramework) == 'net8.0'">true</IsNet8_0>
         <IsNet8_0 Condition="$(TargetFramework) != 'net8.0'">false</IsNet8_0>
         <IsNet9_0 Condition="$(TargetFramework) == 'net9.0'">true</IsNet9_0>
         <IsNet9_0 Condition="$(TargetFramework) != 'net9.0'">false</IsNet9_0>
-        <MicrosoftExtensionsVersion Condition="$(IsNet6_0)">6.0.*</MicrosoftExtensionsVersion>
         <MicrosoftExtensionsVersion Condition="$(IsNet8_0)">8.0.*</MicrosoftExtensionsVersion>
         <MicrosoftExtensionsVersion Condition="$(IsNet9_0)">9.0.*</MicrosoftExtensionsVersion>
         <MicrosoftIdentityModelVersion>8.8.*</MicrosoftIdentityModelVersion>
@@ -38,6 +35,9 @@
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
             <_Parameter1>$(AssemblyName).Tests</_Parameter1>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>$(MSBuildProjectName).Tests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
 </Project>

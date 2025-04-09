@@ -3,5 +3,10 @@
         <AssemblyName Condition="$(AssemblyName) == ''">Solid.Identity.Protocols.$(MSBuildProjectName)</AssemblyName>
         <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
     </PropertyGroup>
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Identity.Protocols.$(MSBuildProjectName).Tests</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 </Project>

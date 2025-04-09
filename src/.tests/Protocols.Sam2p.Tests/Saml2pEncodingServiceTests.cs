@@ -10,7 +10,7 @@ namespace Solid.Identity.Protocols.Saml2p.Tests
 {
     public class Saml2pEncodingServiceTests
     {
-        private Saml2pEncodingService _encoder = new Saml2pEncodingService();
+        private Saml2pEncodingService _encoder = new ();
 
         [Theory]
         [InlineData("<xml></xml>", "s6nIzbGz0QeRAA==")]

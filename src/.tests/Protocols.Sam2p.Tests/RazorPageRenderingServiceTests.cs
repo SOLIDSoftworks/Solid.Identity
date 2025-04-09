@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
+using NSubstitute;
 using Utilities.Razor.Tests.Pages;
 using Xunit;
 
@@ -28,11 +29,11 @@ namespace Solid.Identity.Protocols.Saml2p.Tests
 
             };
             var mockHostingEnvironment = new Mock<IWebHostEnvironment>();
-            var mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-            mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(() => _context);
+            var mockHttpContextAccessor = Substitute.For<IHttpContextAccessor>();
+            mockHttpContextAccessor.HttpContext.Returns(_ => _context);
             var services = new ServiceCollection();
             services
-                .AddSingleton<IHttpContextAccessor>(mockHttpContextAccessor.Object)
+                .AddSingleton<IHttpContextAccessor>(mockHttpContextAccessor)
                 .AddSingleton<DiagnosticSource>(new DiagnosticListener("RazorPageRenderingServiceTests"))
                 .AddSingleton<IWebHostEnvironment>(mockHostingEnvironment.Object)
                 .AddLogging()

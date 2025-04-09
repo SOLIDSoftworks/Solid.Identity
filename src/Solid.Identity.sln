@@ -81,6 +81,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ServiceModel", "ServiceMode
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Security.WsTrust", "ServiceModel\Security.WsTrust\Security.WsTrust.csproj", "{1D20790C-90E4-4B15-B8E2-5EF112BF3F28}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing.Certificates", "Utility\Testing.Certificates\Testing.Certificates.csproj", "{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testing.Shims.Moq", "Utility\Testing.Shims.Moq\Testing.Shims.Moq.csproj", "{401648BD-5E32-44D9-8DBB-6A9A0183E0EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +117,8 @@ Global
 		{BF6EBFF7-336E-4F00-AA1D-F5AA4A17E6F9} = {9190AC72-7FC2-4310-8824-E9468BDB7375}
 		{B2F1ADBE-BF84-4ED7-918C-33F43EF8651D} = {9190AC72-7FC2-4310-8824-E9468BDB7375}
 		{1D20790C-90E4-4B15-B8E2-5EF112BF3F28} = {60F3CA77-A8E8-4FDC-A2D0-BAA9276BC1D8}
+		{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3} = {D248F42A-5953-4E19-9CB8-25C90EF1459B}
+		{401648BD-5E32-44D9-8DBB-6A9A0183E0EA} = {D248F42A-5953-4E19-9CB8-25C90EF1459B}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{FC57AE14-F2F2-4474-8A6C-4E12FD9EAF31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -203,5 +209,13 @@ Global
 		{1D20790C-90E4-4B15-B8E2-5EF112BF3F28}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D20790C-90E4-4B15-B8E2-5EF112BF3F28}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D20790C-90E4-4B15-B8E2-5EF112BF3F28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07C6275C-BEB7-4AA7-A4A3-C5E1A1C583B3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401648BD-5E32-44D9-8DBB-6A9A0183E0EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401648BD-5E32-44D9-8DBB-6A9A0183E0EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401648BD-5E32-44D9-8DBB-6A9A0183E0EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401648BD-5E32-44D9-8DBB-6A9A0183E0EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

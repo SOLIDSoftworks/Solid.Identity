@@ -1,5 +1,5 @@
 ﻿using Solid.IdentityModel.Tokens.Xml;
-using Microsoft.IdentityModel.Protocols;
+using Solid.IdentityModel.Protocols;
 using Solid.IdentityModel.Protocols.WsAddressing;
 using Solid.IdentityModel.Protocols.WsTrust;
 using Solid.IdentityModel.Protocols.WsUtility;
@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.IdentityModel.Tokens;
-using Solid.IdentityModel.Protocols;
 using Solid.IdentityModel.Protocols.WsSecurity;
 
 namespace Solid.ServiceModel.Security

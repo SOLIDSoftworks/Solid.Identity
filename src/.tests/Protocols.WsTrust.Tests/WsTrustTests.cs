@@ -1,6 +1,6 @@
-using Microsoft.IdentityModel.Protocols.WsAddressing;
-using Microsoft.IdentityModel.Protocols.WsPolicy;
-using Microsoft.IdentityModel.Protocols.WsTrust;
+using Solid.IdentityModel.Protocols.WsAddressing;
+using Solid.IdentityModel.Protocols.WsPolicy;
+using Solid.IdentityModel.Protocols.WsTrust;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;

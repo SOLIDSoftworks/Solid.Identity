@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using Solid.IdentityModel.Protocols.WsTrust;
 
-namespace Microsoft.IdentityModel.Protocols.WsTrust
+namespace Solid.IdentityModel.Protocols.WsTrust
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
     public static class WsTrustResponseExtensions
