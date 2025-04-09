@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageDescription>Solid.Http.Json.Core is a package containing shared classes for json deserialization in Solid.Http.Core.</PackageDescription>
+    <PackageTags>$(PackageTags);json;json-deserialization</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
+  </ItemGroup>
+</Project>

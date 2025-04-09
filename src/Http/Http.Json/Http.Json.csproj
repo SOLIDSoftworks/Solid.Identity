@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageDescription>Solid.Http.Json is an extension to Solid.Http.Core for working with json http responses using System.Text.Json.</PackageDescription>
+    <PackageTags>$(PackageTags);json;json-deserialization</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Http.Json.Core\Http.Json.Core.csproj" />
+  </ItemGroup>
+
+</Project>

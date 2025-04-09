@@ -73,7 +73,7 @@ namespace Solid.Http
         public async ValueTask<T> As<T>(Func<IServiceProvider, HttpContent, ValueTask<T>> deserialize)
         {
             var response = await this;
-            if (response.Content == null)
+            if (response.Content.Headers.ContentLength is null or 0)
                 return default;
 
             try

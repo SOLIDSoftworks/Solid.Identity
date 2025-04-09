@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageDescription>Solid.Http.Xml is an extension to Solid.Http.Core for working with xml.</PackageDescription>
+    <PackageTags>$(PackageTags);xml;xml-deserialization</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
+  </ItemGroup>
+
+</Project>

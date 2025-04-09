@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageDescription>Solid.Http is a library to simplify http calls in C#. It's designed to be async and fully extendable.</PackageDescription>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
+    <ProjectReference Include="..\Http.Json\Http.Json.csproj" />
+  </ItemGroup>
+
+</Project>

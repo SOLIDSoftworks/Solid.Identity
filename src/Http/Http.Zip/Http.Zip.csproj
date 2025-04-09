@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageDescription>Solid.Http.Zip is an extension to Solid.Http.Core for working with zip archives.</PackageDescription>
+    <PackageTags>$(PackageTags);zip;ziparchive;zip-archive</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+<Project>
+    <PropertyGroup>
+        <AssemblyName Condition="$(AssemblyName) == ''">Solid.$(MSBuildProjectName)</AssemblyName>
+        <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
+        <PackageTags>http;gluent;async;csharp;rest;rest-api;httpapi;http-api;fluent-api;fluentapi;restapi;restful-api;restfulapi</PackageTags>
+    </PropertyGroup>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+</Project>
