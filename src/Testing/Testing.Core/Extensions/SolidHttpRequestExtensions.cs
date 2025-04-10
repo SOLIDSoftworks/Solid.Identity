@@ -1,11 +1,9 @@
-﻿using Solid.Http;
-using Solid.Testing.Abstractions;
+﻿using Solid.Testing.Abstractions;
 using Solid.Testing.Models;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Solid.Testing.Exceptions;
 using System.Net.Http;
 using System.Threading.Tasks;

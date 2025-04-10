@@ -1,8 +1,8 @@
-# Solid.Http XML extensions
+# Solid.Http ZIP extensions
 
 There is currently one ZIP extension for _Solid.Http.Core_. The extension uses the _System.IO.Compression_ for deserialization. This package is useful if you need to request a zip archive and manipulate it programmatically.
 
-## Solid.Http.Xml
+## Solid.Http.Zip
 
 _Solid.Http.Zip_ uses _System.IO.Compression_ internally.
 

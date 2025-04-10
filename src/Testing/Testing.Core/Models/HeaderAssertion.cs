@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Solid.Http;
 using System.Runtime.CompilerServices;
 
 namespace Solid.Testing.Models
