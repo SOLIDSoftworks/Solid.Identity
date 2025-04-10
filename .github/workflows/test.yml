@@ -1,0 +1,30 @@
+name: test
+on:
+  push:
+    paths:
+      - ".github/**/*.*" 
+      - "src/**/*.*"
+  pull_request:
+    types: [assigned, opened, synchronize, reopened]
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup_dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+          
+      - name: install_dependencies
+        run: dotnet restore ./src
+        
+      - name: build
+        run: dotnet build ./src --configuration Release --no-restore
+        
+      - name: test
+        run: dotnet test ./src --configuration Release --no-restore --no-build
