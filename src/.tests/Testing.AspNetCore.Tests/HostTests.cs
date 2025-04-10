@@ -1,4 +1,3 @@
-using AspNetCoreApplication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Net.Http.Headers;
+using TestApplication;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;

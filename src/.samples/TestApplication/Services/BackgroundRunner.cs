@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace AspNetCoreApplication.Services
+namespace TestApplication.Services
 {
     public class BackgroundRunner : BackgroundService
     {

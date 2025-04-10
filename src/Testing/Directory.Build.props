@@ -1,11 +1,7 @@
 <Project>
     <PropertyGroup>
-        <AssemblyName Condition="$(AssemblyName) == ''">$(MSBuildProjectName)</AssemblyName>
+        <AssemblyName Condition="$(AssemblyName) == ''">Solid.$(MSBuildProjectName)</AssemblyName>
         <RootNamespace Condition="$(RootNamespace) == ''">$(AssemblyName)</RootNamespace>
-        <IsPublishable>false</IsPublishable>
-        <IsPackable>false</IsPackable>
-        <TargetFramework>net8.0</TargetFramework>
-        <OutputType>Exe</OutputType>
     </PropertyGroup>
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 </Project>

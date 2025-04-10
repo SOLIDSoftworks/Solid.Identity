@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\.samples\TestApplication\TestApplication.csproj" />
+    <ProjectReference Include="..\..\Testing\Testing.AspNetCore.Extensions.XUnit\Testing.AspNetCore.Extensions.XUnit.csproj" />
+    <ProjectReference Include="..\..\Testing\Testing.AspNetCore\Testing.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

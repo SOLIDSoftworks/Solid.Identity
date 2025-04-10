@@ -1,0 +1,5 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Testing.AspNetCore\Testing.AspNetCore.csproj" />
+  </ItemGroup>
+</Project>

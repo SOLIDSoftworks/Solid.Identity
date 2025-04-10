@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Testing\Testing.AspNetCore.Extensions.Https\Testing.AspNetCore.Extensions.Https.csproj" />
+    <ProjectReference Include="..\..\Testing\Testing.AspNetCore.Extensions.XUnit\Testing.AspNetCore.Extensions.XUnit.csproj" />
+  </ItemGroup>
+
+</Project>
