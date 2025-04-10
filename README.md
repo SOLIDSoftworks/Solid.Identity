@@ -1,4 +1,5 @@
 # Solid.Identity
+[![build](https://github.com/SOLIDSoftworks/Solid.Identity/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/SOLIDSoftworks/Solid.Identity/actions/workflows/test.yml)
 This repository is a collection of packages that we have written over the years, consolodated into a single repository.
 
 ## The packages
