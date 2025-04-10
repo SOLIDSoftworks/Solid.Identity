@@ -14,9 +14,9 @@ public static class CertificateStore
     private static ConcurrentDictionary<CertificateDescriptor, X509Certificate2> _store = new ();
     
     public static X509Certificate2 GetOrCreate(CertificateDescriptor descriptor)
-        => _store.GetOrAdd(descriptor, descriptor => Create(descriptor));
+        => _store.GetOrAdd(descriptor, Create);
 
-    private static X509Certificate2 Create(CertificateDescriptor descriptor)
+    public static X509Certificate2 Create(CertificateDescriptor descriptor)
     {
         var name = descriptor.CommonName ?? Guid.NewGuid().ToString("N");
         var size = descriptor.KeySize ?? RsaKeySize.Medium;
