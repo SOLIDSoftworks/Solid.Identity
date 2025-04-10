@@ -1,5 +1,4 @@
-﻿using Solid.Http.Json.Core.Abstractions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http.Headers;
 using System.Text;
@@ -10,7 +9,7 @@ namespace Solid.Http.Json
     /// <summary>
     /// Options for configuring Solid.Http.Json.
     /// </summary>
-    public class SolidHttpJsonOptions : ISolidHttpJsonOptions
+    public class SolidHttpJsonOptions
     {
         /// <summary>
         /// The <see cref="JsonSerializerOptions" /> used for deserializing JSON.

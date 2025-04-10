@@ -8,7 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Extension methods for adding JSON deserialization to <see cref="SolidHttpBuilder" />.
     /// </summary>
-    public static class Solid_Http_Json_SolidHttpBuilderExtensions
+    public static class SolidHttpBuilderExtensions
     {
         /// <summary>
         /// Adds JSON deserialization to <see cref="SolidHttpBuilder" />.
@@ -18,7 +18,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The <see cref="SolidHttpBuilder" /> so that additional calls can be chained.</returns>
         public static SolidHttpBuilder AddJson(this SolidHttpBuilder builder)
         {
-            builder.AddJsonDeserializer<SystemTextJsonDeserializer>();
+            builder.AddDeserializer<SystemTextJsonDeserializer>();
             return builder;
         }
 

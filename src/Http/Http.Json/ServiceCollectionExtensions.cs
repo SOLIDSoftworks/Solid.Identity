@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using Solid.Http;
 using Solid.Http.Json;
 using System;
 

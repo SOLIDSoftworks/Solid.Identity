@@ -6,7 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Http.Json.Core\Http.Json.Core.csproj" />
+    <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
   </ItemGroup>
+  
 
 </Project>
