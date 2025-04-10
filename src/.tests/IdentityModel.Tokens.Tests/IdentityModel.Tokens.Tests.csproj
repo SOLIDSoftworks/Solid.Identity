@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
     <ProjectReference Include="..\..\IdentityModel\Tokens\Tokens.csproj" />
     <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
+    <ProjectReference Include="..\..\Utility\Testing.Certificates\Testing.Certificates.csproj" />
   </ItemGroup>
 
 </Project>

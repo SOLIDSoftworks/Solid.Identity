@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
+using Solid.Testing.Certificates;
 using Xunit;
 
 namespace Solid.IdentityModel.Tokens.Saml.Tests
@@ -109,33 +110,8 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
 
         public X509Certificate2 GenerateCertificate(DateTime? notBefore = null, DateTime? notAfter = null)
         {
-            var name = Guid.NewGuid().ToString("N");
-            var builder = new SubjectAlternativeNameBuilder();
-            builder.AddDnsName(name);
-
-            var dn = new X500DistinguishedName($"CN={name}");
-            using (var rsa = RSA.Create(2048))
-            {
-                var request = new CertificateRequest(dn, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                var usage = new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyAgreement, true);
-                request.CertificateExtensions.Add(usage);
-
-                var oids = new OidCollection
-                {
-                    new Oid("1.3.6.1.5.5.7.3.1"), // Server authentication
-                    new Oid("1.3.6.1.5.5.7.3.2") // Client authentication
-                };
-
-                request.CertificateExtensions.Add(
-                   new X509EnhancedKeyUsageExtension(oids, false));
-
-                request.CertificateExtensions.Add(builder.Build());
-
-                var certificate = request.CreateSelfSigned(new DateTimeOffset(notBefore ?? DateTime.UtcNow.AddMinutes(-5)), new DateTimeOffset(notAfter ?? DateTime.UtcNow.AddMinutes(5)));
-                var bytes = certificate.Export(X509ContentType.Pfx);
-                return new X509Certificate2(bytes, null as string, X509KeyStorageFlags.Exportable); // don't ask me why, but this is required for some tests to work; i.e. Mtls tests
-            }
+            var descriptor = CertificateDescriptor.Create();
+            return CertificateStore.GetOrCreate(descriptor);
         }
 
         public void AssertContainsSymmetricKey(SecurityToken securityToken, SymmetricSecurityKey symmetric, SecurityKey decryptionKey = null)

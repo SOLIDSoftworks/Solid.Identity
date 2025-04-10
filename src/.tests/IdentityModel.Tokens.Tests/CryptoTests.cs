@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
+using Solid.Testing.Certificates;
 using Xunit;
 
 namespace Solid.IdentityModel.Tokens.Tests
@@ -17,7 +18,8 @@ namespace Solid.IdentityModel.Tokens.Tests
 
         static CryptoTests()
         {
-            Certificate = GenerateCertificate();
+            var descriptor = CertificateDescriptor.Create();
+            Certificate = CertificateStore.GetOrCreate(descriptor);
             IdentityModelEventSource.ShowPII = true;
         }
 
@@ -510,34 +512,6 @@ namespace Solid.IdentityModel.Tokens.Tests
             services.InitializeDefaultCryptoProviderFactory();
 
             return services.GetService<CryptoProviderFactory>();
-        }
-        static X509Certificate2 GenerateCertificate(DateTime? notBefore = null, DateTime? notAfter = null, bool addServerAuthentication = true, bool addClientAuthentication = true)
-        {
-            var name = Guid.NewGuid().ToString("N");
-            var builder = new SubjectAlternativeNameBuilder();
-            builder.AddDnsName(name);
-
-            var dn = new X500DistinguishedName($"CN={name}");
-            using (var rsa = RSA.Create(2048))
-            {
-                var request = new CertificateRequest(dn, rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-
-                var usage = new X509KeyUsageExtension(X509KeyUsageFlags.DataEncipherment | X509KeyUsageFlags.KeyEncipherment | X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyAgreement, true);
-                request.CertificateExtensions.Add(usage);
-
-                var oids = new OidCollection();
-                if (addServerAuthentication)
-                    oids.Add(new Oid("1.3.6.1.5.5.7.3.1"));
-                if (addClientAuthentication)
-                    oids.Add(new Oid("1.3.6.1.5.5.7.3.2"));
-
-                request.CertificateExtensions.Add(
-                   new X509EnhancedKeyUsageExtension(oids, false));
-
-                request.CertificateExtensions.Add(builder.Build());
-
-                return request.CreateSelfSigned(new DateTimeOffset(notBefore ?? DateTime.UtcNow.AddMinutes(-5)), new DateTimeOffset(notAfter ?? DateTime.UtcNow.AddMinutes(5)));
-            }
         }
     }
 }

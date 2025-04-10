@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\..\IdentityModel\Tokens.Saml\Tokens.Saml.csproj" />
+    <ProjectReference Include="..\..\Utility\Testing.Certificates\Testing.Certificates.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Saml2MetadataSerializerTests.cs" />
