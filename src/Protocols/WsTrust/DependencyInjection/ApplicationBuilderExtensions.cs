@@ -10,22 +10,26 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Solid.Identity.DependencyInjection;
+using Solid.Identity.Protocols.WsTrust;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class Solid_Identity_Protocols_WsTrust_ApplicationBuilderExtensions
+    public static class ApplicationBuilderExtensions
     {
         public static IApplicationBuilder UseWsTrust13AsyncService(this IApplicationBuilder builder)
-            => builder.UseWsTrust13AsyncService("/trust/13");
+            => builder.UseWsTrust13AsyncService(WsTrustDefaults.DefaultTrust13Path);
+        public static IApplicationBuilder UseWsTrust13AsyncService(this IApplicationBuilder builder, PathString path)
+            => builder.UseWsTrust13AsyncService(path, WsTrustContractOptions.DefaultTrust13Contract);
+        public static IApplicationBuilder UseWsTrust13AsyncService(this IApplicationBuilder builder, WsTrustContractOptions options)
+            => builder.UseWsTrust13AsyncService(WsTrustDefaults.DefaultTrust13Path, options);
 
-
-        public static IApplicationBuilder UseWsTrust13AsyncService(this IApplicationBuilder builder, PathString pathPrefix)
+        public static IApplicationBuilder UseWsTrust13AsyncService(this IApplicationBuilder builder, PathString path, WsTrustContractOptions options)
         {
             builder.ApplicationServices.InitializeCustomCryptoProvider();
-
-            builder.MapSoapService<IWsTrust13AsyncContract>(pathPrefix, app =>
+            builder.MapSoapService<IWsTrust13AsyncContract>(path, app =>
             {
-                app.UseMiddleware<WsSecurityMiddleware>();
+                app.UseTrust13(options);
             });
             return builder;
         }

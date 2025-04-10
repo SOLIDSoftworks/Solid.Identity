@@ -13,6 +13,10 @@ namespace Solid.IdentityModel.Protocols
     /// </summary>
     public class WsSerializationContext
     {
+        public WsSerializationContext()
+        {
+        }
+        
         public WsSerializationContext(WsTrustVersion wsTrustVersion)
         {
             TrustVersion = wsTrustVersion;
@@ -48,34 +52,21 @@ namespace Solid.IdentityModel.Protocols
                 TrustKeyTypes = WsTrustKeyTypes.Trust14;
             }
         }
-
-        // public WsSerializationContext(
-        //     WsTrustVersion wsTrustVersion,
-        //     WsAddressingConstants addressingConstants = null,
-        //     WsFedConstants fedConstants,
-        //     WsPolicyConstants policyConstants,
-        //     WsSecurityConstants securityConstants,
-        //     WsTrustActions trustActions,
-        //     WsTrustConstants trustConstants,
-        //     WsTrustKeyTypes trustKeyTypes)
-        // {
-        //     
-        // }
         
-        public WsAddressingConstants AddressingConstants { get; }
+        public WsAddressingConstants AddressingConstants { get; init; }
 
-        public WsFedConstants FedConstants { get; }
+        public WsFedConstants FedConstants { get; init; }
        
-        public WsPolicyConstants PolicyConstants { get; }
+        public WsPolicyConstants PolicyConstants { get; init; }
 
-        public WsSecurityConstants SecurityConstants { get; }
+        public WsSecurityConstants SecurityConstants { get; init; }
 
-        public WsTrustActions TrustActions { get; }
+        public WsTrustActions TrustActions { get; init; }
 
-        public WsTrustConstants TrustConstants { get; }
+        public WsTrustConstants TrustConstants { get; init; }
 
-        public WsTrustKeyTypes TrustKeyTypes { get; }
+        public WsTrustKeyTypes TrustKeyTypes { get; init; }
 
-        public WsTrustVersion TrustVersion { get; }
+        public WsTrustVersion TrustVersion { get; init; }
     }
 }

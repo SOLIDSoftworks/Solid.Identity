@@ -117,7 +117,7 @@ namespace Solid.Identity.Protocols.WsTrust
         {
             var serializer = _serializerFactory.Create();
             var soapContext = _soapContextAccessor.SoapContext;
-            var context = new DispatchContext
+            var context = new  DispatchContext
             {
                 Principal = soapContext.User,
                 RequestAction = requestAction,

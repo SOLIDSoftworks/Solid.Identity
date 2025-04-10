@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Solid.Identity.Protocols.WsSecurity.Tokens;
 
 namespace Solid.Identity.Protocols.WsTrust
 {
     public static class WsTrustDefaults
     {
+        public static readonly PathString DefaultTrust13Path = new ("/trust/13");
         public static readonly string DefaultTokenType = Saml2Constants.Saml2TokenProfile11;
         public static readonly int DefaultSymmetricKeySizeInBits = 256;
         public static readonly int DefaultMaxSymmetricKeySizeInBits = 1024;

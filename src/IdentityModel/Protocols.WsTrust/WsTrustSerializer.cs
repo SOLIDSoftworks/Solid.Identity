@@ -339,14 +339,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             WsSerializationContext serializationContext;
             if (reader.IsNamespaceUri(WsTrustConstants.Trust13.Namespace))
-                serializationContext = new WsSerializationContext(WsTrustVersion.Trust13);
+                serializationContext = CreateSerializationContext(WsTrustVersion.Trust13);
             else if (reader.IsNamespaceUri(WsTrustConstants.TrustFeb2005.Namespace))
-                serializationContext = new WsSerializationContext(WsTrustVersion.TrustFeb2005);
+                serializationContext = CreateSerializationContext(WsTrustVersion.TrustFeb2005);
             else if (reader.IsNamespaceUri(WsTrustConstants.Trust14.Namespace))
-                serializationContext = new WsSerializationContext(WsTrustVersion.Trust14);
+                serializationContext = CreateSerializationContext(WsTrustVersion.Trust14);
             else
                 throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15000, WsTrustConstants.TrustFeb2005, WsTrustConstants.Trust13, WsTrustConstants.Trust14, reader.NamespaceURI)));
-
 
             try
             {
@@ -374,6 +373,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 throw XmlUtil.LogReadException(LogMessages.IDX15017, ex, WsTrustElements.RequestSecurityToken, ex);
             }
         }
+        
+        protected virtual WsSerializationContext CreateSerializationContext(WsTrustVersion version)
+            => new WsSerializationContext(version);
 
         private void ReadRequest(XmlDictionaryReader reader, WsTrustRequest trustRequest, WsSerializationContext serializationContext)
         {
@@ -782,11 +784,11 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             {
                 WsSerializationContext serializationContext;
                 if (reader.IsNamespaceUri(WsTrustConstants.Trust13.Namespace))
-                    serializationContext = new WsSerializationContext(WsTrustVersion.Trust13);
+                    serializationContext = CreateSerializationContext(WsTrustVersion.Trust13);
                 else if (reader.IsNamespaceUri(WsTrustConstants.TrustFeb2005.Namespace))
-                    serializationContext = new WsSerializationContext(WsTrustVersion.TrustFeb2005);
+                    serializationContext = CreateSerializationContext(WsTrustVersion.TrustFeb2005);
                 else if (reader.IsNamespaceUri(WsTrustConstants.Trust14.Namespace))
-                    serializationContext = new WsSerializationContext(WsTrustVersion.Trust14);
+                    serializationContext = CreateSerializationContext(WsTrustVersion.Trust14);
                 else
                     throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15001, WsTrustConstants.TrustFeb2005, WsTrustConstants.Trust13, WsTrustConstants.Trust14, reader.NamespaceURI)));
 
@@ -1207,7 +1209,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             if (trustRequest == null)
                 throw LogHelper.LogArgumentNullException(nameof(trustRequest));
 
-            var serializationContext = new WsSerializationContext(wsTrustVersion);
+            var serializationContext = CreateSerializationContext(wsTrustVersion);
 
             try
             {
@@ -1305,7 +1307,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             if (requestSecurityTokenResponse == null)
                 throw LogHelper.LogArgumentNullException(nameof(requestSecurityTokenResponse));
 
-            var serializationContext = new WsSerializationContext(wsTrustVersion);
+            var serializationContext = CreateSerializationContext(wsTrustVersion);
 
             try
             {
@@ -1565,7 +1567,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             if (trustResponse == null)
                 throw LogHelper.LogArgumentNullException(nameof(trustResponse));
 
-            var serializationContext = new WsSerializationContext(wsTrustVersion);
+            var serializationContext = CreateSerializationContext(wsTrustVersion);
 
             try
             {

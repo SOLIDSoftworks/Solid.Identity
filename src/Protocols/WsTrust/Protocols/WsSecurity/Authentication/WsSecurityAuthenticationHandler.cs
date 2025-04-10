@@ -31,9 +31,9 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
         private static readonly XName Timestamp = XName.Get("Timestamp", WsUtilityConstants.WsUtility10.Namespace);
         private static readonly XName Signature = XName.Get("Signature", XmlSignatureConstants.Namespace);
 
-        private ISoapContextAccessor _soapContextAccessor;
-        private ITokenValidationParametersFactory _tokenValidationParametersFactory;
-        private SecurityTokenHandlerProvider _securityTokenHandlerProvider;
+        private readonly ISoapContextAccessor _soapContextAccessor;
+        private readonly ITokenValidationParametersFactory _tokenValidationParametersFactory;
+        private readonly SecurityTokenHandlerProvider _securityTokenHandlerProvider;
 
         public WsSecurityAuthenticationHandler(
             ISoapContextAccessor soapContextAccessor,

@@ -17,7 +17,7 @@ using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class Solid_Identity_Protocols_WsTrust_ServiceCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection ConfigureWsTrust(this IServiceCollection services, Action<WsTrustOptions> configureOptions)
             => services.Configure(configureOptions);
