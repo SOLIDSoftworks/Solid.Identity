@@ -8,10 +8,10 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         {
         }
 
-        public KeyIdentifier(string id)
+        public KeyIdentifier(string value)
             : this()
         {
-            Id = id;
+            Value = value;
         }
 
         public string EncodingType { get; set; }
