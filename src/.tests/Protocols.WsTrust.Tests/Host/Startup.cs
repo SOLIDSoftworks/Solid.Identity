@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Solid.Identity.Tokens;
 using Solid.IdentityModel.Tokens;
+using Solid.Testing.Certificates;
 
 namespace Solid.Identity.Protocols.WsTrust.Tests.Host
 {
@@ -53,12 +54,10 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
 
                         options.AddIdentityProvider("urn:test:issuer", idp =>
                         {
-                            using (var certificate = new X509Certificate2(Convert.FromBase64String(Certificates.ClientCertificateBase64)))
-                            {
-                                var publicCertificate = new X509Certificate2(certificate.Export(X509ContentType.Cert));
-                                idp.AllowedRelyingParties.Add("urn:tests");
-                                idp.SecurityKeys.Add(new X509SecurityKey(publicCertificate));
-                            }
+                            var certificate = CertificateStore.GetOrCreate(Certificates.ClientCertificate);
+                            var publicCertificate = X509CertificateLoader.LoadCertificate(certificate.Export(X509ContentType.Cert));
+                            idp.AllowedRelyingParties.Add("urn:tests");
+                            idp.SecurityKeys.Add(new X509SecurityKey(publicCertificate));
                         });
                         options.AddIdentityProvider("urn:test:issuer:embedded_cert", idp =>
                         {
@@ -67,7 +66,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
                         });
                         options.AddRelyingParty("urn:tests", party =>
                         {
-                            var certificate = new X509Certificate2(Convert.FromBase64String(Certificates.RelyingPartyValidBase64));
+                            var certificate = CertificateStore.GetOrCreate(Certificates.RelyingPartyValid);
                             party.Name = "My test relying party";
                             party.SigningKey = new X509SecurityKey(certificate);
                             party.SigningAlgorithm = SignatureMethod.RsaSha256;

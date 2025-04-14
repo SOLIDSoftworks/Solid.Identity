@@ -123,14 +123,14 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
             else if (keyInfo is EncryptedKeyInfo encrypted)
                 Assert.Equal(symmetric.Key, encrypted.Decrypt(decryptionKey ?? _lazyDecryptionKey.Value));
             else
-                Assert.True(false, "Unable to assert key info");
+                Assert.Fail("Unable to assert key info");
         }
 
         private KeyInfo GetKeyInfo(SecurityToken securityToken)
         {
             if (!(securityToken is Saml2SecurityToken saml2))
             {
-                Assert.True(false, "Passed security token is not a saml2 security token");
+                Assert.Fail("Passed security token is not a saml2 security token");
                 return null;
             }
 

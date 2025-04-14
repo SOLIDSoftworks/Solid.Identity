@@ -29,6 +29,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
 using Solid.Identity.Protocols.WsTrust.Tests.Host.Tokens;
+using Solid.Testing.Certificates;
 
 #if NET472
 using System.IdentityModel.Protocols.WSTrust;
@@ -52,8 +53,8 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
 
         public WsTrustTestsFixture()
         {
-            Certificate = new X509Certificate2(Convert.FromBase64String(Certificates.SigningCertificteBase64));
-            ClientCertificate = new X509Certificate2(Convert.FromBase64String(Certificates.ClientCertificateBase64));
+            Certificate = CertificateStore.GetOrCreate(Certificates.RelyingPartyValid);
+            ClientCertificate = CertificateStore.GetOrCreate(Certificates.ClientCertificate);
 
             var saml = new SamlSecurityTokenHandler();
             var saml2 = new Saml2SecurityTokenHandler();

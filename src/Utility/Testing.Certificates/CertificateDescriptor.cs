@@ -22,9 +22,12 @@ public sealed class CertificateDescriptor : IEquatable<CertificateDescriptor>
         X509KeyUsageFlags.KeyAgreement
     };
 
-    public static CertificateDescriptor Create(bool addServerAuthentication = true, bool addClientAuthentication = true)
+    public static CertificateDescriptor Create(string? name = null, bool addServerAuthentication = true, bool addClientAuthentication = true)
     {
-        var descriptor = new CertificateDescriptor();
+        var descriptor = new CertificateDescriptor
+        {
+            CommonName = name
+        };
         if(addClientAuthentication)
             descriptor.Oids.Add(Certificates.Oids.ClientAuthentication);
         if(addServerAuthentication)

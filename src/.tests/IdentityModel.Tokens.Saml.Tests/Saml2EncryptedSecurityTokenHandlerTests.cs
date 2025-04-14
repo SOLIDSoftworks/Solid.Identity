@@ -11,17 +11,40 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Xml;
+using Solid.IdentityModel.Tokens.Crypto;
 using Xunit;
 
 namespace Solid.IdentityModel.Tokens.Saml.Tests
 {
     public class Saml2EncryptedSecurityTokenHandlerTests : IClassFixture<Saml2TestFixture>
     {
-        private static readonly string _encryptedAssertion = "<saml:EncryptedAssertion xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"><xenc:EncryptedData Type=\"http://www.w3.org/2001/04/xmlenc#Element\" xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\"><xenc:EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#aes128-cbc\" /><ds:KeyInfo xmlns:ds=\"http://www.w3.org/2000/09/xmldsig#\">\n<xenc:EncryptedKey><xenc:EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p\"><ds:DigestMethod Algorithm=\"http://www.w3.org/2000/09/xmldsig#sha1\" /></xenc:EncryptionMethod><ds:KeyInfo>\n<wsse:SecurityTokenReference xmlns:wsse=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd\"><wsse:KeyIdentifier ValueType=\"http://docs.oasis-open.org/wss/oasis-wss-soap-message-security-1.1#ThumbprintSHA1\">GdAB+K/AJCgNzGaBXiXr1b0n6Pk=</wsse:KeyIdentifier></wsse:SecurityTokenReference>\n</ds:KeyInfo><xenc:CipherData><xenc:CipherValue>bB5ma0e9gx6Wb7ZQiNvqhPSf9sp6bbOMOzvDsLfuODvhsGbiaCPpsgjVZjGULpXIjnTl22AQKQgE\nvReBREC2KTtQc5O9JAufQ40WbFlovpwQdPV1JK2RzpLHz6Yt2OLX0gEkp/oFw3W5VPXSJkjrW4Tj\n5goC3R981zltRjj0n+wk6BlWX6WU8Xr7rFHesrI+qLMFuhXj9yf+uXQRsqk9rPpn1rm/+Xksalum\nEVN+S5CVCLw1QxXQMG9xJwt1vJMUxkGvZh4XlSI9m1Gw3t/g1I7ttme80s3Cguux6m+yjzaSR51L\njiUab1DUEDCdNUoW+o48CQVK3+zsU8BQVwgp8Q==</xenc:CipherValue></xenc:CipherData></xenc:EncryptedKey></ds:KeyInfo><xenc:CipherData><xenc:CipherValue>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</xenc:CipherValue></xenc:CipherData></xenc:EncryptedData></saml:EncryptedAssertion>";
-        private Saml2TestFixture _fixture;
-        private const string _decryptionCertificateBase64 = "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";
-        private const string _signatureVerificationCertificateBase64 = "MIIDBjCCAe6gAwIBAgIGAXMUkrVPMA0GCSqGSIb3DQEBCwUAMEQxCzAJBgNVBAYTAklTMRUwEwYDVQQKEwxMYW5kc2Jhbmtpbm4xHjAcBgNVBAMTFVdTVHJ1c3RDaGFubmVsRmFjdG9yeTAeFw0yMDA3MDMxMjA3MDVaFw0yMTA3MDMxMjA3MDVaMEQxCzAJBgNVBAYTAklTMRUwEwYDVQQKEwxMYW5kc2Jhbmtpbm4xHjAcBgNVBAMTFVdTVHJ1c3RDaGFubmVsRmFjdG9yeTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJAhPg6699LZx+OVfnC49b7btnYXSs9+oGx8uSU1geTV5+bW3l5EQBZaLuMAGBy4KXft7fUXm2/NG3UnjVKX+mK84bJn68mF9DroVglm+bWgvgy/ayFJmLj3NRby9ZrN/qNin8zmeZVBIR0xi6eR3XlAbJkgf1BtK27qzSP0qeYcpBf2qLFcZEuPO//1jTxYj/7EbyAAULSdJBR81pDskUWoV4Sux1uFyUXA+XLirhuBOagJXJqJEmgnAAhbOtoO5q8xvYyplagnOyEmwu9C3lwO6r3fdEJVTHKGE1pnL0CwoAhyyQtWVzbZuUQpSylcqqiBNtoak6oN8lsIb4dc1psCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAg1KkwPAAsrSuJ3eOIrAjgE/dlKqa/OdMwVFz13sbBp106Yk7UPRww/Bf/nnHwW7nK0613wvT86jhMZG7LS9xa6q8mmx5m5XnEec5g8uSws8pjiR8CRWrm/FnXYMUnJV60LC4SNFpRE5x0pyjoxkYjZ4DkMtmVFZWX8Vw7K9TAwWcwD8QB03qbVVhkAi87lt+hgnce5Wkiq1c5Q6TIYBRwNnxu4aHjY9TC3TLeUCRC+GVuLhRmRS4T4NJ/UVd1D6b+thCJEMPUDH6LyAkTpereC/CItOKPiYWV37D8slhJiThkpNqJipuIjfkvHCRBlJ4nz9tUj1fft4YLcQTpjq4MQ==";        
+        private static readonly JsonWebKey _signatureVerificationJwk = new (@"
+{
+    ""kty"": ""RSA"",
+    ""e"": ""AQAB"",
+    ""use"": ""sig"",
+    ""alg"": ""RS256"",
+    ""n"": ""2nLVNpkBbpq1Ut0yLicjXeLRNp3mK3kAqYu2Mka52c5ekRBXphBrlD3DLJJcAGDpDvYyZBJOeGDk7PkBhwBKwELznwf1-pIwI28qzQsJTz5MPsUF4d6sNgpVzg5nvdf-hX5afqUH8QwecfPscoVE91wfWN65NgcB7Crrik4Om2TgMbHucFOMUBwJWxsO3sAmOWI4kTZDsFamQoNkXRcuTuHpNo7ISKQOzcUNvRtjViPZpwQiRx7pZh-S6Nvjz_PsnHcNgnQcjohR-v8zDvRp0FMDf009hjjhDj5kFSRFEofKOkzlbet9eiUcQjpAMt2I01O9et9ZYVyk2DfjPWHGkQ""
+}");
 
+        private static readonly JsonWebKey _decryptionJwk = new (@"
+{
+    ""p"": ""xX3QDWg3E6b00AqBFNmYV-ol7LNPlLpHscxm2UqZMN_p9taxqsRFt6PP9jDAg9XV9oKbyTJvKEzP4qlmlrgya1flElxrisipgRpqEUlfCYLoCitmJ_61FtfMoNzDPfBVECsLjYEsXS0NgvhHIzq657Y9mH3TKqDIQ_dM-UJ5CU8"",
+    ""kty"": ""RSA"",
+    ""q"": ""qH_QUPzOp7ZRyaRkUl6keYc_oTYNinF7OGhuy1rFYFKW5CPy7VeMI3ZIeqOLRbLHoZuxhJIdPZSn_LWnzHH9JnchMi_qXXZ-ygSLdtZ9bz5wQJDQpOIEJZRM2VaXGCVW2LrzUGSTV2HPfV0c7AGldZ0PHoNBURqzqu742z8ZWC8"",
+    ""d"": ""FBGH8lih5_NM6GFFWnkTAdAVwQcIupLeNIFnbci2E__Ez52huoCK95ODiqrrSG9kbjfHiIzX8thX1cntPIzezTk6XKT8lMLfp7S1xKc8aR_LRumozVH4769BDQn8MCK9UqBUG86n4qWhpq-vAdPPdCoPBjYDnr80zsLvnxYvFWUEj1KJgg2-MeMBsoFrjSj2ErfXQxxBVjms7AziCI0vJKsQUWnfVeFQ49YXs-Z60eSeIyb9yef2isOlnxvOP_ALpQIRUbTEnRWGhhqtlcJIAfDWsWbfBZ7fM1VuV-iI-2sIehTGQ4pTGt4Pc8hrNvqdhnEKq3ps_E1bJnXIMmyGGQ"",
+    ""e"": ""AQAB"",
+    ""use"": ""enc"",
+    ""qi"": ""RZ6p6isvg7wBwOTuLwVIH6pat2pl6usxt7KUskYwTCZoIf9WCi7lPN8Xi8xUdGYTe_k6zrz4kSMiQ_VtfTuIqkAkoN1p08X_mQis5JoncVWT1LCdQypIhEQNlKv1Gqm4e_OTVjHPm4OaJ56LB805qBIMmbk8vCcKLNzPp7Y_kHM"",
+    ""dp"": ""YGTMS_72Aw2WqIS4BGlAxohvAl1zFnDl1Y6jFKQoqYZhOC4KggNS1BOMyel5zd9tk-ikCUwonU8AmO1-OUqmsWYxVQjvJMpUkcNGyjE5xfazM2ODdToJQaELK-kVEwJfQokAFo1aDhCTa72rWzKrT7XP0sJ3c3MOzL3EQFWFplk"",
+    ""alg"": ""RSA-OAEP-256"",
+    ""dq"": ""UKq4AT22daYcK6vO93wlw6STOsuU2fWQJyYf_KzdF0sSv-_R6fxis8t50XSgRWLcnara5nvJEeUsMxiIV6Eur46SzuMPkWUcN_zLA76V2H8M4Gwz5uvpTlBcJiSFO2MM279Mou0zeL7zxbGhGf-DxfXF-jaeO4TMBQZZDyV7LbM"",
+    ""n"": ""gf0qp7ZuBoH4TN7MOg1liCY-rK1PCCMJcmc6bQCNmtdJAR_c_Hb0NmkHfmrsMququWoOruSi7vRG_8qj0EjAJDt_ngQuMa2hCHW9VwMDMnTNNmv6tiOueFaml5T0kRoY7mGhrf331dXn68ro6ad6NJBmbVQZBF9s_2_XkaFTiOOSosV7TcbWuyyuXg-bgdO_RLZQ6JeuPMohJ3hvS9VGGU7vb0mUGtL9FeuYTKJjEn6GWdbqtcQfgrGexUJxBgMhMX2MC1ncwZCGhPRPNQ95N19KifRRnyO5q2tyI1WAPFUfhvHE9Ux_tUzkcojsdNhOX6k-u_vz4cyUkZZOKSLdgQ""
+}");
+        
+        private static readonly string _encryptedAssertion = "<saml:EncryptedAssertion xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\"><EncryptedData Type=\"http://www.w3.org/2001/04/xmlenc#Element\" xmlns=\"http://www.w3.org/2001/04/xmlenc#\"><EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#aes128-cbc\" /><KeyInfo xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><EncryptedKey xmlns=\"http://www.w3.org/2001/04/xmlenc#\"><EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p\" /><KeyInfo xmlns=\"http://www.w3.org/2000/09/xmldsig#\"><KeyValue><RSAKeyValue><Modulus>gf0qp7ZuBoH4TN7MOg1liCY+rK1PCCMJcmc6bQCNmtdJAR/c/Hb0NmkHfmrsMququWoOruSi7vRG/8qj0EjAJDt/ngQuMa2hCHW9VwMDMnTNNmv6tiOueFaml5T0kRoY7mGhrf331dXn68ro6ad6NJBmbVQZBF9s/2/XkaFTiOOSosV7TcbWuyyuXg+bgdO/RLZQ6JeuPMohJ3hvS9VGGU7vb0mUGtL9FeuYTKJjEn6GWdbqtcQfgrGexUJxBgMhMX2MC1ncwZCGhPRPNQ95N19KifRRnyO5q2tyI1WAPFUfhvHE9Ux/tUzkcojsdNhOX6k+u/vz4cyUkZZOKSLdgQ==</Modulus><Exponent>AQAB</Exponent></RSAKeyValue></KeyValue></KeyInfo><CipherData><CipherValue>EBGqlbXRu3e4vx33L9m2QXhJPkFmp01F5NIJT4tSXAPB7GvqqUkwuPAx1VL4iZ2fHm2tIuLiDkdWeamdz+Knee+tiXQRLJU5pTdR1iW02VC1Ids9jAJdZWBZePywsykWzMS4wNwMLYLDwD6MN2smZxt5VbZoGNg3JDO7oLRJJxOO15ZY7XJ+L9ujYKnA+gpSciRuYyrUthyXbD4FSdKyFlt4trccXWVbs5Y3OtA0uWZyTVshp5PHZwRsObw7s/npDlvmJvMK/VgkuwNkJCOAy1BwKY3YPvZkEYB9ceYB509ZZs8N5VZvvy8RLuKxA44qggXdGk7ix9QRjxPf2UE0bQ==</CipherValue></CipherData></EncryptedKey></KeyInfo><CipherData><CipherValue>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</CipherValue></CipherData></EncryptedData></saml:EncryptedAssertion>";
+        private Saml2TestFixture _fixture;
+        
         static Saml2EncryptedSecurityTokenHandlerTests()
         {
             IdentityModelEventSource.ShowPII = true;
@@ -50,15 +73,17 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
         public void ShouldReadEncryptedToken()
         {
             var handler = new Saml2EncryptedSecurityTokenHandler();
-            using var signatureVerificationCertificate = new X509Certificate2(Convert.FromBase64String(_signatureVerificationCertificateBase64));
-            using var decryptionCertificate = new X509Certificate2(Convert.FromBase64String(_decryptionCertificateBase64));
-            var parameters = _fixture.CreateTokenValidationParameters(decryptionKey: new X509SecurityKey(decryptionCertificate), signatureVerificationKey: new X509SecurityKey(signatureVerificationCertificate));
+            
+            Assert.True(JsonWebKeyConverter.TryConvertToSecurityKey(_signatureVerificationJwk, out var signatureVerificationKey));
+            Assert.True(JsonWebKeyConverter.TryConvertToSecurityKey(_decryptionJwk, out var decryptionKey));
+            
+            var parameters = _fixture.CreateTokenValidationParameters(decryptionKey: decryptionKey, signatureVerificationKey: signatureVerificationKey);
             var token = handler.ReadToken(_encryptedAssertion, parameters);
             Assert.NotNull(token);
             Assert.IsType<Saml2EncryptedSecurityToken>(token);
 
             var encrypted = token as Saml2EncryptedSecurityToken;
-            Assert.NotNull(encrypted.Assertion);
+            Assert.NotNull(encrypted?.Assertion);
             Assert.Null(encrypted.EncryptingCredentials);
             Assert.NotNull(encrypted.EncryptedData);
         }
@@ -67,15 +92,17 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
         public void ShouldValidateEncryptedToken()
         {
             var handler = new Saml2EncryptedSecurityTokenHandler();
-            using var signatureVerificationCertificate = new X509Certificate2(Convert.FromBase64String(_signatureVerificationCertificateBase64));
-            using var decryptionCertificate = new X509Certificate2(Convert.FromBase64String(_decryptionCertificateBase64));
-            var parameters = _fixture.CreateTokenValidationParameters(decryptionKey: new X509SecurityKey(decryptionCertificate), signatureVerificationKey: new X509SecurityKey(signatureVerificationCertificate));
-            var user = handler.ValidateToken(_encryptedAssertion, parameters, out var token);
+            
+            Assert.True(JsonWebKeyConverter.TryConvertToSecurityKey(_signatureVerificationJwk, out var signatureVerificationKey));
+            Assert.True(JsonWebKeyConverter.TryConvertToSecurityKey(_decryptionJwk, out var decryptionKey));
+
+            var parameters = _fixture.CreateTokenValidationParameters(decryptionKey: decryptionKey, signatureVerificationKey: signatureVerificationKey);
+            _ = handler.ValidateToken(_encryptedAssertion, parameters, out var token);
             Assert.NotNull(token);
             Assert.IsType<Saml2EncryptedSecurityToken>(token);
 
             var encrypted = token as Saml2EncryptedSecurityToken;
-            Assert.NotNull(encrypted.Assertion);
+            Assert.NotNull(encrypted?.Assertion);
             Assert.Null(encrypted.EncryptingCredentials);
             Assert.NotNull(encrypted.EncryptedData);
         }
@@ -92,7 +119,7 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
             Assert.IsType<Saml2EncryptedSecurityToken>(token);
 
             var encrypted = token as Saml2EncryptedSecurityToken;
-            Assert.NotNull(encrypted.Assertion);
+            Assert.NotNull(encrypted?.Assertion);
             Assert.NotNull(encrypted.EncryptingCredentials);
             Assert.Null(encrypted.EncryptedData);
         }
@@ -109,7 +136,7 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
             Assert.IsType<Saml2EncryptedSecurityToken>(token);
 
             var encrypted = token as Saml2EncryptedSecurityToken;
-            Assert.NotNull(encrypted.Assertion);
+            Assert.NotNull(encrypted?.Assertion);
             Assert.NotNull(encrypted.EncryptingCredentials);
             Assert.Null(encrypted.EncryptedData);
         }
@@ -134,17 +161,15 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
 
             var token = handler.CreateToken(descriptor);
 
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
+                handler.WriteToken(writer, token);
+            stream.Position = 0;
+            using (var reader = XmlReader.Create(stream))
             {
-                using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
-                    handler.WriteToken(writer, token);
-                stream.Position = 0;
-                using (var reader = XmlReader.Create(stream))
-                {
-                    reader.MoveToContent();
-                    Assert.True(reader.IsStartElement("EncryptedAssertion", Saml2Constants.Namespace));
-                    Assert.False(reader.IsEmptyElement);
-                }
+                reader.MoveToContent();
+                Assert.True(reader.IsStartElement("EncryptedAssertion", Saml2Constants.Namespace));
+                Assert.False(reader.IsEmptyElement);
             }
         }
 
@@ -156,19 +181,17 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
 
             var token = handler.CreateToken(descriptor);
 
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
+                handler.WriteToken(writer, token);
+            stream.Position = 0;
+            using (var reader = XmlReader.Create(stream))
             {
-                using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
-                    handler.WriteToken(writer, token);
-                stream.Position = 0;
-                using (var reader = XmlReader.Create(stream))
-                {
-                    var parameters = _fixture.CreateTokenValidationParameters(validateLifetime: true);
-                    var user = handler.ValidateToken(reader, parameters, out var validatedToken);
+                var parameters = _fixture.CreateTokenValidationParameters(validateLifetime: true);
+                var user = handler.ValidateToken(reader, parameters, out var validatedToken);
 
-                    Assert.NotNull(user);
-                    Assert.NotNull(validatedToken);
-                }
+                Assert.NotNull(user);
+                Assert.NotNull(validatedToken);
             }
         }
 
@@ -179,26 +202,24 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
 
             var signingCertificate = _fixture.GenerateCertificate();
             var decryptionCertificate = _fixture.GenerateCertificate();
-            var verificationCertificate = new X509Certificate2(signingCertificate.Export(X509ContentType.Cert));
-            var encryptionCertificate = new X509Certificate2(decryptionCertificate.Export(X509ContentType.Cert));
+            var verificationCertificate = X509CertificateLoader.LoadCertificate(signingCertificate.Export(X509ContentType.Cert));
+            var encryptionCertificate = X509CertificateLoader.LoadCertificate(decryptionCertificate.Export(X509ContentType.Cert));
 
             var descriptor = _fixture.CreateDescriptor(signingKey: new X509SecurityKey(signingCertificate), encryptionKey: new X509SecurityKey(encryptionCertificate));
 
             var token = handler.CreateToken(descriptor);
 
-            using (var stream = new MemoryStream())
+            using var stream = new MemoryStream();
+            using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
+                handler.WriteToken(writer, token);
+            stream.Position = 0;
+            using (var reader = XmlReader.Create(stream))
             {
-                using (var writer = XmlWriter.Create(stream, new XmlWriterSettings { CloseOutput = false }))
-                    handler.WriteToken(writer, token);
-                stream.Position = 0;
-                using (var reader = XmlReader.Create(stream))
-                {
-                    var parameters = _fixture.CreateTokenValidationParameters(signatureVerificationKey: new X509SecurityKey(verificationCertificate), decryptionKey: new X509SecurityKey(decryptionCertificate), validateLifetime: true);
-                    var user = handler.ValidateToken(reader, parameters, out var validatedToken);
+                var parameters = _fixture.CreateTokenValidationParameters(signatureVerificationKey: new X509SecurityKey(verificationCertificate), decryptionKey: new X509SecurityKey(decryptionCertificate), validateLifetime: true);
+                var user = handler.ValidateToken(reader, parameters, out var validatedToken);
 
-                    Assert.NotNull(user);
-                    Assert.NotNull(validatedToken);
-                }
+                Assert.NotNull(user);
+                Assert.NotNull(validatedToken);
             }
         }
     }

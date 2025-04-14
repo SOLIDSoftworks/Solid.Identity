@@ -16,9 +16,9 @@ namespace Solid.Identity.Protocols.WsSecurity.Middleware
 {
     internal class WsSecurityMiddleware : SoapMiddleware
     {
-        private ISystemClock _clock;
+        private TimeProvider _clock;
 
-        public WsSecurityMiddleware(ISystemClock clock, RequestDelegate next, ILogger<WsSecurityMiddleware> logger) 
+        public WsSecurityMiddleware(TimeProvider clock, RequestDelegate next, ILogger<WsSecurityMiddleware> logger) 
             : base(next, logger)
         {
             _clock = clock;
@@ -38,7 +38,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Middleware
 
             if (context.Response?.IsFault == false)
             {
-                var created = _clock.UtcNow.UtcDateTime;
+                var created = _clock.GetUtcNow().UtcDateTime;
                 var expires = created.AddMinutes(5); // TODO: add an option for this
                 context.Response.Headers.Add(new TimestampMessageHeader(created, expires));
             }

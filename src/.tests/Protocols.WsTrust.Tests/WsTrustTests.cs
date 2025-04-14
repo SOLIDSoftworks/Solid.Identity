@@ -17,6 +17,7 @@ using System.ServiceModel.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Solid.Testing.Certificates;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -97,32 +98,29 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             Assert.NotNull(token);
         }
 
-        [Theory]
-        [InlineData(Certificates.ValidBase64)]
-        public async Task ShouldNotValidateAlteredSignedToken(string base64)
+        [Fact]
+        public async Task ShouldNotValidateAlteredSignedToken()
         {
-            using (var certificate = new X509Certificate2(Convert.FromBase64String(base64)))
+            var certificate = CertificateStore.GetOrCreate(Certificates.Valid);
+            var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
-                var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
-                {
-                    KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                    AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
-                };
-                var settings = new XmlWriterSettings { Indent = true };
-                var client = _fixture.CreateWsTrust13CertificateClient(certificate, settings);
-                var exception = null as Exception;
-                try
-                {
-                    _ = await client.IssueAsync(request);
-                }
-                catch (Exception ex)
-                {
-                    exception = ex;
-                }
-
-                Assert.NotNull(exception);
-                Assert.IsType<MessageSecurityException>(exception);
+                KeyType = WsTrustKeyTypes.Trust13.Bearer,
+                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+            };
+            var settings = new XmlWriterSettings { Indent = true };
+            var client = _fixture.CreateWsTrust13CertificateClient(certificate, settings);
+            var exception = null as Exception;
+            try
+            {
+                _ = await client.IssueAsync(request);
             }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            Assert.NotNull(exception);
+            Assert.IsType<MessageSecurityException>(exception);
         }
 
         [Theory]
@@ -168,33 +166,32 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
                 AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
             };
-            using (var certificate = new X509Certificate2(Convert.FromBase64String(data.CertificateBase64)))
+            var certificate = CertificateStore.GetOrCreate(data.Descriptor);
+            var client = _fixture.CreateWsTrust13CertificateClient(certificate);
+
+            var exception = null as Exception;
+            var token = null as SecurityToken;
+            try
             {
-                var client = _fixture.CreateWsTrust13CertificateClient(certificate);
-
-                var exception = null as Exception;
-                var token = null as SecurityToken;
-                try
-                {
-                    var response = await client.IssueAsync(request);
-                    token = response.GetRequestedSecurityToken();
-                }
-                catch (Exception ex)
-                {
-                    exception = ex;
-                }
-
-                if (data.ShouldFail)
-                {
-                    Assert.NotNull(exception);
-                    Assert.IsType<MessageSecurityException>(exception);
-                }
-                else
-                {
-                    Assert.Null(exception);
-                    Assert.NotNull(token); 
-                }
+                var response = await client.IssueAsync(request);
+                token = response.GetRequestedSecurityToken();
             }
+            catch (Exception ex)
+            {
+                exception = ex;
+            }
+
+            if (data.ShouldFail)
+            {
+                Assert.NotNull(exception);
+                Assert.IsType<MessageSecurityException>(exception);
+            }
+            else
+            {
+                Assert.Null(exception);
+                Assert.NotNull(token); 
+            }
+            
         }
 
         [Theory]
@@ -242,40 +239,40 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             new GetTokenWithCertificateData
             {
                 Subject = "test.valid",
-                CertificateBase64 = Certificates.ValidBase64,
+                Descriptor = Certificates.Valid,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic128
             },
             new GetTokenWithCertificateData
             {
                 Subject = "test.valid",
-                CertificateBase64 = Certificates.ValidBase64,
+                Descriptor = Certificates.Valid,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic256Sha256
             },
             new GetTokenWithCertificateData
             {
                 Subject = "test.expired",
-                CertificateBase64 = Certificates.ExpiredBase64,
+                Descriptor = Certificates.Expired,
                 ShouldFail = true,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic128
             },
             new GetTokenWithCertificateData
             {
                 Subject = "test.expired",
-                CertificateBase64 = Certificates.ExpiredBase64,
+                Descriptor = Certificates.Expired,
                 ShouldFail = true,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic256Sha256
             },
             new GetTokenWithCertificateData
             {
                 Subject = "test.invalid",
-                CertificateBase64 = Certificates.InvalidBase64,
+                Descriptor = Certificates.Invalid,
                 ShouldFail = true,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic128
             },
             new GetTokenWithCertificateData
             {
                 Subject = "test.invalid",
-                CertificateBase64 = Certificates.InvalidBase64,
+                Descriptor = Certificates.Invalid,
                 ShouldFail = true,
                 //SecurityAlgorithmSuite = SecurityAlgorithmSuite.Basic256Sha256
             }
@@ -307,27 +304,22 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
 
         public class GetTokenWithCertificateData : IXunitSerializable
         {
-            public string CertificateBase64 { get; set; }
+            public CertificateDescriptor Descriptor { get; set; }
             public bool ShouldFail { get; set; }
             public string Subject { get; set; }
-            //public SecurityAlgorithmSuite SecurityAlgorithmSuite { get; set; }
 
             void IXunitSerializable.Serialize(IXunitSerializationInfo info)
             {
                 info.AddValue(nameof(Subject), Subject);
                 info.AddValue(nameof(ShouldFail), ShouldFail);
-                info.AddValue(nameof(CertificateBase64), CertificateBase64);
-                //info.AddValue(nameof(SecurityAlgorithmSuite), SecurityAlgorithmSuite?.ToString());
+                info.AddValue(nameof(Descriptor), Descriptor);
             }
 
             void IXunitSerializable.Deserialize(IXunitSerializationInfo info)
             {
                 Subject = info.GetValue<string>(nameof(Subject));
                 ShouldFail = info.GetValue<bool>(nameof(ShouldFail));
-                CertificateBase64 = info.GetValue<string>(nameof(CertificateBase64));
-                //var securityAlgorithmSuite = info.GetValue<string>(nameof(SecurityAlgorithmSuite));
-                //if (securityAlgorithmSuite != null)
-                //    SecurityAlgorithmSuite = typeof(SecurityAlgorithmSuite).GetProperty(securityAlgorithmSuite, BindingFlags.Static | BindingFlags.Public).GetValue(null) as SecurityAlgorithmSuite;
+                Descriptor = info.GetValue<CertificateDescriptor>(nameof(Descriptor));
             }
         }
 

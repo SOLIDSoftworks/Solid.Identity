@@ -13,7 +13,7 @@ namespace Soap.Client
     {
         static async Task Main(string[] args)
         {
-            Thread.Sleep(5000);
+            await Task.Delay(5000);
             //var client = new HttpClient();
 
             //for (var i = 0; i < 1_000_000; i++)

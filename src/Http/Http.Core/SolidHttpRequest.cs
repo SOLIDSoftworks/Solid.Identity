@@ -36,7 +36,7 @@ namespace Solid.Http
         /// The response
         /// </summary>
         public HttpResponseMessage BaseResponse { get; private set; }
-        public IDictionary<string, object> Context => BaseRequest?.Properties;
+        public IDictionary<string, object> Context => BaseRequest?.Options;
 
         public ISolidHttpRequest OnHttpRequest(Func<IServiceProvider, HttpRequestMessage, ValueTask> handler)
         {

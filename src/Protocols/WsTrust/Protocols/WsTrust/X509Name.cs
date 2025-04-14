@@ -42,6 +42,11 @@ namespace Solid.Identity.Protocols.WsTrust
             return false;
         }
 
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Dn, Attributes.Values.ToList());
+        }
+
         public static bool TryParse(string dn, out X509Name name)
         {
             try

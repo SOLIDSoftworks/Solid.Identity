@@ -3,5 +3,6 @@
     <ProjectReference Include="..\..\Protocols\WsTrust\WsTrust.csproj" />
     <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
     <ProjectReference Include="..\..\Utility\Testing.AspNetCore.Extensions.XUnit.Soap\Testing.AspNetCore.Extensions.XUnit.Soap.csproj" />
+    <ProjectReference Include="..\..\Utility\Testing.Certificates\Testing.Certificates.csproj" />
   </ItemGroup>
 </Project>

@@ -33,7 +33,7 @@ namespace Solid.Http
         {
             var request = _services.GetService<SolidHttpRequest>();
             request.BaseRequest = new HttpRequestMessage(method, url);
-            request.BaseRequest.Properties.Add(Constants.BaseAddressKey, BaseAddress);
+            request.BaseRequest.Options.TryAdd(Constants.BaseAddressKey, BaseAddress);
             request.CancellationToken = cancellationToken;            
             _options.OnRequestCreated.Add(_onRequestCreated).InvokeAll(_services, request);
             return request;

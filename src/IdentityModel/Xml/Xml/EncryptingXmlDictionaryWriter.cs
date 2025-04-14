@@ -151,7 +151,7 @@ namespace Solid.IdentityModel.Xml
             };
 
             if (_credentials.Key is RsaSecurityKey rsa)
-                keyInfo.AddClause(CreateEncryptedKeyClause(symmetric.Key, rsa.Rsa, document));
+                keyInfo.AddClause(CreateEncryptedKeyClause(symmetric.Key, rsa.Rsa ?? RSA.Create(rsa.Parameters), document));
             else if (_credentials.Key is X509SecurityKey x509)
                 keyInfo.AddClause(CreateEncryptedKeyClause(symmetric.Key, x509.Certificate, document));
             else if (!string.IsNullOrEmpty(_credentials.Key.KeyId))

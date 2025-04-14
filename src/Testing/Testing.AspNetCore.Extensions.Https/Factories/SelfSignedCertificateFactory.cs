@@ -38,9 +38,7 @@ namespace Solid.Testing.AspNetCore.Extensions.Https.Factories
             var certificate = CertificateStore.GetOrCreate(descriptor);
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 certificate.FriendlyName = "Solid.Testing.AspNetCore";
-                
-            var bytes = certificate.Export(X509ContentType.Pfx);
-            return new X509Certificate2(bytes, null as string, X509KeyStorageFlags.Exportable);
+            return certificate; 
         }
     }
 }

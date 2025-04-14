@@ -43,9 +43,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
 
             IOptionsMonitor<AuthenticationSchemeOptions> options, 
             ILoggerFactory logger, 
-            UrlEncoder encoder, 
-            ISystemClock clock) 
-            : base(options, logger, encoder, clock)
+            UrlEncoder encoder) 
+            : base(options, logger, encoder)
         {
             _soapContextAccessor = soapContextAccessor;
             _tokenValidationParametersFactory = tokenValidationParametersFactory;
@@ -278,7 +277,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
         private void AssertTimestamp(Timestamp timestamp, SoapContext context)
         {
             // TODO: add clock skew options
-            var now = Clock.UtcNow.UtcDateTime;
+            var utc = Options.TimeProvider?.GetUtcNow() ?? DateTimeOffset.UtcNow;
+            var now = utc.UtcDateTime;
             if (timestamp.Created.AddMinutes(-5).ToUniversalTime() > now || timestamp.Expires.ToUniversalTime() < now)
                 throw context.CreateMessageExpiredFault();
         }

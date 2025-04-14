@@ -35,7 +35,7 @@ namespace Solid.Identity.Protocols.WsTrust
         protected SecurityTokenHandlerProvider SecurityTokenHandlerProvider { get; }
         protected IServiceProvider Services { get; }
         protected WsTrustOptions Options { get; }
-        protected ISystemClock SystemClock { get; }
+        protected TimeProvider TimeProvider { get; }
         protected ILogger Logger { get; }
         protected IdentityProviderProvider IdentityProviders { get; }
 
@@ -48,7 +48,7 @@ namespace Solid.Identity.Protocols.WsTrust
             IServiceProvider services, 
             ILoggerFactory loggerFactory,
             IOptions<WsTrustOptions> options, 
-            ISystemClock systemClock)
+            TimeProvider systemClock)
         {
             Logger = loggerFactory.CreateLogger(GetType().FullName);
 
@@ -59,7 +59,7 @@ namespace Solid.Identity.Protocols.WsTrust
             SecurityTokenHandlerProvider = securityTokenHandlerProvider;
             Services = services;
             Options = options.Value;
-            SystemClock = systemClock;
+            TimeProvider = systemClock;
         }
 
         public virtual async ValueTask<WsTrustResponse> IssueAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
@@ -328,7 +328,9 @@ namespace Solid.Identity.Protocols.WsTrust
             return new ValueTask<EncryptingCredentials>(credentials);
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         protected virtual async ValueTask ValidateIdentityProviderAsync(ClaimsPrincipal principal, WsTrustRequest request, IIdentityProvider identityProvider, CancellationToken cancellationToken)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (identityProvider.RestrictRelyingParties)
             {
@@ -388,7 +390,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("No token type requested.");
 
             // token type must be supported for this STS
-            if (GetSecurityTokenHandlerAsync(request.TokenType, cancellationToken) == null)
+            if (await GetSecurityTokenHandlerAsync(request.TokenType, cancellationToken) == null)
                 throw new UnsupportedTokenTypeBadRequestException(request.TokenType);
 
             if (!IsSupportedKeyType(request.KeyType))
@@ -450,7 +452,7 @@ namespace Solid.Identity.Protocols.WsTrust
             DateTime created;
             DateTime expires;
 
-            var now = SystemClock.UtcNow.UtcDateTime;
+            var now = TimeProvider.GetUtcNow().UtcDateTime;
             var lifetime = scope.RelyingParty.TokenLifetime ?? Options.DefaultTokenLifetime; 
 
             if (requestLifetime == null)
@@ -528,7 +530,7 @@ namespace Solid.Identity.Protocols.WsTrust
 
         private void VerifyComputedLifetime(DateTime created, DateTime expires)
         {
-            var now = SystemClock.UtcNow.UtcDateTime;
+            var now = TimeProvider.GetUtcNow().UtcDateTime;
 
             // if expires in past, throw
             if (DateTimeUtil.Add(DateTimeUtil.ToUniversalTime(expires), Options.MaxClockSkew) < now)

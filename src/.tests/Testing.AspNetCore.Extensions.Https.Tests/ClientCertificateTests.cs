@@ -10,7 +10,7 @@ namespace Solid.Testing.AspNetCore.Extensions.Https.Tests
 {
     public class ClientCertificateTests : IClassFixture<ClientCertificateTestFixture>
     {
-        private ClientCertificateTestFixture _fixture;
+        private readonly ClientCertificateTestFixture _fixture;
 
         public ClientCertificateTests(ClientCertificateTestFixture fixture, ITestOutputHelper output)
         {

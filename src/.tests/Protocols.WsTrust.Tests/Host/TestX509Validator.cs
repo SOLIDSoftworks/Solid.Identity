@@ -11,13 +11,13 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
 {
     class TestX509Validator : X509Validator
     {
-        private ISystemClock _clock;
+        private TimeProvider _clock;
 
-        public TestX509Validator(ISystemClock clock) => _clock = clock;
+        public TestX509Validator(TimeProvider clock) => _clock = clock;
 
         protected override ValueTask<bool> IsValidAsync(X509Certificate2 certificate)
         {
-            var now = _clock.UtcNow;
+            var now = _clock.GetUtcNow().UtcDateTime;
             return new ValueTask<bool>(certificate.NotBefore <= now && now <= certificate.NotAfter && certificate.Subject == "CN=test.valid");
         }
     }
