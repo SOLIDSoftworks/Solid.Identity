@@ -27,7 +27,7 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
         public SecurityKey DefaultSigningKey => _lazySigningKey.Value;
         public SecurityKey DefaultSignatureVerificationKey => _lazySignatureVerificationKey.Value;
         public SecurityKey DefaultEncryptionKey => _lazyEncryptionKey.Value;
-        public SecurityKey DefautDecryptionKey => _lazyDecryptionKey.Value;
+        public SecurityKey DefaultDecryptionKey => _lazyDecryptionKey.Value;
 
         public Saml2TestFixture()
         {
@@ -42,10 +42,10 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
                 rsa.ImportRSAPublicKey(bytes, out _);
                 return new RsaSecurityKey(rsa);
             }, LazyThreadSafetyMode.ExecutionAndPublication);
-            _lazyDecryptionKey = new Lazy<SecurityKey>(() => new RsaSecurityKey(_signingAlgorithm), LazyThreadSafetyMode.ExecutionAndPublication);
+            _lazyDecryptionKey = new Lazy<SecurityKey>(() => new RsaSecurityKey(_encryptingAlgorithm), LazyThreadSafetyMode.ExecutionAndPublication);
             _lazyEncryptionKey = new Lazy<SecurityKey>(() =>
             {
-                var bytes = _signingAlgorithm.ExportRSAPublicKey();
+                var bytes = _encryptingAlgorithm.ExportRSAPublicKey();
                 var rsa = RSA.Create();
                 rsa.ImportRSAPublicKey(bytes, out _);
                 return new RsaSecurityKey(rsa);
@@ -61,7 +61,7 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
         public TokenValidationParameters CreateTokenValidationParameters(SecurityKey decryptionKey = null, SecurityKey signatureVerificationKey = null, bool validateLifetime = false)
         {
             if (decryptionKey == null)
-                decryptionKey = DefautDecryptionKey;
+                decryptionKey = DefaultDecryptionKey;
             if (signatureVerificationKey == null)
                 signatureVerificationKey = DefaultSignatureVerificationKey;
             var parameters = new TokenValidationParameters
