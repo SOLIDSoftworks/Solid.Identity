@@ -36,6 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.AddSecurityTokenService<SecurityTokenService>();
             builder.AddTokenValidationParametersFactory<WsTrustTokenValidationParametersFactory>();
             builder.AddTokenTypeClaimStore<SamlClaimStore>();
+            builder.Services.AddSaml2EncryptedSecurityTokenHandler<WsSecuritySaml2SecurityTokenHandler>();
 
             services.PostConfigure<WsTrustOptions>(options =>
             {

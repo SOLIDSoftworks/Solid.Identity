@@ -8,7 +8,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 {
     internal class WsSecuritySaml2SecurityKeyIdentifierClause : WsSecuritySecurityKeyIdentifierClause
     {
-        private Saml2SecurityToken _token;
+        private readonly Saml2SecurityToken _token;
 
         public WsSecuritySaml2SecurityKeyIdentifierClause(Saml2SecurityToken token)
         {

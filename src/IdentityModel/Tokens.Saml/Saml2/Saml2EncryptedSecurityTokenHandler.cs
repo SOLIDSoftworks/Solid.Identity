@@ -31,8 +31,8 @@ namespace Solid.IdentityModel.Tokens.Saml2
         {
         }
 
-        public Saml2EncryptedSecurityTokenHandler(IOptionsMonitor<Saml2Options> monitor)
-            : base(monitor)
+        public Saml2EncryptedSecurityTokenHandler(IOptionsMonitor<Saml2Options> monitor, ExtendedSaml2Serializer serializer = null)
+            : base(monitor, serializer)
         {
         }
 

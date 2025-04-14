@@ -17,7 +17,8 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddSaml2EncryptedSecurityTokenHandler<THandler>(this IServiceCollection services)
             where THandler : Saml2EncryptedSecurityTokenHandler
         {
-            services.TryAddTransient<Saml2SecurityTokenHandler, THandler>();
+            services.RemoveAll<Saml2SecurityTokenHandler>();
+            services.AddTransient<Saml2SecurityTokenHandler, THandler>();
             return services;
         }
 

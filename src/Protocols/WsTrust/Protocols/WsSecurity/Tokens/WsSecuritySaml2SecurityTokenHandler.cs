@@ -16,7 +16,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
         {
         }
 
-        public WsSecuritySaml2SecurityTokenHandler(IOptionsMonitor<Saml2Options> monitor) : base(monitor)
+        public WsSecuritySaml2SecurityTokenHandler(IOptionsMonitor<Saml2Options> monitor, ExtendedSaml2Serializer serializer = null) : base(monitor, serializer)
         {
         }
 
