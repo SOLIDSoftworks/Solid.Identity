@@ -39,19 +39,22 @@ namespace Solid.IdentityModel.Tokens.Saml2
                 var confirmationData = new Saml2SubjectConfirmationData();
                 bool isEmpty = reader.IsEmptyElement;
 
-                // @xsi:type
-                bool requireKeyInfo = false;
-                var type = XmlUtil.GetXsiTypeAsQualifiedName(reader);
-
-                if (null != type)
+                // @xsi:Type
+                var requireKeyInfo = false;
+                var attribute = reader.GetAttribute(EncryptedSaml2Constants.Elements.SubjectConfigurationData.Attributes.Type, XmlSignatureConstants.XmlSchemaNamespace);
+                if (attribute != null)
                 {
-                    
-                    if (XmlUtil.EqualsQName(type, Saml2Constants.Types.KeyInfoConfirmationDataType, Saml2Constants.Namespace) || 
-                        type.Name == Saml2Constants.Types.KeyInfoConfirmationDataType)
-                        requireKeyInfo = true;
-                    else if (!XmlUtil.EqualsQName(type, Saml2Constants.Types.SubjectConfirmationDataType, Saml2Constants.Namespace) &&
-                        type.Name != Saml2Constants.Types.SubjectConfirmationDataType)
-                        throw XmlUtil.LogReadException(GetLogMessage("IDX13126"), type.Name, type.Namespace);
+                    var type = XmlUtil.ResolveQName(reader, attribute);
+                    if (type != null)
+                    {
+                        if (XmlUtil.EqualsQName(type, Saml2Constants.Types.KeyInfoConfirmationDataType, Saml2Constants.Namespace) ||
+                            type.Name == Saml2Constants.Types.KeyInfoConfirmationDataType)
+                            requireKeyInfo = true;
+                        else if (!XmlUtil.EqualsQName(type, Saml2Constants.Types.SubjectConfirmationDataType,
+                                     Saml2Constants.Namespace) &&
+                                 type.Name != Saml2Constants.Types.SubjectConfirmationDataType)
+                            throw XmlUtil.LogReadException(GetLogMessage("IDX13126"), type.Name, type.Namespace);
+                    }
                 }
 
                 // KeyInfoConfirmationData cannot be empty
@@ -116,6 +119,53 @@ namespace Solid.IdentityModel.Tokens.Saml2
 
                 throw XmlUtil.LogReadException(GetLogMessage("IDX13102"), ex, Saml2Constants.Elements.SubjectConfirmationData, ex);
             }
+        }
+        
+        protected override void WriteSubjectConfirmationData(XmlWriter writer, Saml2SubjectConfirmationData subjectConfirmationData)
+        {
+            if (writer == null)
+                throw new ArgumentNullException(nameof(writer));
+
+            if (subjectConfirmationData == null)
+                throw new ArgumentNullException(nameof(subjectConfirmationData));
+
+            // <SubjectConfirmationData>
+            writer.WriteStartElement(Prefix, Saml2Constants.Elements.SubjectConfirmationData, Saml2Constants.Namespace);
+
+            // @attributes
+
+            // @xsi:Type
+            if (subjectConfirmationData.KeyInfos.Count > 0)
+                writer.WriteAttributeString(EncryptedSaml2Constants.Elements.SubjectConfigurationData.Attributes.Type, XmlSignatureConstants.XmlSchemaNamespace, Saml2Constants.Types.KeyInfoConfirmationDataType);
+
+            // @Address - optional
+            if (!string.IsNullOrEmpty(subjectConfirmationData.Address))
+                writer.WriteAttributeString(Saml2Constants.Attributes.Address, subjectConfirmationData.Address);
+
+            // @InResponseTo - optional
+            if (null != subjectConfirmationData.InResponseTo)
+                writer.WriteAttributeString(Saml2Constants.Attributes.InResponseTo, subjectConfirmationData.InResponseTo.Value);
+
+            // @NotBefore - optional
+            if (null != subjectConfirmationData.NotBefore)
+                writer.WriteAttributeString(Saml2Constants.Attributes.NotBefore, XmlConvert.ToString(subjectConfirmationData.NotBefore.Value.ToUniversalTime(), "yyyy-MM-ddTHH:mm:ss.fffZ"));
+
+            // @NotOnOrAfter - optional
+            if (null != subjectConfirmationData.NotOnOrAfter)
+                writer.WriteAttributeString(Saml2Constants.Attributes.NotOnOrAfter, XmlConvert.ToString(subjectConfirmationData.NotOnOrAfter.Value.ToUniversalTime(), "yyyy-MM-ddTHH:mm:ss.fffZ"));
+
+            // @Recipient - optional
+            if (null != subjectConfirmationData.Recipient)
+                writer.WriteAttributeString(Saml2Constants.Attributes.Recipient, subjectConfirmationData.Recipient.OriginalString);
+
+            // Content
+
+            // <ds:KeyInfo> 0-OO
+            foreach (var keyInfo in subjectConfirmationData.KeyInfos)
+                base.DSigSerializer.WriteKeyInfo(writer, keyInfo);
+
+            // </SubjectConfirmationData>
+            writer.WriteEndElement();
         }
 
         public override void WriteAttribute(XmlWriter writer, Saml2Attribute attribute)

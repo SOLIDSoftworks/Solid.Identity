@@ -128,7 +128,7 @@ namespace Solid.IdentityModel.Tokens.Saml.Tests
                     ?.Elements(XName.Get(Saml2Constants.Elements.SubjectConfirmationData, Saml2Constants.Namespace)).SingleOrDefault();
 
                 Assert.NotNull(subjectConfirmationData);
-                Assert.Equal(Saml2Constants.Types.KeyInfoConfirmationDataType, subjectConfirmationData.Attribute(XName.Get("type", "http://www.w3.org/2001/XMLSchema-instance"))?.Value);
+                Assert.Equal(Saml2Constants.Types.KeyInfoConfirmationDataType, subjectConfirmationData.Attribute(XName.Get("Type", "http://www.w3.org/2001/XMLSchema-instance"))?.Value);
 
                 var encryptedKeyInfo = subjectConfirmationData
                     ?.Elements(XName.Get(XmlSignatureConstants.Elements.KeyInfo, XmlSignatureConstants.Namespace)).SingleOrDefault()
