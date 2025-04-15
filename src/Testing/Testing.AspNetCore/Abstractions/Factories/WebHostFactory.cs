@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Solid.Testing.AspNetCore.Options;
 
 namespace Solid.Testing.AspNetCore.Abstractions.Factories
 {
@@ -25,16 +26,12 @@ namespace Solid.Testing.AspNetCore.Abstractions.Factories
             Provider = provider;
         }
 
-        /// <summary>
-        /// Create an asp net core web host using a startup class and a hostname
-        /// </summary>
-        /// <param name="startup">The startup class type</param>
-        /// <param name="hostname">The host name</param>
-        /// <returns>An asp net core web host</returns>
-        public virtual IWebHost CreateWebHost(Type startup, string hostname)
+        /// <inheritdocs />
+        public virtual IWebHost CreateWebHost(Type startup, AspNetCoreHostOptions options)
         {
-            var builder = InitializeWebHostBuilder(startup, hostname);
-            builder.UseConfiguration(GenerateApplicationConfiguration(new ConfigurationBuilder()));
+            var builder = InitializeWebHostBuilder(startup, options);
+            builder.UseEnvironment(options.Environment);
+            builder.UseConfiguration(GenerateApplicationConfiguration(new ConfigurationBuilder(), options));
             Provider.Configure(builder);
             return builder.Start();
         }
@@ -43,18 +40,19 @@ namespace Solid.Testing.AspNetCore.Abstractions.Factories
         /// Initialized an asp net core web host builder for a startup class and a hostname
         /// </summary>
         /// <param name="startup">The startup class type</param>
-        /// <param name="hostname">The host name</param>
+        /// <param name="options">The AspNetCore host options</param>
         /// <returns>An asp net core web host</returns>
-        protected abstract IWebHostBuilder InitializeWebHostBuilder(Type startup, string hostname);
+        protected abstract IWebHostBuilder InitializeWebHostBuilder(Type startup, AspNetCoreHostOptions options);
 
         /// <summary>
         /// Generates the application configuration
         /// </summary>
         /// <param name="builder">A configuration builder</param>
+        /// <param name="options">The AspNetCore host options</param>
         /// <returns>The application configuration for the web host</returns>
-        protected virtual IConfiguration GenerateApplicationConfiguration(IConfigurationBuilder builder)
+        protected virtual IConfiguration GenerateApplicationConfiguration(IConfigurationBuilder builder, AspNetCoreHostOptions options)
         {
-            foreach (var path in GetAppSettingsPaths())
+            foreach (var path in GetAppSettingsPaths(options))
                 builder.AddJsonFile(path);
             return builder.Build();
         }
@@ -62,13 +60,15 @@ namespace Solid.Testing.AspNetCore.Abstractions.Factories
         /// <summary>
         /// Gets the path to all relative appsettings.json files 
         /// </summary>
+        /// <param name="options">The AspNetCore host options</param>
         /// <returns>An enumerable of appsettings.json paths</returns>
-        protected virtual IEnumerable<string> GetAppSettingsPaths()
+        protected virtual IEnumerable<string> GetAppSettingsPaths(AspNetCoreHostOptions options)
         {
             var current = AppDomain.CurrentDomain.BaseDirectory;
             var settings = new[]
             {
-                Path.Combine(current, "appsettings.json")
+                Path.Combine(current, "appsettings.json"),
+                Path.Combine(current, $"appsettings.{options.Environment}.json")
             }
             .Concat(GetProjectFilePaths()
                 .Distinct()
@@ -76,6 +76,7 @@ namespace Solid.Testing.AspNetCore.Abstractions.Factories
                 .Select(p => Path.Combine(p, "appsettings.json"))
             )
             .Where(p => File.Exists(p))
+            .Distinct()
             .ToArray();
 
             return settings;

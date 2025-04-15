@@ -41,6 +41,7 @@ namespace Solid.IdentityModel.Tokens.Saml2
 
                 // @xsi:Type
                 var requireKeyInfo = false;
+                
                 var attribute = reader.GetAttribute(EncryptedSaml2Constants.Elements.SubjectConfigurationData.Attributes.Type, XmlSignatureConstants.XmlSchemaNamespace);
                 if (attribute != null)
                 {

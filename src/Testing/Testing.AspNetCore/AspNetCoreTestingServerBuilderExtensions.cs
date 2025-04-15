@@ -69,7 +69,6 @@ namespace Solid.Http
         public static TestingServerBuilder AddAspNetCoreHostFactory(this TestingServerBuilder builder, Action<AspNetCoreHostOptions> configureOptions, Action<IWebHostBuilder> configure)
         {
             var channel = new LogMessageChannel();
-
             var c = new Action<IWebHostBuilder>(webHost =>
             {
                 configure(webHost);

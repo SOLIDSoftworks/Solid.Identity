@@ -42,12 +42,11 @@ namespace Solid.Testing.Extensions.AspNetCore.Factories
         {
             EnsureLocal();
 
-            var host = _factory.CreateWebHost(startup, _options.HostName);
+            var host = _factory.CreateWebHost(startup, _options);
 
             var urls = host.ServerFeatures.Get<IServerAddressesFeature>();
             var baseAddresses = urls.Addresses.Select(s => new Uri(s));
             var baseAddress = baseAddresses.First();
-            //var baseAddress = urls.Addresses.Select(s => new Uri(s)).First();
             var url = new Uri($"{baseAddress.Scheme}://{_options.HostName}:{baseAddress.Port}");
 
             _reader.Start();
