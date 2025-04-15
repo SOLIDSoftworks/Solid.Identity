@@ -312,14 +312,14 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             {
                 info.AddValue(nameof(Subject), Subject);
                 info.AddValue(nameof(ShouldFail), ShouldFail);
-                info.AddValue(nameof(Descriptor), Descriptor);
+                info.AddValue(nameof(Descriptor), Descriptor.CommonName);
             }
 
             void IXunitSerializable.Deserialize(IXunitSerializationInfo info)
             {
                 Subject = info.GetValue<string>(nameof(Subject));
                 ShouldFail = info.GetValue<bool>(nameof(ShouldFail));
-                Descriptor = info.GetValue<CertificateDescriptor>(nameof(Descriptor));
+                Descriptor = Certificates.GetCertificateDescriptor(info.GetValue<string>(nameof(Descriptor)));
             }
         }
 
