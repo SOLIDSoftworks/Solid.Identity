@@ -211,7 +211,6 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
                 var parameters = await _tokenValidationParametersFactory.CreateAsync();
                 var user = null as ClaimsPrincipal;
                 var securityToken = null as SecurityToken;
-                var token = null as string;
                 
                 try
                 {
@@ -219,7 +218,10 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
                     {
                         var result = await asyncHandler.ValidateTokenAsync(reader, parameters);
                         if (!result.Success)
-                            throw result.Error;
+                        {
+                            WsSecurityLogMessages.LogFailedSecurityTokenHandlerValidation(Logger, handler, result.Error);
+                            continue;
+                        }
                         user = result.User;
                         securityToken = result.Token;
                     }
