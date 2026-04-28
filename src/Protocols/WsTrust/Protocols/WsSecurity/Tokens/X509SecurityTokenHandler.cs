@@ -73,7 +73,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
         {
             using var activity = Tracing.WsSecurity.Tokens.StartActivity($"{nameof(X509SecurityTokenHandler)}.{nameof(ReadX509Certificate2Token)}");
             if (!CanReadToken(reader))
-                throw new Exception("Token read exception");
+                throw new Exception("Expected BinarySecurityToken element not found");
 
             var id = reader.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace);
             var base64 = reader.ReadElementContentAsString();
@@ -108,8 +108,10 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
         private XmlDictionaryReader CreateReader(string tokenString)
         {
-            if (string.IsNullOrWhiteSpace(tokenString) || tokenString.Length > MaximumTokenSizeInBytes)
-                throw new Exception("Token read exception");
+            if (string.IsNullOrWhiteSpace(tokenString))
+                throw new Exception("Token empty");
+            if(tokenString.Length > MaximumTokenSizeInBytes)
+                throw new Exception("Token exceeds maximum length of  " + MaximumTokenSizeInBytes + " bytes");
 
             var reader = new StringReader(tokenString);
             var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };

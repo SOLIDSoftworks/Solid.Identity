@@ -42,7 +42,7 @@ namespace Solid.Extensions.AspNetCore.Soap.Middleware
                     Logger.LogDebug(CreateMessage(headers));
                     throw new FaultException(reason, code, context.Request.Headers.Action);
                 }
-                Logger.LogInformation("All soap headers understood.");
+                Logger.LogDebug("All soap headers understood.");
             }
             await Next(context);
         }

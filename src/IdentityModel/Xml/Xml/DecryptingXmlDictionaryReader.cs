@@ -101,7 +101,6 @@ namespace Solid.IdentityModel.Xml
                     if (encryptedType is EncryptedKey encryptedKey)
                     {
                         var pt = null as byte[];
-                        var keyWrapAlgorithm = encryptedKey.EncryptionMethod.KeyAlgorithm;
                         if(crypto.IsSupportedAlgorithm(algorithm, key))
                         {
                             var keyWrap = crypto.CreateKeyWrapProviderForUnwrap(key, encryptedKey.EncryptionMethod.KeyAlgorithm);

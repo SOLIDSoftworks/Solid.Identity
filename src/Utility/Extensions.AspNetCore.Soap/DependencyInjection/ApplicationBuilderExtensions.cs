@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IApplicationBuilder UseSoapService<TService>(this IApplicationBuilder builder, PathString path, MessageVersion version, Action<ISoapApplicationBuilder> configure)
         {
-            if(version == MessageVersion.None)
+            if(version.Equals(MessageVersion.None))
                 throw new InvalidOperationException("Solid.Extensions.AspNetCore.Soap doesn't support MessageVersion.None");
             builder.UseMiddleware<SoapRequestMiddleware<TService>>(version);
             var soap = new SoapApplicationBuilder<TService>(path, builder);

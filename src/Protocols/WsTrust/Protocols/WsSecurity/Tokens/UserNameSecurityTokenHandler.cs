@@ -47,8 +47,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
         {
             try
             {
-                using (var reader = CreateReader(tokenString))
-                    return CanReadToken(reader);
+                using var reader = CreateReader(tokenString);
+                return CanReadToken(reader);
             }
             catch
             {
@@ -69,10 +69,9 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
         public UserNameSecurityToken ReadUsernameToken(XmlReader reader)
         {
-            
             using var activity = Tracing.WsSecurity.Tokens.StartActivity($"{nameof(UserNameSecurityTokenHandler)}.{nameof(ReadUsernameToken)}");
             if (!CanReadToken(reader))
-                throw new Exception("Token read exception");
+                throw new Exception("Expected UsernameToken element not found");
 
             var timestamp = _soapContextAccessor.SoapContext.GetWsSecurityTimestamp();
 
@@ -116,8 +115,10 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
         private XmlDictionaryReader CreateReader(string tokenString)
         {
-            if (string.IsNullOrWhiteSpace(tokenString) || tokenString.Length > MaximumTokenSizeInBytes)
-                throw new Exception("Token read exception");
+            if (string.IsNullOrWhiteSpace(tokenString))
+                throw new Exception("Token empty");
+            if(tokenString.Length > MaximumTokenSizeInBytes)
+                throw new Exception("Token exceeds maximum length of  " + MaximumTokenSizeInBytes + " bytes");
 
             var reader = new StringReader(tokenString);
             var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit };
