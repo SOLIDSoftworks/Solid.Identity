@@ -37,13 +37,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// Creates an instance of <see cref="BinarySecret"/>.
         /// </summary>
         /// <param name="data">the bytes of the key material.</param>
-        /// <param name="encodingType">the encoding type to use when writing data.</param>
+        /// <param name="type">the encoding type to use when writing data.</param>
         /// <exception cref="ArgumentNullException">if <paramref name="data"/> is null.</exception>
-        /// <exception cref="ArgumentNullException">if <paramref name="encodingType"/> is null or an empty string.</exception>
-        public BinarySecret(byte[] data, string encodingType)
+        /// <exception cref="ArgumentNullException">if <paramref name="type"/> is null or an empty string.</exception>
+        public BinarySecret(byte[] data, string type)
         {
             Data = data;
-            EncodingType = encodingType;
+            Type = type;
         }
 
         /// <summary>
@@ -68,10 +68,10 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <summary>
         /// Gets or sets the encoding type.
         /// </summary>
-        public string EncodingType
+        public string Type
         {
             get => _encodingType;
-            set => _encodingType = string.IsNullOrEmpty(value) ? throw LogHelper.LogArgumentNullException(nameof(EncodingType)) : value;
+            set => _encodingType = string.IsNullOrEmpty(value) ? throw LogHelper.LogArgumentNullException(nameof(Type)) : value;
         }
 
         /// <summary>

@@ -355,7 +355,7 @@ namespace Solid.Identity.Protocols.WsTrust
 
         protected virtual async ValueTask ValidateRequestAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
         {
-            // TODO: add virtual methods for each validation so they can be overridden seperately
+            // TODO: add virtual methods for each validation so they can be overridden separately
 
             using var activity = Tracing.WsTrust.Base.StartActivity($"{GetType().Name}.{nameof(ValidateRequestAsync)}");
             var issuer = principal.FindFirst(WsSecurityClaimTypes.Issuer)?.Value;

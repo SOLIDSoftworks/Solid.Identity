@@ -8,33 +8,39 @@ namespace Solid.IdentityModel.Protocols.WsTrust
     /// Represents the contents of the BinaryExchange element.
     /// see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html
     /// </summary>
-    internal class BinaryExchange
+    public class BinaryExchange
     {
-        private byte[] _binaryData;
+        private byte[] _data;
+        private string _encodingType;
+        private string _valueType;
 
+        internal BinaryExchange()
+        {
+        }
+        
         /// <summary>
         /// Creates an instance of <see cref="BinaryExchange"/>
         /// </summary>
-        /// <param name="binaryData">Binary data exchanged.</param>
+        /// <param name="data">Binary data exchanged.</param>
         /// <param name="valueType">Uri representing the value type of the binary data.</param>
-        /// <exception cref="ArgumentNullException">if <paramref name="binaryData"/> or <paramref name="valueType"/>.</exception>
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/> or <paramref name="valueType"/>.</exception>
         /// <remarks>Default encoding type is: "http://docs.oasis-open.org/wss/oasis-wss-soap-message-security-1.1/#Base64Binary".
         /// for possible values see: "http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html#wssecurity".</remarks>
-        public BinaryExchange( byte[] binaryData, Uri valueType )
-            : this( binaryData, valueType, new Uri( WsSecurityEncodingTypes.WsSecurity11.Base64 ) )
+        public BinaryExchange(byte[] data, string valueType)
+            : this(data, valueType, WsSecurityEncodingTypes.WsSecurity11.Base64)
         {
         }
 
         /// <summary>
         /// Creates an instance of <see cref="BinaryExchange"/>
         /// </summary>
-        /// <param name="binaryData">Binary data exchanged.</param>
+        /// <param name="data">Binary data exchanged.</param>
         /// <param name="valueType">Uri representing the value type of the binary data.</param>
-        /// <param name="encodingType">Encoding type to be used for encoding teh </param>
-        /// <exception cref="ArgumentNullException">if <paramref name="binaryData"/>, <paramref name="valueType"/> or <paramref name="encodingType"/> is null.</exception>
-        public BinaryExchange( byte[] binaryData, Uri valueType, Uri encodingType )
+        /// <param name="encodingType">Encoding type to be used for encoding the binary data </param>
+        /// <exception cref="ArgumentNullException">if <paramref name="data"/>, <paramref name="valueType"/> or <paramref name="encodingType"/> is null.</exception>
+        public BinaryExchange(byte[] data, string valueType, string encodingType)
         {
-            BinaryData = binaryData ?? throw LogHelper.LogArgumentNullException(nameof(binaryData));
+            Data = data ?? throw LogHelper.LogArgumentNullException(nameof(data));
             ValueType = valueType ?? throw LogHelper.LogArgumentNullException(nameof(valueType)); ;
             EncodingType = encodingType ?? throw LogHelper.LogArgumentNullException(nameof(encodingType)); ;
         }
@@ -42,29 +48,35 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <summary>
         /// Gets the Binary Data.
         /// </summary>
-        public byte[] BinaryData
+        public byte[] Data
         {
             get
             {
-                byte[] binaryCopy = new byte[_binaryData.Length];
-                Array.Copy(_binaryData, binaryCopy, _binaryData.Length);
-                return binaryCopy;
+                byte[] copy = new byte[_data.Length];
+                Array.Copy(_data, copy, _data.Length);
+                return copy;
             }
 
-            private set
-            {
-                _binaryData = value;
-            }
+            internal set => _data = value;
         }
 
         /// <summary>
         /// Gets the ValueType Uri.
         /// </summary>
-        public Uri ValueType { get; }
+        public string ValueType
+        {
+            get => _valueType;
+            set => _valueType = string.IsNullOrEmpty(value) ? throw LogHelper.LogArgumentNullException(nameof(ValueType)) : value;
+        }
+
 
         /// <summary>
-        /// Gets the EncodingType Uri.
+        /// Gets or sets the encoding type.
         /// </summary>
-        public Uri EncodingType { get; }
+        public string EncodingType
+        {
+            get => _encodingType;
+            set => _encodingType = string.IsNullOrEmpty(value) ? throw LogHelper.LogArgumentNullException(nameof(EncodingType)) : value;
+        }
     }
 }

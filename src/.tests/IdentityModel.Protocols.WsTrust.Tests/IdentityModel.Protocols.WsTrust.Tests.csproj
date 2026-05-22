@@ -2,7 +2,8 @@
 
 
     <ItemGroup>
-      <ProjectReference Include="..\Solid.IdentityModel.Protocols.WsTrust\Solid.IdentityModel.Protocols.WsTrust.csproj" />
+      <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
+      <ProjectReference Include="..\..\Utility\Testing.Certificates\Testing.Certificates.csproj" />
     </ItemGroup>
 
 </Project>

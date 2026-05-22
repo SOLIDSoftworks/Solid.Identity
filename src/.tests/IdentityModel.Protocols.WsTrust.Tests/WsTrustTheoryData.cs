@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
 using System.Xml;
 using Microsoft.IdentityModel.Tokens;
 using Solid.IdentityModel.Protocols.WsSecurity;
@@ -7,7 +9,7 @@ using Solid.IdentityModel.Protocols.WsSecurity;
 
 namespace Solid.IdentityModel.Protocols.WsTrust.Tests
 {
-    public class WsTrustTheoryData
+    public class WsTrustTheoryData : TheoryDataBase
     {
         public WsTrustTheoryData() { }
 
@@ -36,6 +38,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
             WsTrustVersion = trustVersion;
         }
 
+        public BinaryExchange BinaryExchange { get; set; }
         public BinarySecret BinarySecret { get; set; }
 
         public Claims Claims { get; set; }

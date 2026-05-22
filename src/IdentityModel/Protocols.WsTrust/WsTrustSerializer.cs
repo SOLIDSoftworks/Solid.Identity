@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
@@ -49,6 +50,51 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 new Saml2SecurityTokenHandler()
             };
         }
+        
+        public static BinaryExchange ReadBinaryExchange(XmlDictionaryReader reader, WsSerializationContext serializationContext)
+        {
+            //  <t:BinaryExchange EncodingType="..." ValueType="...">
+            //      ...
+            //  </t:BinarySecret>
+
+            WsUtils.CheckReaderOnEntry(reader, WsTrustElements.BinaryExchange, serializationContext);
+            try
+            {
+                var binaryExchange = new BinaryExchange();
+                if (!reader.IsEmptyElement)
+                {
+                    XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
+                    var encodingType = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.EncodingType, serializationContext.TrustConstants.Namespace);
+                    if (!string.IsNullOrEmpty(encodingType))
+                        binaryExchange.EncodingType = encodingType;
+                    var valueType = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.ValueType, serializationContext.TrustConstants.Namespace);
+                    if (!string.IsNullOrEmpty(valueType))
+                        binaryExchange.ValueType = valueType;
+
+                    reader.ReadStartElement();
+
+                    var data = null as byte[];
+                    if (encodingType == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                        data = reader.ReadContentAsBinHex();
+                    else // Defaults to base64
+                        data = reader.ReadContentAsBase64();
+                    
+                    if (data != null)
+                        binaryExchange.Data = data;
+
+                    reader.ReadEndElement();
+                }
+
+                return binaryExchange;
+            }
+            catch (Exception ex)
+            {
+                if (ex is XmlReadException)
+                    throw;
+
+                throw XmlUtil.LogReadException(LogMessages.IDX15017, ex, WsTrustElements.BinaryExchange, ex);
+            }
+        }
 
         /// <summary>
         /// Reads the &lt;BinarySecret&gt; element.
@@ -60,7 +106,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="serializationContext"/> is null.</exception>
         /// <exception cref="XmlReadException">Thrown if <paramref name="reader"/> is not positioned at &lt;BinarySecret&gt;.</exception>
-        public static BinarySecret ReadBinarySecrect(XmlDictionaryReader reader, WsSerializationContext serializationContext)
+        public static BinarySecret ReadBinarySecret(XmlDictionaryReader reader, WsSerializationContext serializationContext)
         {
             //  <t:BinarySecret Type="...">
             //      ...
@@ -73,14 +119,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 if (!reader.IsEmptyElement)
                 {
                     XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
-                    string encodingType = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace);
-                    if (!string.IsNullOrEmpty(encodingType))
-                        binarySecret.EncodingType = encodingType;
+                    var type = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace);
+                    if (!string.IsNullOrEmpty(type))
+                        binarySecret.Type = type;
 
                     reader.ReadStartElement();
-                    byte[] data = reader.ReadContentAsBase64();
-                    if (data != null)
-                        binarySecret.Data = data;
+
+                    binarySecret.Data = reader.ReadContentAsBase64();
 
                     reader.ReadEndElement();
                 }
@@ -181,7 +226,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 reader.ReadStartElement();
                 var entropy = new Entropy();
                 if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace))
-                    entropy.BinarySecret = ReadBinarySecrect(reader, serializationContext);
+                    entropy.BinarySecret = ReadBinarySecret(reader, serializationContext);
 
                 if (!isEmptyElement)
                     reader.ReadEndElement();
@@ -639,7 +684,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 {
                     if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace))
                     {
-                        proofToken.BinarySecret = ReadBinarySecrect(reader, serializationContext);
+                        proofToken.BinarySecret = ReadBinarySecret(reader, serializationContext);
                     }
 
                     if (reader.IsStartElement(WsTrustElements.ComputedKey, serializationContext.TrustConstants.Namespace))
@@ -908,7 +953,114 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// </summary>
         /// <remarks>Users expecting custom or additional types of SecurityTokens should add <see cref="SecurityTokenHandler"/>.</remarks>
         public ICollection<SecurityTokenHandler> SecurityTokenHandlers { get; private set; }
+       
+        private static void WriteElement(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlElement xmlElement)
+        {
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, xmlElement, nameof(xmlElement));
 
+            try
+            {
+                var prefix = NormalizePrefix(serializationContext, xmlElement);
+                if (!string.IsNullOrEmpty(prefix))
+                    writer.WriteStartElement(prefix, xmlElement.LocalName, xmlElement.NamespaceURI);
+                else 
+                    writer.WriteStartElement(xmlElement.LocalName, xmlElement.NamespaceURI);
+
+                foreach (var attribute in xmlElement.Attributes.Cast<XmlAttribute>())
+                    WriteAttribute(writer, serializationContext, attribute);
+
+                if (!string.IsNullOrEmpty(xmlElement.InnerText))
+                    writer.WriteString(xmlElement.InnerText);
+                else if (xmlElement.HasChildNodes)
+                {
+                    foreach (var element in xmlElement.ChildNodes.OfType<XmlElement>())
+                    {
+                        WriteElement(writer, serializationContext, element);
+                    }
+                }
+
+                writer.WriteEndElement();
+            }
+            catch (Exception ex)
+            {
+                if (ex is XmlWriteException)
+                    throw;
+
+                throw XmlUtil.LogWriteException(LogMessages.IDX15407, ex, xmlElement.LocalName, ex);
+            }
+        }
+        
+        private static void WriteAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute xmlAttribute)
+        {
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, xmlAttribute, nameof(xmlAttribute));
+
+            try
+            {
+                var prefix = NormalizePrefix(serializationContext, xmlAttribute);
+                if (!string.IsNullOrEmpty(prefix))
+                    writer.WriteAttributeString(prefix, xmlAttribute.LocalName, xmlAttribute.NamespaceURI, xmlAttribute.Value);
+                else 
+                    writer.WriteAttributeString(xmlAttribute.LocalName, xmlAttribute.NamespaceURI, xmlAttribute.Value);
+            }
+            catch (Exception ex)
+            {
+                if (ex is XmlWriteException)
+                    throw;
+
+                throw XmlUtil.LogWriteException(LogMessages.IDX15407, ex, xmlAttribute.LocalName, ex);
+            }
+        }
+
+        private static string NormalizePrefix(WsSerializationContext serializationContext, string prefix,
+            string namespaceUri)
+        {
+            if (string.IsNullOrEmpty(prefix))
+                return null;
+            
+            if (namespaceUri == serializationContext.TrustConstants.Namespace)
+                return serializationContext.TrustConstants.Prefix;
+
+            return prefix;
+        }
+
+        private static string NormalizePrefix(WsSerializationContext serializationContext, XmlElement element)
+            => NormalizePrefix(serializationContext, element.Prefix, element.NamespaceURI);
+
+        private static string NormalizePrefix(WsSerializationContext serializationContext, XmlAttribute attribute)
+            =>  NormalizePrefix(serializationContext, attribute.Prefix, attribute.NamespaceURI);
+
+        public static void WriteBinaryExchange(XmlDictionaryWriter writer, WsSerializationContext serializationContext, BinaryExchange binaryExchange)
+        {
+            //  <t:BinaryExchange ValueType="..." EncodingType="...">
+            //      ...
+            //  </t:BinaryExchange>
+            
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, binaryExchange, nameof(binaryExchange));
+            
+            try
+            {
+                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.BinaryExchange, serializationContext.TrustConstants.Namespace);
+                if (!string.IsNullOrEmpty(binaryExchange.ValueType))
+                    writer.WriteAttributeString(WsTrustAttributes.ValueType, serializationContext.TrustConstants.Namespace, binaryExchange.ValueType);
+                if (!string.IsNullOrEmpty(binaryExchange.EncodingType))
+                    writer.WriteAttributeString(WsTrustAttributes.EncodingType, serializationContext.TrustConstants.Namespace, binaryExchange.EncodingType);
+
+                
+                if (binaryExchange.EncodingType == serializationContext.SecurityConstants.EncodingTypes.Base64)
+                    writer.WriteBase64(binaryExchange.Data, 0, binaryExchange.Data.Length);
+                else if(binaryExchange.EncodingType == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                    writer.WriteBinHex(binaryExchange.Data, 0, binaryExchange.Data.Length);
+                writer.WriteEndElement();
+            }
+            catch (Exception ex)
+            {
+                if (ex is XmlWriteException)
+                    throw;
+
+                throw XmlUtil.LogWriteException(LogMessages.IDX15407, ex, WsTrustElements.BinaryExchange, ex);
+            }
+        }
+        
         /// <summary>
         /// Writes a &lt;BinarySecret&gt; element.
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
@@ -931,10 +1083,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace);
-                if (!string.IsNullOrEmpty(binarySecret.EncodingType))
-                    writer.WriteAttributeString(WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace, binarySecret.EncodingType);
+                if (!string.IsNullOrEmpty(binarySecret.Type))
+                    writer.WriteAttributeString(WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace, binarySecret.Type);
 
-                writer.WriteBase64(binarySecret.Data, 0, binarySecret.Data.Length);
+                if (binarySecret.Type == serializationContext.SecurityConstants.EncodingTypes.Base64)
+                    writer.WriteBase64(binarySecret.Data, 0, binarySecret.Data.Length);
+                else if(binarySecret.Type == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                    writer.WriteBinHex(binarySecret.Data, 0, binarySecret.Data.Length);
                 writer.WriteEndElement();
             }
             catch (Exception ex)
@@ -1231,6 +1386,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     writer.WriteValue(trustRequest.KeySizeInBits.Value);
                     writer.WriteEndElement();
                 }
+                
+                if (trustRequest.BinaryExchange != null)
+                    WriteBinaryExchange(writer, serializationContext, trustRequest.BinaryExchange);
 
                 if (!string.IsNullOrEmpty(trustRequest.CanonicalizationAlgorithm))
                     writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.CanonicalizationAlgorithm, serializationContext.TrustConstants.Namespace, trustRequest.CanonicalizationAlgorithm);
@@ -1272,7 +1430,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     WriteEntropy(writer, serializationContext, trustRequest.Entropy);
 
                 foreach (XmlElement xmlElement in trustRequest.AdditionalXmlElements)
-                    xmlElement.WriteTo(writer);
+                {
+                    WriteElement(writer, serializationContext, xmlElement);
+                }
 
                 writer.WriteEndElement();
             }
