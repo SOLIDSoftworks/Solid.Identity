@@ -58,7 +58,7 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
 
         public static void WriteEndpointReference(XmlDictionaryWriter writer, WsSerializationContext serializationContext, EndpointReference endpointReference)
         {
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, endpointReference, nameof(endpointReference));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, endpointReference, nameof(endpointReference));
             writer.WriteStartElement(serializationContext.AddressingConstants.Prefix, WsAddressingElements.EndpointReference, serializationContext.AddressingConstants.Namespace);
             writer.WriteStartElement(serializationContext.AddressingConstants.Prefix, WsAddressingElements.Address, serializationContext.AddressingConstants.Namespace);
             writer.WriteString(endpointReference.Uri);

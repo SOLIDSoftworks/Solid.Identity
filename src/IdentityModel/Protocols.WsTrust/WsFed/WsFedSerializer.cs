@@ -183,7 +183,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
             //    ...
             //  </auth:AdditionalContext>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, additionalContext, nameof(additionalContext));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, additionalContext, nameof(additionalContext));
             writer.WriteStartElement(serializationContext.FedConstants.AuthPrefix, WsFedElements.AdditionalContext, serializationContext.FedConstants.AuthNamespace);
             foreach (ContextItem contextItem in additionalContext.Items)
             {

@@ -98,7 +98,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <summary>
         /// Checks standard items on a write call.
         /// </summary>
-        internal static void ValidateParamsForWritting(XmlWriter writer, WsSerializationContext serializationContext, object obj, string objName)
+        internal static void ValidateParamsForWriting(XmlWriter writer, WsSerializationContext serializationContext, object obj, string objName)
         {
             if (writer == null)
                 throw LogHelper.LogArgumentNullException(nameof(writer));

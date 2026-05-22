@@ -926,7 +926,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      ...
             //  </t:BinarySecret>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, binarySecret, nameof(binarySecret));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, binarySecret, nameof(binarySecret));
 
             try
             {
@@ -963,7 +963,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //    ...
             //  </t:Claims>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, claims, nameof(claims));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, claims, nameof(claims));
 
             try
             {
@@ -1004,7 +1004,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      </t:BinarySecret>
             //  </t:Entropy>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, entropy, nameof(entropy));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, entropy, nameof(entropy));
 
             try
             {
@@ -1041,7 +1041,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      <wsu:Expires xmlns:wsu="...">2017-04-23T17:11:17.348Z</wsu:Expires>
             //  </t:Lifetime>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, lifetime, nameof(lifetime));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, lifetime, nameof(lifetime));
 
             try
             {
@@ -1092,7 +1092,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //  </t:OnBehalfOf>
 
             // TODO write references, etc.
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, onBehalfOf, nameof(onBehalfOf));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, onBehalfOf, nameof(onBehalfOf));
 
             try
             {
@@ -1168,7 +1168,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <exception cref="XmlWriteException">If an error occurs when writing the element.</exception>
         public static void WriteProofEncryption(XmlDictionaryWriter writer, WsSerializationContext serializationContext, SecurityTokenElement proofEncryption)
         {
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, proofEncryption, nameof(proofEncryption));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, proofEncryption, nameof(proofEncryption));
 
             try
             {
@@ -1393,7 +1393,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      </SecurityTokenReference>
             //  </t:RequestedAttachedReference>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, securityTokenReference, nameof(securityTokenReference));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, securityTokenReference, nameof(securityTokenReference));
             try
             {
                 writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestedAttachedReference, serializationContext.TrustConstants.Namespace);
@@ -1428,7 +1428,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      </t:BinarySecret>
             //  </t:RequestedProofToken>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, requestedProofToken, nameof(requestedProofToken));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, requestedProofToken, nameof(requestedProofToken));
 
             try
             {
@@ -1474,7 +1474,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      <SecurityTokenReference>
             //  </t:RequestedSecurityToken>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, requestedSecurityToken, nameof(requestedSecurityToken));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, requestedSecurityToken, nameof(requestedSecurityToken));
 
             try
             {
@@ -1528,7 +1528,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //    </SecurityTokenReference>
             //  </t:RequestedUnattachedReference>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, securityTokenReference, nameof(securityTokenReference));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, securityTokenReference, nameof(securityTokenReference));
 
             try
             {
@@ -1608,7 +1608,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //    SecurityToken OR SecurityTokenReference
             //  </t:UseKey>
 
-            WsUtils.ValidateParamsForWritting(writer, serializationContext, useKey, nameof(useKey));
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, useKey, nameof(useKey));
 
             try
             {
