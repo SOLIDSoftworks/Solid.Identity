@@ -30,8 +30,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Signatures
 
             var elements = Flatten(document.DocumentElement);
             return elements
-                .Where(e => e.HasAttribute("Id", WsUtilityConstants.WsUtility10.Namespace))
-                .FirstOrDefault(e => e.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace) == idValue);
+                .Where(e => e.HasAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace))
+                .FirstOrDefault(e => e.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace) == idValue);
         }
 
         private IEnumerable<XmlElement> Flatten(XmlElement element)

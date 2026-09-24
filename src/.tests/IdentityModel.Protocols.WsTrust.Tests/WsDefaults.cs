@@ -21,7 +21,6 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
         public static SecurityTokenReference SecurityTokenReference => new SecurityTokenReference {
             KeyIdentifier = KeyIdentifier,
             TokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0",
-
         };
     }
 }

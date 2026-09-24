@@ -2,6 +2,7 @@ using System;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Solid.IdentityModel.Protocols.WsTrust.WsSecureConversion;
 
 namespace Solid.IdentityModel.Protocols.WsTrust
 {
@@ -12,6 +13,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
     /// </summary>
     public class RequestedSecurityToken
     {
+        private SecurityContextToken _securityContextToken;
         private SecurityToken _securityToken;
         private XmlElement _xmlElement;
 
@@ -52,7 +54,6 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             set => _xmlElement = value ?? throw LogHelper.LogArgumentNullException(nameof(TokenElement));
         }
 
-
         /// <summary>
         /// Gets or set the <see cref="SecurityToken"/>.
         /// </summary>
@@ -61,6 +62,16 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         {
             get => _securityToken;
             set => _securityToken = value ?? throw LogHelper.LogArgumentNullException(nameof(SecurityToken));
+        }
+
+        /// <summary>
+        /// Gets or set the <see cref="SecurityContextToken"/>.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">if SecurityContextToken is null.</exception>
+        public SecurityContextToken SecurityContextToken
+        {
+            get => _securityContextToken;
+            set => _securityContextToken = value ?? throw LogHelper.LogArgumentNullException(nameof(SecurityContextToken));
         }
     }
 }

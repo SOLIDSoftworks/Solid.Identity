@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <TargetFrameworks Condition="$(TargetFramework) == '' AND $(TargetFrameworks) == ''">net8.0;net9.0</TargetFrameworks>
+        <TargetFrameworks Condition="$(TargetFramework) == '' AND $(TargetFrameworks) == ''">net8.0;net9.0;net10.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup>        
@@ -16,7 +16,12 @@
         <DocumentationFile Condition="'$(IsPackable)' != 'false'">bin/$(Configuration)/$(TargetFramework)/$(AssemblyName).xml</DocumentationFile>
         <LangVersion>12</LangVersion>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <Nullable>enable</Nullable>
 <!--        <TreatWarningsAsErrors Condition="'$(TreatWarningsAsErrors)' == ''">true</TreatWarningsAsErrors>-->
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' == 'Debug' ">
+        <NoWarn>1701;1702;CS1591</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -24,9 +29,15 @@
         <IsNet8_0 Condition="$(TargetFramework) != 'net8.0'">false</IsNet8_0>
         <IsNet9_0 Condition="$(TargetFramework) == 'net9.0'">true</IsNet9_0>
         <IsNet9_0 Condition="$(TargetFramework) != 'net9.0'">false</IsNet9_0>
+        <IsNet10_0 Condition="$(TargetFramework) == 'net10.0'">true</IsNet10_0>
+        <IsNet10_0 Condition="$(TargetFramework) != 'net10.0'">false</IsNet10_0>
         <MicrosoftExtensionsVersion Condition="$(IsNet8_0)">8.0.*</MicrosoftExtensionsVersion>
         <MicrosoftExtensionsVersion Condition="$(IsNet9_0)">9.0.*</MicrosoftExtensionsVersion>
+        <MicrosoftExtensionsVersion Condition="$(IsNet10_0)">10.0.*</MicrosoftExtensionsVersion>
         <MicrosoftIdentityModelVersion>8.8.*</MicrosoftIdentityModelVersion>
+        <SystemServiceModelVersion Condition="$(IsNet8_0)">8.1.*</SystemServiceModelVersion>
+        <SystemServiceModelVersion Condition="$(IsNet9_0)">8.1.*</SystemServiceModelVersion>
+        <SystemServiceModelVersion Condition="$(IsNet10_0)">10.0.*</SystemServiceModelVersion>
     </PropertyGroup>
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">

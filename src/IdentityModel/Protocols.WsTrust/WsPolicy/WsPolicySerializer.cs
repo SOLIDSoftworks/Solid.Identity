@@ -49,10 +49,10 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
             //  XmlUtil.CheckReaderOnEntry(reader, WsPolicyElements.PolicyReference, @namespace);
 
             bool isEmptyElement = reader.IsEmptyElement;
-            var attributes = XmlAttributeHolder.ReadAttributes(reader);
-            var uri = XmlAttributeHolder.GetAttribute(attributes, WsPolicyAttributes.URI, @namespace);
-            var digest = XmlAttributeHolder.GetAttribute(attributes, WsPolicyAttributes.Digest, @namespace);
-            var digestAlgorithm = XmlAttributeHolder.GetAttribute(attributes, WsPolicyAttributes.DigestAlgorithm, @namespace);
+            var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+            var uri = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityPolicyAttributes.URI, @namespace);
+            var digest = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityPolicyAttributes.Digest, @namespace);
+            var digestAlgorithm = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityPolicyAttributes.DigestAlgorithm, @namespace);
             reader.ReadStartElement();
             reader.MoveToContent();
 
@@ -65,9 +65,9 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
         public static void WriteAppliesTo(XmlDictionaryWriter writer, WsSerializationContext serializationContext, AppliesTo appliesTo)
         {
             //  if this clas becomes public, we will need to check parameters
-            //  WsUtils.ValidateParamsForWritting(writer, serializationContext, appliesTo, nameof(appliesTo));
+            //  WsUtils.ValidateParamsForWriting(writer, serializationContext, appliesTo, nameof(appliesTo));
 
-            writer.WriteStartElement(serializationContext.PolicyConstants.Prefix, WsPolicyElements.AppliesTo, serializationContext.PolicyConstants.Namespace);
+            writer.WriteStartElement(serializationContext.SecurityPolicy.DefaultPrefix, WsSecurityPolicyElements.AppliesTo, serializationContext.SecurityPolicy.Namespace);
             if (appliesTo.EndpointReference != null)
                 WsAddressingSerializer.WriteEndpointReference(writer, serializationContext, appliesTo.EndpointReference);
 
@@ -85,15 +85,15 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
             //  if this clas becomes public, we will need to check parameters
             //  WsUtils.ValidateParamsForWritting(writer, serializationContext, policyReference, nameof(policyReference));
 
-            writer.WriteStartElement(serializationContext.PolicyConstants.Prefix, WsPolicyElements.PolicyReference, serializationContext.PolicyConstants.Namespace);
+            writer.WriteStartElement(serializationContext.SecurityPolicy.DefaultPrefix, WsSecurityPolicyElements.PolicyReference, serializationContext.SecurityPolicy.Namespace);
             if (!string.IsNullOrEmpty(policyReference.Uri))
-                writer.WriteAttributeString(WsPolicyAttributes.URI, policyReference.Uri);
+                writer.WriteAttributeString(WsSecurityPolicyAttributes.URI, policyReference.Uri);
 
             if (!string.IsNullOrEmpty(policyReference.Digest))
-                writer.WriteAttributeString(WsPolicyAttributes.Digest, policyReference.Digest);
+                writer.WriteAttributeString(WsSecurityPolicyAttributes.Digest, policyReference.Digest);
 
             if (!string.IsNullOrEmpty(policyReference.DigestAlgorithm))
-                writer.WriteAttributeString(WsPolicyAttributes.DigestAlgorithm, policyReference.DigestAlgorithm);
+                writer.WriteAttributeString(WsSecurityPolicyAttributes.DigestAlgorithm, policyReference.DigestAlgorithm);
 
             writer.WriteEndElement();
         }

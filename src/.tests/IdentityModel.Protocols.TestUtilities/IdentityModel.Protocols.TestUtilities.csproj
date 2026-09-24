@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="$(MicrosoftIdentityModelVersion)" />
+        <PackageReference Include="Microsoft.IdentityModel.Xml" Version="$(MicrosoftIdentityModelVersion)" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\IdentityModel\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
+    </ItemGroup>
+</Project>

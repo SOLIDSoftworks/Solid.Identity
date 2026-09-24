@@ -36,7 +36,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 _options = options;
             }
 
-            protected override WsSerializationContext CreateSerializationContext(WsTrustVersion version)
+            protected override WsSerializationContext CreateSerializationContext(WsTrustConstants version)
             {
                 if(_options == null)
                     return base.CreateSerializationContext(version);
@@ -45,12 +45,12 @@ namespace Solid.Identity.Protocols.WsTrust
                 {
                     TrustVersion = version,
                     TrustActions = _options.TrustActions,
-                    TrustConstants = _options.TrustConstants,
+                    Trust = _options.TrustConstants,
                     TrustKeyTypes = _options.TrustKeyTypes,
-                    AddressingConstants = _options.AddressingConstants,
-                    FedConstants = _options.FedConstants,
-                    SecurityConstants = _options.SecurityConstants,
-                    PolicyConstants = _options.PolicyConstants
+                    Addressing = _options.AddressingConstants,
+                    FederationVersion = _options.FedConstants,
+                    Security = _options.SecurityConstants,
+                    SecurityPolicy = _options.PolicyConstants
                 };
             }
         }

@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
+    <ProjectReference Include="..\IdentityModel.Protocols.TestUtilities\IdentityModel.Protocols.TestUtilities.csproj" />
+  </ItemGroup>
+</Project>

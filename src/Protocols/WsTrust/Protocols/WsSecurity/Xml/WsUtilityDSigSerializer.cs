@@ -52,7 +52,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Xml
             {
                 if (!_document.IsStartElement()) continue;
                 if (!_document.HasAttributes) continue;
-                var id = _document.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace);
+                var id = _document.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace);
                 if (id == null) continue;
 
                 var reference = info

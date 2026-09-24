@@ -64,7 +64,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
             {
                 var results = new List<VerifyTokenResult>();
 
-                var reader = soap.Request.Headers.GetReaderAtHeader(index);
+                var reader = XmlDictionaryReader.CreateDictionaryReader(soap.Request.Headers.GetReaderAtHeader(index));
                 //if (_wsTrust.ValidateWsSecuritySignatures)
                 //    reader = new EnvelopedSignatureReader(reader);
 
@@ -265,7 +265,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
 
             var timestamp = new Timestamp
             {
-                Id = reader.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace)
+                Id = reader.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace)
             };
 
             reader.ReadToDescendant("Created", WsUtilityConstants.WsUtility10.Namespace);

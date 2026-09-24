@@ -15,6 +15,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         private RequestedProofToken _requestedProofToken;
         private RequestedSecurityToken _securityToken;
         private SecurityTokenReference _unattachedReference;
+        private Authenticator _authenticator;
 
         /// <summary>
         /// Creates an instance of <see cref="RequestSecurityTokenResponse"/>.
@@ -61,6 +62,12 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         {
             get => _unattachedReference;
             set => _unattachedReference = value ?? throw LogHelper.LogArgumentNullException(nameof(UnattachedReference));
+        }
+
+        public Authenticator Authenticator
+        {
+            get => _authenticator;
+            set => _authenticator = value ?? throw LogHelper.LogArgumentNullException(nameof(Authenticator));
         }
     }
 }

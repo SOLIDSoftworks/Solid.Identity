@@ -5,13 +5,13 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.ServiceModel.Security;
 using System.Text;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Solid.IdentityModel.Protocols.WsFed;
 using Solid.IdentityModel.Protocols.WsPolicy;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
@@ -63,18 +63,18 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 var binaryExchange = new BinaryExchange();
                 if (!reader.IsEmptyElement)
                 {
-                    XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
-                    var encodingType = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.EncodingType, serializationContext.TrustConstants.Namespace);
+                    XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+                    var encodingType = XmlAttributeDescriptor.GetAttribute(attributes, WsTrustAttributes.EncodingType, serializationContext.Trust.Namespace);
                     if (!string.IsNullOrEmpty(encodingType))
                         binaryExchange.EncodingType = encodingType;
-                    var valueType = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.ValueType, serializationContext.TrustConstants.Namespace);
+                    var valueType = XmlAttributeDescriptor.GetAttribute(attributes, WsTrustAttributes.ValueType, serializationContext.Trust.Namespace);
                     if (!string.IsNullOrEmpty(valueType))
                         binaryExchange.ValueType = valueType;
 
                     reader.ReadStartElement();
 
                     var data = null as byte[];
-                    if (encodingType == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                    if (encodingType == serializationContext.Security.EncodingTypes.HexBinary)
                         data = reader.ReadContentAsBinHex();
                     else // Defaults to base64
                         data = reader.ReadContentAsBase64();
@@ -118,8 +118,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 var binarySecret = new BinarySecret();
                 if (!reader.IsEmptyElement)
                 {
-                    XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
-                    var type = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace);
+                    XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+                    var type = XmlAttributeDescriptor.GetAttribute(attributes, WsTrustAttributes.Type, serializationContext.Trust.Namespace);
                     if (!string.IsNullOrEmpty(type))
                         binarySecret.Type = type;
 
@@ -168,16 +168,16 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 bool isEmptyElement = reader.IsEmptyElement;
-                XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
+                XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
 
-                string dialect = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.Dialect, serializationContext.TrustConstants.Namespace);
+                string dialect = XmlAttributeDescriptor.GetAttribute(attributes, WsTrustAttributes.Dialect, serializationContext.Trust.Namespace);
                 reader.ReadStartElement();
                 var claimTypes = new List<ClaimType>();
                 while (reader.IsStartElement())
                 {
                     if (reader.IsLocalName(WsFedElements.ClaimType))
                     {
-                        claimTypes.Add(_wsFedSerializer.ReadClaimType(reader, serializationContext.FedConstants.AuthNamespace));
+                        claimTypes.Add(_wsFedSerializer.ReadClaimType(reader, serializationContext.FederationVersion.AuthNamespace));
                     }
                     else
                     {
@@ -225,7 +225,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                 reader.ReadStartElement();
                 var entropy = new Entropy();
-                if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace))
+                if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.Trust.Namespace))
                     entropy.BinarySecret = ReadBinarySecret(reader, serializationContext);
 
                 if (!isEmptyElement)
@@ -267,10 +267,10 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 reader.ReadStartElement();
                 var lifetime = new Lifetime(null, null);
 
-                if (reader.IsStartElement() && reader.IsLocalName(WsUtilityElements.Created))
+                if (reader.IsStartElement() && reader.IsLocalName(WsSecurityUtilityElements.Created))
                     lifetime.Created = XmlConvert.ToDateTime(WsUtils.ReadStringElement(reader), XmlDateTimeSerializationMode.Utc);
 
-                if (reader.IsStartElement() && reader.IsLocalName(WsUtilityElements.Expires))
+                if (reader.IsStartElement() && reader.IsLocalName(WsSecurityUtilityElements.Expires))
                     lifetime.Expires = XmlConvert.ToDateTime(WsUtils.ReadStringElement(reader), XmlDateTimeSerializationMode.Utc);
 
                 if (!isEmptyElement)
@@ -384,11 +384,11 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             WsSerializationContext serializationContext;
             if (reader.IsNamespaceUri(WsTrustConstants.Trust13.Namespace))
-                serializationContext = CreateSerializationContext(WsTrustVersion.Trust13);
+                serializationContext = CreateSerializationContext(WsTrustConstants.Trust13);
             else if (reader.IsNamespaceUri(WsTrustConstants.TrustFeb2005.Namespace))
-                serializationContext = CreateSerializationContext(WsTrustVersion.TrustFeb2005);
+                serializationContext = CreateSerializationContext(WsTrustConstants.TrustFeb2005);
             else if (reader.IsNamespaceUri(WsTrustConstants.Trust14.Namespace))
-                serializationContext = CreateSerializationContext(WsTrustVersion.Trust14);
+                serializationContext = CreateSerializationContext(WsTrustConstants.Trust14);
             else
                 throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15000, WsTrustConstants.TrustFeb2005, WsTrustConstants.Trust13, WsTrustConstants.Trust14, reader.NamespaceURI)));
 
@@ -396,9 +396,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             {
                 bool isEmptyElement = reader.IsEmptyElement;
 
-                XmlAttributeHolder[] xmlAttributes = XmlAttributeHolder.ReadAttributes(reader);
+                XmlAttributeDescriptor[] xmlAttributes = XmlAttributeDescriptor.ReadAttributes(reader);
                 var trustRequest = new WsTrustRequest(serializationContext.TrustActions.Issue);
-                string context = XmlAttributeHolder.GetAttribute(xmlAttributes, WsTrustAttributes.Context, serializationContext.TrustConstants.Namespace);
+                string context = XmlAttributeDescriptor.GetAttribute(xmlAttributes, WsTrustAttributes.Context, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(context))
                     trustRequest.Context = context;
 
@@ -419,8 +419,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             }
         }
         
-        protected virtual WsSerializationContext CreateSerializationContext(WsTrustVersion version)
-            => new WsSerializationContext(version);
+        protected virtual WsSerializationContext CreateSerializationContext(TrustVersion version)
+            => new (version);
 
         private void ReadRequest(XmlDictionaryReader reader, WsTrustRequest trustRequest, WsSerializationContext serializationContext)
         {
@@ -428,58 +428,58 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             while (reader.IsStartElement())
             {
                 bool processed = false;
-                if (reader.IsStartElement(WsTrustElements.RequestType, serializationContext.TrustConstants.Namespace))
+                if (reader.IsStartElement(WsTrustElements.RequestType, serializationContext.Trust.Namespace))
                 {
                     trustRequest.RequestType = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.OnBehalfOf, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.OnBehalfOf, serializationContext.Trust.Namespace))
                 {
                     trustRequest.OnBehalfOf = ReadOnBehalfOf(reader, serializationContext);
                 }
-                else if (reader.IsStartElement(WsTrustElements.TokenType, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.TokenType, serializationContext.Trust.Namespace))
                 {
                     trustRequest.TokenType = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.KeyType, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.KeyType, serializationContext.Trust.Namespace))
                 {
                     trustRequest.KeyType = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.KeySize, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.KeySize, serializationContext.Trust.Namespace))
                 {
                     trustRequest.KeySizeInBits = WsUtils.ReadIntElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.CanonicalizationAlgorithm, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.CanonicalizationAlgorithm, serializationContext.Trust.Namespace))
                 {
                     trustRequest.CanonicalizationAlgorithm = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.EncryptionAlgorithm, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.EncryptionAlgorithm, serializationContext.Trust.Namespace))
                 {
                     trustRequest.EncryptionAlgorithm = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.EncryptWith, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.EncryptWith, serializationContext.Trust.Namespace))
                 {
                     trustRequest.EncryptWith = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.SignWith, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.SignWith, serializationContext.Trust.Namespace))
                 {
                     trustRequest.SignWith = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.ComputedKeyAlgorithm, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.ComputedKeyAlgorithm, serializationContext.Trust.Namespace))
                 {
                     trustRequest.ComputedKeyAlgorithm = WsUtils.ReadStringElement(reader);
                 }
-                else if (reader.IsStartElement(WsTrustElements.UseKey, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.UseKey, serializationContext.Trust.Namespace))
                 {
                     trustRequest.UseKey = ReadUseKey(reader, serializationContext);
                 }
-                else if (reader.IsStartElement(WsTrustElements.ProofEncryption, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace))
                 {
-                    // TODO Read proof encryption key
+                    // TODO: Read proof encryption key
                     reader.Read();
                 }
-                else if (reader.IsLocalName(WsPolicyElements.AppliesTo))
+                else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                 {
-                    foreach (string @namespace in WsPolicyConstants.KnownNamespaces)
+                    foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces)
                     {
                         if (reader.IsNamespaceUri(@namespace))
                         {
@@ -496,7 +496,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 }
                 else if (reader.IsLocalName(WsFedElements.AdditionalContext))
                 {
-                    foreach (string @namespace in WsFedConstants.KnownAuthNamespaces)
+                    foreach (string @namespace in WsFederationAuthorizationConstants.KnownNamespaces.Keys)
                     {
                         if (reader.IsNamespaceUri(@namespace))
                         {
@@ -511,13 +511,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                         ReadUnknownElement(reader, trustRequest);
                     }
                 }
-                else if (reader.IsStartElement(WsTrustElements.Claims, serializationContext.TrustConstants.Namespace))
+                else if (reader.IsStartElement(WsTrustElements.Claims, serializationContext.Trust.Namespace))
                 {
                     trustRequest.Claims = ReadClaims(reader, serializationContext);
                 }
-                else if (reader.IsLocalName(WsPolicyElements.PolicyReference))
+                else if (reader.IsLocalName(WsSecurityPolicyElements.PolicyReference))
                 {
-                    trustRequest.PolicyReference = _wsPolicySerializer.ReadPolicyReference(reader, serializationContext.PolicyConstants.Namespace);
+                    trustRequest.PolicyReference = _wsPolicySerializer.ReadPolicyReference(reader, serializationContext.SecurityPolicy.Namespace);
                 }
                 else
                 {
@@ -536,7 +536,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="serializationContext"/> is null.</exception>
         /// <exception cref="XmlReadException">If <paramref name="reader"/> is not positioned at &lt;RequestSecurityTokenResponse&gt;.</exception>
-        public RequestSecurityTokenResponse ReadRequestSeurityTokenResponse(XmlDictionaryReader reader, WsSerializationContext serializationContext)
+        public RequestSecurityTokenResponse ReadRequestSecurityTokenResponse(XmlDictionaryReader reader, WsSerializationContext serializationContext)
         {
             WsUtils.CheckReaderOnEntry(reader, WsTrustElements.RequestSecurityTokenResponse, serializationContext);
 
@@ -548,45 +548,45 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 reader.ReadStartElement();
                 while (reader.IsStartElement())
                 {
-                    if (reader.IsStartElement(WsTrustElements.TokenType, serializationContext.TrustConstants.Namespace))
+                    if (reader.IsStartElement(WsTrustElements.TokenType, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.TokenType = WsUtils.ReadStringElement(reader);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.Lifetime, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.Lifetime, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.Lifetime = ReadLifetime(reader, serializationContext);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.KeySize, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.KeySize, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.KeySizeInBits = WsUtils.ReadIntElement(reader);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.KeyType, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.KeyType, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.KeyType = WsUtils.ReadStringElement(reader);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.RequestedSecurityToken, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.RequestedSecurityToken, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.RequestedSecurityToken = ReadRequestedSecurityToken(reader, serializationContext);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.RequestedAttachedReference, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.RequestedAttachedReference, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.AttachedReference = ReadRequestedAttachedReference(reader, serializationContext);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.RequestedUnattachedReference, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.RequestedUnattachedReference, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.UnattachedReference = ReadRequestedUnattachedReference(reader, serializationContext);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.RequestedProofToken, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.RequestedProofToken, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.RequestedProofToken = ReadRequestedProofToken(reader, serializationContext);
                     }
-                    else if (reader.IsStartElement(WsTrustElements.Entropy, serializationContext.TrustConstants.Namespace))
+                    else if (reader.IsStartElement(WsTrustElements.Entropy, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.Entropy = ReadEntropy(reader, serializationContext);
                     }
-                    else if (reader.IsLocalName(WsPolicyElements.AppliesTo))
+                    else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                     {
-                        foreach (string @namespace in WsPolicyConstants.KnownNamespaces)
+                        foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces)
                         {
                             if (reader.IsNamespaceUri(@namespace))
                             {
@@ -682,12 +682,12 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                 while (reader.IsStartElement())
                 {
-                    if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace))
+                    if (reader.IsStartElement(WsTrustElements.BinarySecret, serializationContext.Trust.Namespace))
                     {
                         proofToken.BinarySecret = ReadBinarySecret(reader, serializationContext);
                     }
 
-                    if (reader.IsStartElement(WsTrustElements.ComputedKey, serializationContext.TrustConstants.Namespace))
+                    if (reader.IsStartElement(WsTrustElements.ComputedKey, serializationContext.Trust.Namespace))
                     {
                         proofToken.ComputedKeyAlgorithm = WsUtils.ReadStringElement(reader);
                     }
@@ -829,11 +829,11 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             {
                 WsSerializationContext serializationContext;
                 if (reader.IsNamespaceUri(WsTrustConstants.Trust13.Namespace))
-                    serializationContext = CreateSerializationContext(WsTrustVersion.Trust13);
+                    serializationContext = CreateSerializationContext(WsTrustConstants.Trust13);
                 else if (reader.IsNamespaceUri(WsTrustConstants.TrustFeb2005.Namespace))
-                    serializationContext = CreateSerializationContext(WsTrustVersion.TrustFeb2005);
+                    serializationContext = CreateSerializationContext(WsTrustConstants.TrustFeb2005);
                 else if (reader.IsNamespaceUri(WsTrustConstants.Trust14.Namespace))
-                    serializationContext = CreateSerializationContext(WsTrustVersion.Trust14);
+                    serializationContext = CreateSerializationContext(WsTrustConstants.Trust14);
                 else
                     throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15001, WsTrustConstants.TrustFeb2005, WsTrustConstants.Trust13, WsTrustConstants.Trust14, reader.NamespaceURI)));
 
@@ -859,7 +859,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             bool isEmptyElement = reader.IsEmptyElement;
             bool hasRstrCollection = false;
             var response = new WsTrustResponse();
-            if (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponseCollection, serializationContext.TrustConstants.Namespace))
+            if (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponseCollection, serializationContext.Trust.Namespace))
             {
                 reader.ReadStartElement();
                 hasRstrCollection = true;
@@ -867,8 +867,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             while (reader.IsStartElement())
             {
-                if (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponse, serializationContext.TrustConstants.Namespace))
-                    response.RequestSecurityTokenResponseCollection.Add(ReadRequestSeurityTokenResponse(reader, serializationContext));
+                if (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponse, serializationContext.Trust.Namespace))
+                    response.RequestSecurityTokenResponseCollection.Add(ReadRequestSecurityTokenResponse(reader, serializationContext));
                 else
                     // brentsch - need to put these elements in array
                     reader.Skip();
@@ -921,8 +921,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 bool isEmptyElement = reader.IsEmptyElement;
-                XmlAttributeHolder[] attributes = XmlAttributeHolder.ReadAttributes(reader);
-                string signatureId = XmlAttributeHolder.GetAttribute(attributes, WsTrustAttributes.Sig, serializationContext.TrustConstants.Namespace);
+                XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+                string signatureId = XmlAttributeDescriptor.GetAttribute(attributes, WsTrustAttributes.Sig, serializationContext.Trust.Namespace);
 
                 reader.ReadStartElement();
                 UseKey useKey = null;
@@ -954,7 +954,23 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <remarks>Users expecting custom or additional types of SecurityTokens should add <see cref="SecurityTokenHandler"/>.</remarks>
         public ICollection<SecurityTokenHandler> SecurityTokenHandlers { get; private set; }
        
-        private static void WriteElement(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlElement xmlElement)
+        private void WriteXmlOpenItemElements(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlOpenItem item)
+        {
+            foreach (var element in item.AdditionalXmlElements)
+            {
+                WriteXmlElement(writer, serializationContext, element);
+            }
+        }
+        
+        private void WriteXmlOpenItemAttributes(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlOpenItem item)
+        {
+            foreach (var attribute in item.AdditionalXmlAttributes)
+            {
+                WriteXmlAttribute(writer, serializationContext, attribute);
+            }
+        }
+        
+        private static void WriteXmlElement(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlElement xmlElement)
         {
             WsUtils.ValidateParamsForWriting(writer, serializationContext, xmlElement, nameof(xmlElement));
 
@@ -967,7 +983,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     writer.WriteStartElement(xmlElement.LocalName, xmlElement.NamespaceURI);
 
                 foreach (var attribute in xmlElement.Attributes.Cast<XmlAttribute>())
-                    WriteAttribute(writer, serializationContext, attribute);
+                    WriteXmlAttribute(writer, serializationContext, attribute);
 
                 if (!string.IsNullOrEmpty(xmlElement.InnerText))
                     writer.WriteString(xmlElement.InnerText);
@@ -975,7 +991,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 {
                     foreach (var element in xmlElement.ChildNodes.OfType<XmlElement>())
                     {
-                        WriteElement(writer, serializationContext, element);
+                        WriteXmlElement(writer, serializationContext, element);
                     }
                 }
 
@@ -990,7 +1006,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             }
         }
         
-        private static void WriteAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute xmlAttribute)
+        private static void WriteXmlAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute xmlAttribute)
         {
             WsUtils.ValidateParamsForWriting(writer, serializationContext, xmlAttribute, nameof(xmlAttribute));
 
@@ -1017,8 +1033,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             if (string.IsNullOrEmpty(prefix))
                 return null;
             
-            if (namespaceUri == serializationContext.TrustConstants.Namespace)
-                return serializationContext.TrustConstants.Prefix;
+            if (namespaceUri == serializationContext.Trust.Namespace)
+                return serializationContext.Trust.DefaultPrefix;
 
             return prefix;
         }
@@ -1039,16 +1055,16 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.BinaryExchange, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.BinaryExchange, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(binaryExchange.ValueType))
-                    writer.WriteAttributeString(WsTrustAttributes.ValueType, serializationContext.TrustConstants.Namespace, binaryExchange.ValueType);
+                    writer.WriteAttributeString(WsTrustAttributes.ValueType, serializationContext.Trust.Namespace, binaryExchange.ValueType);
                 if (!string.IsNullOrEmpty(binaryExchange.EncodingType))
-                    writer.WriteAttributeString(WsTrustAttributes.EncodingType, serializationContext.TrustConstants.Namespace, binaryExchange.EncodingType);
+                    writer.WriteAttributeString(WsTrustAttributes.EncodingType, serializationContext.Trust.Namespace, binaryExchange.EncodingType);
 
                 
-                if (binaryExchange.EncodingType == serializationContext.SecurityConstants.EncodingTypes.Base64)
+                if (binaryExchange.EncodingType == serializationContext.Security.EncodingTypes.Base64)
                     writer.WriteBase64(binaryExchange.Data, 0, binaryExchange.Data.Length);
-                else if(binaryExchange.EncodingType == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                else if(binaryExchange.EncodingType == serializationContext.Security.EncodingTypes.HexBinary)
                     writer.WriteBinHex(binaryExchange.Data, 0, binaryExchange.Data.Length);
                 writer.WriteEndElement();
             }
@@ -1082,13 +1098,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.BinarySecret, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.BinarySecret, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(binarySecret.Type))
-                    writer.WriteAttributeString(WsTrustAttributes.Type, serializationContext.TrustConstants.Namespace, binarySecret.Type);
+                    writer.WriteAttributeString(WsTrustAttributes.Type, serializationContext.Trust.Namespace, binarySecret.Type);
 
-                if (binarySecret.Type == serializationContext.SecurityConstants.EncodingTypes.Base64)
+                if (binarySecret.Type == serializationContext.Security.EncodingTypes.Base64)
                     writer.WriteBase64(binarySecret.Data, 0, binarySecret.Data.Length);
-                else if(binarySecret.Type == serializationContext.SecurityConstants.EncodingTypes.HexBinary)
+                else if(binarySecret.Type == serializationContext.Security.EncodingTypes.HexBinary)
                     writer.WriteBinHex(binarySecret.Data, 0, binarySecret.Data.Length);
                 writer.WriteEndElement();
             }
@@ -1122,7 +1138,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.Claims, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.Claims, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(claims.Dialect))
                     writer.WriteAttributeString(WsTrustAttributes.Dialect, claims.Dialect);
 
@@ -1163,7 +1179,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.Entropy, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.Entropy, serializationContext.Trust.Namespace);
                 if (entropy.BinarySecret != null)
                     WriteBinarySecret(writer, serializationContext, entropy.BinarySecret);
 
@@ -1200,17 +1216,17 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.Lifetime, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.Lifetime, serializationContext.Trust.Namespace);
                 if (lifetime.Created.HasValue)
                 {
-                    writer.WriteStartElement(WsUtilityConstants.WsUtility10.Prefix, WsUtilityElements.Created, WsUtilityConstants.WsUtility10.Namespace);
+                    writer.WriteStartElement(WsSecurityUtilityConstants.SecurityUtility10.DefaultPrefix, WsSecurityUtilityElements.Created, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
                     writer.WriteString(XmlConvert.ToString(lifetime.Created.Value.ToUniversalTime(), GeneratedDateTimeFormat));
                     writer.WriteEndElement();
                 }
 
                 if (lifetime.Expires.HasValue)
                 {
-                    writer.WriteStartElement(WsUtilityConstants.WsUtility10.Prefix, WsUtilityElements.Expires, WsUtilityConstants.WsUtility10.Namespace);
+                    writer.WriteStartElement(WsSecurityUtilityConstants.SecurityUtility10.DefaultPrefix, WsSecurityUtilityElements.Expires, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
                     writer.WriteString(XmlConvert.ToString(lifetime.Expires.Value.ToUniversalTime(), GeneratedDateTimeFormat));
                     writer.WriteEndElement();
                 }
@@ -1251,7 +1267,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.OnBehalfOf, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.OnBehalfOf, serializationContext.Trust.Namespace);
                 if (onBehalfOf.SecurityToken != null)
                 {
                     bool tryWriteSucceeded = false;
@@ -1327,7 +1343,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.ProofEncryption, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace);
 
                 // TODO Write proof encryption key
 
@@ -1347,13 +1363,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
         /// </summary>
         /// <param name="writer">A <see cref="XmlDictionaryWriter"/> to write the element into.</param>
-        /// <param name="wsTrustVersion">A <see cref="WsTrustVersion"/> defines version of Ws-Trust use.</param>
+        /// <param name="wsTrustVersion">A <see cref="WsTrustConstants"/> defines version of Ws-Trust use.</param>
         /// <param name="trustRequest">The <see cref="WsTrustRequest"/> to write.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="writer"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wsTrustVersion"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="trustRequest"/> is null.</exception>
         /// <exception cref="XmlWriteException">If an error occurs when writing the element.</exception>
-        public void WriteRequest(XmlDictionaryWriter writer, WsTrustVersion wsTrustVersion, WsTrustRequest trustRequest)
+        public void WriteRequest(XmlDictionaryWriter writer, WsTrustConstants wsTrustVersion, WsTrustRequest trustRequest)
         {
             if (writer == null)
                 throw LogHelper.LogArgumentNullException(nameof(writer));
@@ -1368,21 +1384,23 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestSecurityToken, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestSecurityToken, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(trustRequest.Context))
                     writer.WriteAttributeString(WsTrustAttributes.Context, trustRequest.Context);
+                
+                WriteXmlOpenItemAttributes(writer, serializationContext, trustRequest);
 
-                writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestType, serializationContext.TrustConstants.Namespace, trustRequest.RequestType);
+                writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestType, serializationContext.Trust.Namespace, trustRequest.RequestType);
 
                 if (!string.IsNullOrEmpty(trustRequest.TokenType))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.TokenType, serializationContext.TrustConstants.Namespace, trustRequest.TokenType);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.TokenType, serializationContext.Trust.Namespace, trustRequest.TokenType);
 
                 if (!string.IsNullOrEmpty(trustRequest.KeyType))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.KeyType, serializationContext.TrustConstants.Namespace, trustRequest.KeyType);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.KeyType, serializationContext.Trust.Namespace, trustRequest.KeyType);
 
                 if (trustRequest.KeySizeInBits.HasValue)
                 {
-                    writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.KeySize, serializationContext.TrustConstants.Namespace);
+                    writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.KeySize, serializationContext.Trust.Namespace);
                     writer.WriteValue(trustRequest.KeySizeInBits.Value);
                     writer.WriteEndElement();
                 }
@@ -1391,19 +1409,19 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     WriteBinaryExchange(writer, serializationContext, trustRequest.BinaryExchange);
 
                 if (!string.IsNullOrEmpty(trustRequest.CanonicalizationAlgorithm))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.CanonicalizationAlgorithm, serializationContext.TrustConstants.Namespace, trustRequest.CanonicalizationAlgorithm);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.CanonicalizationAlgorithm, serializationContext.Trust.Namespace, trustRequest.CanonicalizationAlgorithm);
 
                 if (!string.IsNullOrEmpty(trustRequest.EncryptionAlgorithm))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.EncryptionAlgorithm, serializationContext.TrustConstants.Namespace, trustRequest.EncryptionAlgorithm);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.EncryptionAlgorithm, serializationContext.Trust.Namespace, trustRequest.EncryptionAlgorithm);
 
                 if (!string.IsNullOrEmpty(trustRequest.EncryptWith))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.EncryptWith, serializationContext.TrustConstants.Namespace, trustRequest.EncryptWith);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.EncryptWith, serializationContext.Trust.Namespace, trustRequest.EncryptWith);
 
                 if (!string.IsNullOrEmpty(trustRequest.SignWith))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.SignWith, serializationContext.TrustConstants.Namespace, trustRequest.SignWith);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.SignWith, serializationContext.Trust.Namespace, trustRequest.SignWith);
 
                 if (!string.IsNullOrEmpty(trustRequest.ComputedKeyAlgorithm))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.ComputedKeyAlgorithm, serializationContext.TrustConstants.Namespace, trustRequest.ComputedKeyAlgorithm);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.ComputedKeyAlgorithm, serializationContext.Trust.Namespace, trustRequest.ComputedKeyAlgorithm);
 
                 if (trustRequest.AppliesTo != null)
                     WsPolicySerializer.WriteAppliesTo(writer, serializationContext, trustRequest.AppliesTo);
@@ -1429,10 +1447,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 if (trustRequest.Entropy != null)
                     WriteEntropy(writer, serializationContext, trustRequest.Entropy);
 
-                foreach (XmlElement xmlElement in trustRequest.AdditionalXmlElements)
-                {
-                    WriteElement(writer, serializationContext, xmlElement);
-                }
+                WriteXmlOpenItemElements(writer, serializationContext, trustRequest);
 
                 writer.WriteEndElement();
             }
@@ -1450,13 +1465,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
         /// </summary>
         /// <param name="writer">A <see cref="XmlDictionaryReader"/> to write the element into.</param>
-        /// <param name="wsTrustVersion">A <see cref="WsTrustVersion"/> defines specification versions that are expected.</param>
+        /// <param name="wsTrustVersion">A <see cref="WsTrustConstants"/> defines specification versions that are expected.</param>
         /// <param name="requestSecurityTokenResponse">The <see cref="RequestSecurityTokenResponse"/> to write.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="writer"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wsTrustVersion"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="requestSecurityTokenResponse"/> is null.</exception>
         /// <exception cref="XmlWriteException">If an error occurs when writing the element.</exception>
-        public void WriteRequestSecurityTokenResponse(XmlDictionaryWriter writer, WsTrustVersion wsTrustVersion, RequestSecurityTokenResponse requestSecurityTokenResponse)
+        public void WriteRequestSecurityTokenResponse(XmlDictionaryWriter writer, WsTrustConstants wsTrustVersion, RequestSecurityTokenResponse requestSecurityTokenResponse)
         {
             if (writer == null)
                 throw LogHelper.LogArgumentNullException(nameof(writer));
@@ -1472,7 +1487,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 // <RequestSecurityTokenResponse>
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestSecurityTokenResponse, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestSecurityTokenResponse, serializationContext.Trust.Namespace);
 
                 //  @Context="..."
                 if (!string.IsNullOrEmpty(requestSecurityTokenResponse.Context))
@@ -1484,7 +1499,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                 //  <TokenType>
                 if (!string.IsNullOrEmpty(requestSecurityTokenResponse.TokenType))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.TokenType, serializationContext.TrustConstants.Namespace, requestSecurityTokenResponse.TokenType);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.TokenType, serializationContext.Trust.Namespace, requestSecurityTokenResponse.TokenType);
 
                 //  <RequestedSecurityToken>
                 if (requestSecurityTokenResponse.RequestedSecurityToken != null)
@@ -1493,14 +1508,14 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 // <KeySize>
                 if (requestSecurityTokenResponse.KeySizeInBits.HasValue)
                 {
-                    writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.KeySize, serializationContext.TrustConstants.Namespace);
+                    writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.KeySize, serializationContext.Trust.Namespace);
                     writer.WriteValue(requestSecurityTokenResponse.KeySizeInBits.Value);
                     writer.WriteEndElement();
                 }
 
                 // <KeyType>
                 if (!string.IsNullOrEmpty(requestSecurityTokenResponse.KeyType))
-                    writer.WriteElementString(serializationContext.TrustConstants.Prefix, WsTrustElements.KeyType, serializationContext.TrustConstants.Namespace, requestSecurityTokenResponse.KeyType);
+                    writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.KeyType, serializationContext.Trust.Namespace, requestSecurityTokenResponse.KeyType);
 
                 // <AppliesTo>
                 if (requestSecurityTokenResponse.AppliesTo != null)
@@ -1556,7 +1571,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             WsUtils.ValidateParamsForWriting(writer, serializationContext, securityTokenReference, nameof(securityTokenReference));
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestedAttachedReference, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedAttachedReference, serializationContext.Trust.Namespace);
                 WsSecuritySerializer.WriteSecurityTokenReference(writer, securityTokenReference);
                 writer.WriteEndElement();
             }
@@ -1592,12 +1607,12 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestedProofToken, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedProofToken, serializationContext.Trust.Namespace);
                 if (requestedProofToken.BinarySecret != null)
                     WriteBinarySecret(writer, serializationContext, requestedProofToken.BinarySecret);
                 if (!string.IsNullOrEmpty(requestedProofToken.ComputedKeyAlgorithm))
                 {
-                    writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.ComputedKey, serializationContext.TrustConstants.Namespace);
+                    writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.ComputedKey, serializationContext.Trust.Namespace);
                     writer.WriteString(requestedProofToken.ComputedKeyAlgorithm);
                     writer.WriteEndElement();
                 }
@@ -1638,7 +1653,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestedSecurityToken, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedSecurityToken, serializationContext.Trust.Namespace);
 
                 if (requestedSecurityToken.TokenElement != null)
                 {
@@ -1692,7 +1707,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestedUnattachedReference, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedUnattachedReference, serializationContext.Trust.Namespace);
                 WsSecuritySerializer.WriteSecurityTokenReference(writer, securityTokenReference);
                 writer.WriteEndElement();
             }
@@ -1710,13 +1725,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
         /// </summary>
         /// <param name="writer">A <see cref="XmlDictionaryWriter"/> to write the element into.</param>
-        /// <param name="wsTrustVersion">A <see cref="WsTrustVersion"/> defines version of Ws-Trust use.</param>
+        /// <param name="wsTrustVersion">A <see cref="WsTrustConstants"/> defines version of Ws-Trust use.</param>
         /// <param name="trustResponse">The <see cref="WsTrustResponse"/> to write.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="writer"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="wsTrustVersion"/> is null.</exception>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="trustResponse"/> is null.</exception>
         /// <exception cref="XmlWriteException">If an error occurs when writing the element.</exception>
-        public void WriteResponse(XmlDictionaryWriter writer, WsTrustVersion wsTrustVersion, WsTrustResponse trustResponse)
+        public void WriteResponse(XmlDictionaryWriter writer, WsTrustConstants wsTrustVersion, WsTrustResponse trustResponse)
         {
             if (writer == null)
                 throw LogHelper.LogArgumentNullException(nameof(writer));
@@ -1732,7 +1747,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 // <RequestSecurityTokenResponseCollection>
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.RequestSecurityTokenResponseCollection, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestSecurityTokenResponseCollection, serializationContext.Trust.Namespace);
 
                 foreach (RequestSecurityTokenResponse response in trustResponse.RequestSecurityTokenResponseCollection)
                 {
@@ -1772,7 +1787,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
             try
             {
-                writer.WriteStartElement(serializationContext.TrustConstants.Prefix, WsTrustElements.UseKey, serializationContext.TrustConstants.Namespace);
+                writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.UseKey, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(useKey.SignatureId))
                     writer.WriteAttributeString(WsTrustAttributes.Sig, useKey.SignatureId);
 

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.ServiceModel.Security;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -19,13 +20,13 @@ namespace Solid.ServiceModel.Security
 {
     internal class WsTrustChannel : WsTrustChannelBase, IWsTrustChannelContract
     {
-        private WsTrustVersion _version;
+        private WsTrustConstants _version;
         private WsTrustConstants _constants;
         private MessageVersion _messageVersion;
         private IWsTrustContract _contract;
         private WsTrustSerializer _serializer;
 
-        public WsTrustChannel(WsTrustVersion version, IWsTrustContract contract, WsTrustSerializer serializer)
+        public WsTrustChannel(WsTrustConstants version, IWsTrustContract contract, WsTrustSerializer serializer)
             : base(contract as IChannel)
         {
             // TODO: add null guards
@@ -40,28 +41,28 @@ namespace Solid.ServiceModel.Security
 
         public async Task<WsTrustResponse> CancelAsync(WsTrustRequest request)
         {
-            var requestMessage = CreateMessage(request, _constants.WsTrustActions.CancelRequest);
+            var requestMessage = CreateMessage(request, _constants.Actions.CancelRequest);
             var responseMessage = await CancelAsync(requestMessage);
             return ReadResponse(responseMessage);
         }
 
         public async Task<WsTrustResponse> IssueAsync(WsTrustRequest request)
         {
-            var requestMessage = CreateMessage(request, _constants.WsTrustActions.IssueRequest);
+            var requestMessage = CreateMessage(request, _constants.Actions.IssueRequest);
             var responseMessage = await IssueAsync(requestMessage);
             return ReadResponse(responseMessage);
         }
 
         public async Task<WsTrustResponse> RenewAsync(WsTrustRequest request)
         {
-            var requestMessage = CreateMessage(request, _constants.WsTrustActions.RenewRequest);
+            var requestMessage = CreateMessage(request, _constants.Actions.RenewRequest);
             var responseMessage = await RenewAsync(requestMessage);
             return ReadResponse(responseMessage);
         }
 
         public async Task<WsTrustResponse> ValidateAsync(WsTrustRequest request)
         {
-            var requestMessage = CreateMessage(request, _constants.WsTrustActions.ValidateRequest);
+            var requestMessage = CreateMessage(request, _constants.Actions.ValidateRequest);
             var responseMessage = await ValidateAsync(requestMessage);
             return ReadResponse(responseMessage);
         }
@@ -132,11 +133,11 @@ namespace Solid.ServiceModel.Security
         private Message CreateMessage(WsTrustRequest request, string action) 
             => Message.CreateMessage(_messageVersion, action, new WsTrustRequestBodyWriter(_version, _serializer, request));
 
-        private static WsTrustConstants GetConstants(WsTrustVersion version)
+        private static WsTrustConstants GetConstants(WsTrustConstants version)
         {
-            if (version == WsTrustVersion.TrustFeb2005) return WsTrustConstants.TrustFeb2005;
-            if (version == WsTrustVersion.Trust13) return WsTrustConstants.Trust13;
-            if (version == WsTrustVersion.Trust14) return WsTrustConstants.Trust14;
+            if (version == WsTrustConstants.TrustFeb2005) return WsTrustConstants.TrustFeb2005;
+            if (version == WsTrustConstants.Trust13) return WsTrustConstants.Trust13;
+            if (version == WsTrustConstants.Trust14) return WsTrustConstants.Trust14;
 
             throw new ArgumentException("Invalid WS-Trust version", nameof(version));
         }

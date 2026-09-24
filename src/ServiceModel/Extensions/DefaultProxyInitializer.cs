@@ -74,21 +74,8 @@ namespace Solid.Extensions.ServiceModel
             var binding = new IssuedTokenHttpBinding
             {
                 KeyType = System.IdentityModel.Tokens.SecurityKeyType.BearerKey,
-                MaxBufferPoolSize = options.MaxBufferPoolSize,
-                MaxReceivedMessageSize = options.MaxReceivedMessageSize,
-
-                SendTimeout = options.SendTimeout,
-                ReceiveTimeout = options.ReceiveTimeout,
-                CloseTimeout = options.CloseTimeout,
-                OpenTimeout = options.OpenTimeout,
-
-                ReaderQuotas =
-                {
-                    MaxArrayLength = options.ReaderQuotasMaxArrayLength,
-                    MaxStringContentLength = options.ReaderQuotasMaxStringContentLength,
-                    MaxDepth = options.ReaderQuotasMaxDepth
-                }
             };
+            binding.Apply(options);
             return binding;
         }
     }

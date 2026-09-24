@@ -5,4 +5,27 @@
         <PackageReference Include="Microsoft.IdentityModel.Tokens.Saml" Version="$(MicrosoftIdentityModelVersion)" />
         <PackageReference Include="Microsoft.IdentityModel.Xml" Version="$(MicrosoftIdentityModelVersion)" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="XmlEnc\EncryptedData.cs" />
+      <Compile Remove="XmlEnc\EncryptedKey.cs" />
+      <Compile Remove="XmlEnc\XmlEncryptionAttributes.cs" />
+      <Compile Remove="XmlEnc\XmlEncryptionConstants.cs" />
+      <Compile Remove="XmlEnc\XmlEncryptionDataTypes.cs" />
+      <Compile Remove="XmlEnc\XmlEncryptionElements.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protocols\" />
+      <Folder Include="WsAddressing\" />
+      <Folder Include="WsSecurity\" />
+      <Folder Include="WsUtility\" />
+      <Folder Include="XmlEnc\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
+      <ProjectReference Include="..\Protocols.XmlEnc\Protocols.XmlEnc.csproj" />
+      <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />
+    </ItemGroup>
 </Project>

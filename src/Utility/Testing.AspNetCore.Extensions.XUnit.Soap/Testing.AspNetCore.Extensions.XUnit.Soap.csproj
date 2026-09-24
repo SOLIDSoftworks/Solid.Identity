@@ -6,4 +6,8 @@
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\.tests\Http.Soap.Tests\Http.Soap.Tests.csproj" />
+  </ItemGroup>
+
 </Project>

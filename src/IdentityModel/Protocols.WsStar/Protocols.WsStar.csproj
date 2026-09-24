@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+      <RootNamespace>Solid.IdentityModel.Protocols</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="System.ServiceModel.Primitives" Version="$(SystemServiceModelVersion)" />
+        <PackageReference Include="Microsoft.IdentityModel.Xml" Version="$(MicrosoftIdentityModelVersion)" />
+        <PackageReference Include="Microsoft.IdentityModel.Logging" Version="$(MicrosoftIdentityModelVersion)" />
+    </ItemGroup>
+</Project>

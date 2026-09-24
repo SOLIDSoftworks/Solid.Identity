@@ -14,7 +14,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
     /// Defines supported elements of WsTrust Request and Response messages.
     /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
     /// </summary>
-    abstract public class WsTrustMessage : IXmlOpenItem
+    public abstract class WsTrustMessage : XmlOpenItem
     {
         private SecurityTokenElement _actAs;
         private AdditionalContext _additionalContext;
@@ -42,7 +42,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         private string _signatureAlgorithm;
         private string _signWith;
         private string _tokenType;
-        private WsTrustVersion _wsTrustVersion;
+        private WsTrustConstants _wsTrustVersion;
         private UseKey _useKey;
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         }
 
         /// <summary>
-        /// Gets or sets a string representing the AuthenticationType element that indicates the type of authencation desired, usually specified as a URI.
+        /// Gets or sets a string representing the AuthenticationType element that indicates the type of authentication desired, usually specified as a URI.
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if AuthenticationType is null or empty.</exception>
@@ -367,7 +367,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// Gets or sets the WsTrustVesion.
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if ComputedKeyAlgorithm is null or empty.</exception>
-        public WsTrustVersion WsTrustVersion
+        public WsTrustConstants WsTrustVersion
         {
             get => _wsTrustVersion;
             set => _wsTrustVersion = value ?? throw LogHelper.LogArgumentNullException(nameof(WsTrustVersion));
@@ -383,15 +383,5 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             get => _useKey;
             set => _useKey = value ?? throw LogHelper.LogArgumentNullException(nameof(value));
         }
-
-        /// <summary>
-        /// Gets additional attributes that should be added to or were found when reading or writing a trust message.
-        /// </summary>
-        public IList<XmlAttribute> AdditionalXmlAttributes { get; } = new List<XmlAttribute>();
-
-        /// <summary>
-        /// Gets additional elements that should be added to or were found when reading or writing a trust message.
-        /// </summary>
-        public IList<XmlElement> AdditionalXmlElements { get; } = new List<XmlElement>();
     }
 }

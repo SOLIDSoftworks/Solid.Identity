@@ -33,7 +33,7 @@ namespace Solid.Extensions.ServiceModel
         public async ValueTask<TProxy> CreateProxyAsync<TProxy>(string token = null, CancellationToken cancellationToken = default)
         {
             if (token == null)
-                token = await GetSecurtityTokenAsync();
+                token = await GetSecurityTokenAsync();
             var key = KeyFactory.CreateKey<TProxy>();
             var options = _optionsSnapshop.Get(key);
 
@@ -49,7 +49,7 @@ namespace Solid.Extensions.ServiceModel
             var key = KeyFactory.CreateKey<TProxy>();
             var options = _optionsSnapshop.Get(key);
             if (token == null)
-                token = ReadSecurityToken(await GetSecurtityTokenAsync(), options);
+                token = ReadSecurityToken(await GetSecurityTokenAsync(), options);
             return await CreateProxyAsync<TProxy>(key, options, token, cancellationToken);
         }
 
@@ -94,10 +94,11 @@ namespace Solid.Extensions.ServiceModel
 
         private void RemoveDisposable(string key) => _disposables.TryRemove(key, out _);
 
-        private async ValueTask<string> GetSecurtityTokenAsync()
+        private async ValueTask<string> GetSecurityTokenAsync()
         {
             if (_securityTokenProvider == null)
-                throw new InvalidOperationException($"No implementation of {nameof(ISoapSecurityTokenProvider)} found.");
+                return null;
+                // throw new InvalidOperationException($"No implementation of {nameof(ISoapSecurityTokenProvider)} found.");
             var token = await _securityTokenProvider.GetSecurityTokenAsync();
             if (token == null)
                 throw new SecurityException("Could not get a security token.");

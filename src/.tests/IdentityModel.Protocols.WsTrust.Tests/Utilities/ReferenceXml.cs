@@ -39,7 +39,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
             return XmlUtilities.CreateDictionaryReader(
                 LogHelper.FormatInvariant(
                     @"<{0}:BinaryExchange EncodingType=""{2}"" ValueType=""{3}"" xmlns:{0}=""{1}"">{4}</{0}:BinaryExchange>",
-                    trustConstants.Prefix,
+                    trustConstants.DefaultPrefix,
                     trustConstants.Namespace,
                     encodingType,
                     valueType,
@@ -51,7 +51,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
             return XmlUtilities.CreateDictionaryReader(
                 LogHelper.FormatInvariant(
                     @"<{0}:BinarySecret Type=""{2}"" xmlns:{0}=""{1}"">{3}</{0}:BinarySecret>",
-                    trustConstants.Prefix,
+                    trustConstants.DefaultPrefix,
                     trustConstants.Namespace,
                     type,
                     value));
@@ -65,13 +65,13 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
             if (includeNamespace)
                 return LogHelper.FormatInvariant(
                     @"<{0}:RequestedSecurityToken xmlns:{0}=""{1}"">{2}</{0}:RequestedSecurityToken>",
-                    trustConstants.Prefix,
+                    trustConstants.DefaultPrefix,
                     trustConstants.Namespace,
                     token);
             else
                 return LogHelper.FormatInvariant(
                     @"<{0}:RequestedSecurityToken >{1}</{0}:RequestedSecurityToken>",
-                    trustConstants.Prefix,
+                    trustConstants.DefaultPrefix,
                     token);
 
         }
@@ -92,7 +92,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
             return XmlUtilities.CreateDictionaryReader(
                 LogHelper.FormatInvariant(
                     @"<{0}:Lifetime xmlns:{0}=""{1}""><wsu:Created xmlns:wsu=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"">{2}</wsu:Created><wsu:Expires xmlns:wsu=""http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"">{3}</wsu:Expires></{0}:Lifetime>",
-                    trustConstants.Prefix,
+                    trustConstants.DefaultPrefix,
                     trustConstants.Namespace,
                     created,
                     expires));
