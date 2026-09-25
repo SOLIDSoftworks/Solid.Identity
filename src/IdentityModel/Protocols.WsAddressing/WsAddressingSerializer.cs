@@ -22,67 +22,24 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
         /// <param name="reader">The xml dictionary reader.</param>
         /// <returns>An <see cref="EndpointReference"/> instance.</returns>
         public virtual EndpointReference ReadEndpointReference(XmlDictionaryReader reader)
-        {
-            XmlUtil.CheckReaderOnEntry(reader, WsAddressingElements.EndpointReference);
-            var ns = reader.NamespaceURI;
-            if (!WsAddressingConstants.KnownNamespaces.TryGetValue(ns, out var constants))
-                throw new InvalidOperationException("Unknown namespace: " + ns);
+            => ReadEntity(reader, null);
 
-            var context = new WsSerializationContext
-            {
-                Addressing = constants
-            };
-            
-            
-            foreach (string @namespace in WsAddressingConstants.KnownNamespaces)
-            {
-                if (reader.IsNamespaceUri(@namespace))
-                {
-                    bool isEmptyElement = reader.IsEmptyElement;
-                    reader.ReadStartElement();
-                    var endpointReference = new EndpointReference(reader.ReadElementContentAsString());
-                    while (reader.IsStartElement())
-                    {
-                        bool isInnerEmptyElement = reader.IsEmptyElement;
-                        XmlReader subtreeReader = reader.ReadSubtree();
-                        var doc = new XmlDocument
-                        {
-                            PreserveWhitespace = true
-                        };
+        public EndpointReference ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
+            => ReadEntity(reader, serializer, CreateContext(reader));
 
-                        doc.Load(subtreeReader);
-                        endpointReference.AdditionalXmlElements.Add(doc.DocumentElement);
-                        if (!isInnerEmptyElement)
-                            reader.ReadEndElement();
-                    }
-
-                    if (!isEmptyElement)
-                        reader.ReadEndElement();
-
-                    return endpointReference;
-                }
-            }
-
-            throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15001, WsAddressingElements.EndpointReference, WsAddressingConstants.Addressing200408.Namespace, WsAddressingConstants.Addressing10.Namespace, reader.NamespaceURI)));
-        }
-
-        public EndpointReference ReadEndpointReference(XmlDictionaryReader reader, WsSerializer serializer)
-        {
-            
-            AssertReader(reader, WsAddressingElements.EndpointReference);
-            _ = TryReadEntity(reader, serializer, context, out var reference);
-            return reference;
-        }
-
-        public EndpointReference ReadEndpointReference(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
+        public EndpointReference ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
         {
             AssertReader(reader, WsAddressingElements.EndpointReference, context);
             _ = TryReadEntity(reader, serializer, context, out var reference);
             return reference;
         }
 
-        public bool TryReadEndpointReference(XmlDictionaryReader reader, WsSerializer serializer, out EndpointReference entity)
+        public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, out EndpointReference entity)
         {
+            if (reader == null)
+                throw LogHelper.LogArgumentNullException(nameof(reader));
+
+            reader.MoveToContent();
             var ns = reader.NamespaceURI;
             if (!WsAddressingConstants.KnownNamespaces.TryGetValue(ns, out var constants))
                 return Out.False(out entity);
@@ -91,30 +48,40 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
             {
                 Addressing = constants
             };
-            return TryReadEndpointReference(reader, serializer, context, out entity);
+            return TryReadEntity(reader, serializer, context, out entity);
         }
 
-        public bool TryReadEndpointReference(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out EndpointReference entity)
+        public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out EndpointReference entity)
         {
+            if (reader == null)
+                throw LogHelper.LogArgumentNullException(nameof(reader));
+            if (context == null)
+                throw LogHelper.LogArgumentNullException(nameof(context));
+            if (context.Addressing == null)
+                throw LogHelper.LogArgumentNullException(nameof(context.Addressing));
+
+            reader.MoveToContent();
             if(reader.LocalName != WsAddressingElements.EndpointReference || reader.NamespaceURI != context.Addressing.Namespace)
                 return Out.False(out entity);
             
             var empty = reader.IsEmptyElement;
             reader.ReadStartElement();
+            if (empty)
+                throw XmlUtil.LogReadException(LogMessages.IDX15011, context.Addressing.Namespace, WsAddressingElements.Address, reader.NamespaceURI, reader.LocalName);
+
+            reader.MoveToContent();
+            if (!reader.IsStartElement(WsAddressingElements.Address, context.Addressing.Namespace))
+                throw XmlUtil.LogReadException(LogMessages.IDX15011, context.Addressing.Namespace, WsAddressingElements.Address, reader.NamespaceURI, reader.LocalName);
+
             var endpointReference = new EndpointReference(reader.ReadElementContentAsString());
-            
-            while (reader.NodeType != XmlNodeType.EndElement)
+            reader.MoveToContent();
+            while (reader.NodeType == XmlNodeType.Element)
             {
-                if (reader.NodeType != XmlNodeType.Element)
-                {
-                    reader.Read();
-                    continue;
-                }
                 ReadAdditionalXmlElement(reader, endpointReference);
+                reader.MoveToContent();
             }
-            
-            if (!empty)
-                reader.ReadEndElement();
+
+            reader.ReadEndElement();
 
             entity = endpointReference;
             return true;
@@ -143,7 +110,8 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
         {
             if (reader == null)
                 throw LogHelper.LogArgumentNullException(nameof(reader));
-            
+
+            reader.MoveToContent();
             var name = reader.LocalName;
             if (!WsAddressingElements.All.Contains(name))
                 throw new XmlException("Cannot create WS serialization context for " + name);

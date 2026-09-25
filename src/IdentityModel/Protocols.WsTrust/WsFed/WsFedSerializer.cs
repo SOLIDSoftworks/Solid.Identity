@@ -3,6 +3,7 @@ using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Solid.IdentityModel.Protocols.WsTrust;
 using Microsoft.IdentityModel.Xml;
+using Solid.IdentityModel.Protocols.WsFederation;
 
 #pragma warning disable 1591
 
@@ -52,7 +53,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
             }
             catch (Exception ex)
             {
-                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(WsTrust.LogMessages.IDX15016, WsFedElements.ContextItem), ex));
+                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15016, WsFedElements.ContextItem), ex));
             }
 
             // </AdditionalContext>
@@ -76,7 +77,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
             XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
             string name = XmlAttributeDescriptor.GetAttribute(attributes, WsFedAttributes.Name, @namespace);
             if (string.IsNullOrEmpty(name))
-                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(WsTrust.LogMessages.IDX15013, WsFedElements.ContextItem, WsFedAttributes.Name)));
+                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15013, WsFedElements.ContextItem, WsFedAttributes.Name)));
 
             var contextItem = new ContextItem(name)
             {
@@ -126,7 +127,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
             XmlAttributeDescriptor[] attributes = XmlAttributeDescriptor.ReadAttributes(reader);
             string uri = XmlAttributeDescriptor.GetAttribute(attributes, WsFedAttributes.Uri, @namespace);
             if (string.IsNullOrEmpty(uri))
-                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(WsTrust.LogMessages.IDX15013, WsFedElements.ContextItem, WsFedAttributes.Name)));
+                throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15013, WsFedElements.ContextItem, WsFedAttributes.Name)));
 
             string optionalAttribute = XmlAttributeDescriptor.GetAttribute(attributes, WsFedAttributes.Optional, @namespace);
             bool? optional = null;
@@ -158,12 +159,12 @@ namespace Solid.IdentityModel.Protocols.WsFed
 
         public static void WriteClaimType(XmlDictionaryWriter writer, WsSerializationContext serializationContext, ClaimType claimType)
         {
-            writer.WriteStartElement(serializationContext.FederationVersion.AuthPrefix, WsFedElements.ClaimType, serializationContext.FederationVersion.AuthNamespace);
+            writer.WriteStartElement(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.ClaimType, serializationContext.Federation.Authorization.Namespace);
             writer.WriteAttributeString(WsFedAttributes.Uri, claimType.Uri);
             if (claimType.IsOptional.HasValue)
                 writer.WriteAttributeString(WsFedAttributes.Optional, XmlConvert.ToString(claimType.IsOptional.Value));
 
-            writer.WriteElementString(serializationContext.FederationVersion.AuthPrefix, WsFedElements.Value, serializationContext.FederationVersion.AuthNamespace, claimType.Value);
+            writer.WriteElementString(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.Value, serializationContext.Federation.Authorization.Namespace, claimType.Value);
             writer.WriteEndElement();
         }
 
@@ -184,16 +185,16 @@ namespace Solid.IdentityModel.Protocols.WsFed
             //  </auth:AdditionalContext>
 
             WsUtils.ValidateParamsForWriting(writer, serializationContext, additionalContext, nameof(additionalContext));
-            writer.WriteStartElement(serializationContext.FederationVersion.AuthPrefix, WsFedElements.AdditionalContext, serializationContext.FederationVersion.AuthNamespace);
+            writer.WriteStartElement(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.AdditionalContext, serializationContext.Federation.Authorization.Namespace);
             foreach (ContextItem contextItem in additionalContext.Items)
             {
-                writer.WriteStartElement(serializationContext.FederationVersion.AuthPrefix, WsFedElements.ContextItem, serializationContext.FederationVersion.AuthNamespace);
+                writer.WriteStartElement(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.ContextItem, serializationContext.Federation.Authorization.Namespace);
                 writer.WriteAttributeString(WsFedAttributes.Name, contextItem.Name);
                 if (contextItem.Scope != null)
                     writer.WriteAttributeString(WsFedAttributes.Scope, contextItem.Scope);
 
                 if (!string.IsNullOrEmpty(contextItem.Value))
-                    writer.WriteElementString(serializationContext.FederationVersion.AuthPrefix, WsFedElements.Value, serializationContext.FederationVersion.AuthNamespace, contextItem.Value);
+                    writer.WriteElementString(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.Value, serializationContext.Federation.Authorization.Namespace, contextItem.Value);
 
                 writer.WriteEndElement();
             }

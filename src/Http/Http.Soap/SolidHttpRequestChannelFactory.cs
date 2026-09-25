@@ -42,10 +42,7 @@ namespace Solid.Http.Soap
 
         protected override void OnEndOpen(IAsyncResult result)
         {
-            if (!(result is Task task)) return;
-
-            if (task.IsFaulted) throw task.Exception;
-            if (task.IsCanceled) throw new TaskCanceledException();
+            ((Task)result).GetAwaiter().GetResult();
         }
 
         protected override void OnOpen(TimeSpan timeout)

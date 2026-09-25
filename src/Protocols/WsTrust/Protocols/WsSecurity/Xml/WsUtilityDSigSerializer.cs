@@ -1,5 +1,5 @@
 ﻿using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
+using Solid.IdentityModel.Protocols.WsSecurity;
 using Microsoft.IdentityModel.Xml;
 using System;
 using System.Collections.Generic;
@@ -52,7 +52,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Xml
             {
                 if (!_document.IsStartElement()) continue;
                 if (!_document.HasAttributes) continue;
-                var id = _document.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace);
+                var id = _document.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
                 if (id == null) continue;
 
                 var reference = info

@@ -38,19 +38,17 @@ namespace Solid.Identity.Protocols.WsTrust
 
             protected override WsSerializationContext CreateSerializationContext(WsTrustConstants version)
             {
-                if(_options == null)
+                if (_options == null)
                     return base.CreateSerializationContext(version);
-                
-                return new WsSerializationContext
+
+                var defaults = base.CreateSerializationContext(version);
+                return new WsSerializationContext(version)
                 {
-                    TrustVersion = version,
-                    TrustActions = _options.TrustActions,
-                    Trust = _options.TrustConstants,
-                    TrustKeyTypes = _options.TrustKeyTypes,
-                    Addressing = _options.AddressingConstants,
-                    FederationVersion = _options.FedConstants,
-                    Security = _options.SecurityConstants,
-                    SecurityPolicy = _options.PolicyConstants
+                    Trust = _options.TrustConstants ?? defaults.Trust,
+                    Addressing = _options.AddressingConstants ?? defaults.Addressing,
+                    Federation = _options.FedConstants ?? defaults.Federation,
+                    Security = _options.SecurityConstants ?? defaults.Security,
+                    SecurityPolicy = _options.PolicyConstants ?? defaults.SecurityPolicy
                 };
             }
         }

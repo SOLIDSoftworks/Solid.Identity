@@ -8,7 +8,8 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   
-  <ItemGroup>    
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
   </ItemGroup>
   

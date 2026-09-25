@@ -22,13 +22,12 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
+using Timestamp = Solid.Identity.Protocols.WsSecurity.Xml.Timestamp;
 
 namespace Solid.Identity.Protocols.WsSecurity.Authentication
 {
     internal class WsSecurityAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
-        private static readonly XName Timestamp = XName.Get("Timestamp", WsUtilityConstants.WsUtility10.Namespace);
         private static readonly XName Signature = XName.Get("Signature", XmlSignatureConstants.Namespace);
 
         private readonly ISoapContextAccessor _soapContextAccessor;
@@ -265,12 +264,12 @@ namespace Solid.Identity.Protocols.WsSecurity.Authentication
 
             var timestamp = new Timestamp
             {
-                Id = reader.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace)
+                Id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace)
             };
 
-            reader.ReadToDescendant("Created", WsUtilityConstants.WsUtility10.Namespace);
+            reader.ReadToDescendant("Created", WsSecurityUtilityConstants.SecurityUtility10.Namespace);
             timestamp.Created = reader.ReadElementContentAsDateTime();
-            while (!reader.EOF && !reader.IsStartElement("Expires", WsUtilityConstants.WsUtility10.Namespace))
+            while (!reader.EOF && !reader.IsStartElement("Expires", WsSecurityUtilityConstants.SecurityUtility10.Namespace))
                 reader.Read();
             timestamp.Expires = reader.ReadElementContentAsDateTime();
             return timestamp;

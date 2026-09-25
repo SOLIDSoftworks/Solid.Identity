@@ -24,7 +24,7 @@ namespace Microsoft.IdentityModel.Xml
 
         public string Value { get; }
 
-        public static IEnumerable<XmlAttributeDescriptor> ReadAttributes(XmlDictionaryReader reader)
+        public static XmlAttributeDescriptor[] ReadAttributes(XmlDictionaryReader reader)
         {
             if (reader.AttributeCount == 0)
                 return EmptyArray;
@@ -57,7 +57,7 @@ namespace Microsoft.IdentityModel.Xml
             }
 
             reader.MoveToElement();
-            return attributes;
+            return attributes.ToArray();
         }
 
         public static string? GetAttribute(IEnumerable<XmlAttributeDescriptor> attributes, string localName, string ns)

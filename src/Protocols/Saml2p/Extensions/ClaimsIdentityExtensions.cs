@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Solid.IdentityModel.Xml;
+using Solid.IdentityModel.Protocols;
 
 namespace System.Security.Claims
 {

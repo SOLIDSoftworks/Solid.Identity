@@ -46,7 +46,7 @@ namespace Solid.Identity.Protocols.WsTrust
             _options = monitor.CurrentValue;
         }
 
-        protected virtual async ValueTask<Message> ProcessCoreAsync(Message requestMessage, string requestAction, string responseAction, WsTrustVersion version)
+        protected virtual async ValueTask<Message> ProcessCoreAsync(Message requestMessage, string requestAction, string responseAction, WsTrustConstants version)
         {
             using var coreActivity = Tracing.WsTrust.Base.StartActivity($"{GetType().Name}.{nameof(ProcessCoreAsync)}");
             using var activity = Tracing.WsTrust.Base.StartActivity($"{GetType().Name}.{requestAction}");
@@ -70,11 +70,11 @@ namespace Solid.Identity.Protocols.WsTrust
             return response;
         }
 
-        protected virtual WsTrustConstants GetWsTrustConstants(WsTrustVersion version)
+        protected virtual WsTrustConstants GetWsTrustConstants(WsTrustConstants version)
         {
-            if (version == WsTrustVersion.TrustFeb2005) return WsTrustConstants.TrustFeb2005;
-            if (version == WsTrustVersion.Trust13) return WsTrustConstants.Trust13;
-            if (version == WsTrustVersion.Trust14) return WsTrustConstants.Trust14;
+            if (version == WsTrustConstants.TrustFeb2005) return WsTrustConstants.TrustFeb2005;
+            if (version == WsTrustConstants.Trust13) return WsTrustConstants.Trust13;
+            if (version == WsTrustConstants.Trust14) return WsTrustConstants.Trust14;
 
             throw new NotSupportedException("Trust version not supported.");
         }
@@ -101,13 +101,13 @@ namespace Solid.Identity.Protocols.WsTrust
 
             if (request == null) throw new InvalidRequestException(ErrorMessages.ID3022);
 
-            if (action == constants.WsTrustActions.CancelRequest)
+            if (action == constants.Actions.CancelRequest)
                 dispatchContext.ResponseMessage = await sts.CancelAsync(dispatchContext.Principal, request, dispatchContext.CancellationToken);
-            else if (action == constants.WsTrustActions.IssueRequest)
+            else if (action == constants.Actions.IssueRequest)
                 dispatchContext.ResponseMessage = await sts.IssueAsync(dispatchContext.Principal, request, dispatchContext.CancellationToken);
-            else if (action == constants.WsTrustActions.RenewRequest)
+            else if (action == constants.Actions.RenewRequest)
                 dispatchContext.ResponseMessage = await sts.RenewAsync(dispatchContext.Principal, request, dispatchContext.CancellationToken);
-            else if (action == constants.WsTrustActions.ValidateRequest)
+            else if (action == constants.Actions.ValidateRequest)
                 dispatchContext.ResponseMessage = await sts.ValidateAsync(dispatchContext.Principal, request, dispatchContext.CancellationToken);
             else
                 throw new InvalidRequestException(ErrorMessages.ID3112, request.RequestType);

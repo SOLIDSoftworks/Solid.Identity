@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
     <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
   </ItemGroup>
 </Project>

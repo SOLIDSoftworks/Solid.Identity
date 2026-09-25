@@ -17,15 +17,15 @@ namespace Solid.Identity.Protocols.WsTrust.Logging
         public string TrustNamespace { get; set; }
 
         [JsonIgnore]
-        public WsTrustVersion WsTrustVersion { get; set; }
+        public WsTrustConstants WsTrustVersion { get; set; }
 
         public string Version => GetWsTrustVersionString(WsTrustVersion);
 
-        private string GetWsTrustVersionString(WsTrustVersion version)
+        private string GetWsTrustVersionString(WsTrustConstants version)
         {
-            if (version == WsTrustVersion.Trust13) return nameof(WsTrustVersion.Trust13);
-            if (version == WsTrustVersion.Trust14) return nameof(WsTrustVersion.Trust14);
-            if (version == WsTrustVersion.TrustFeb2005) return nameof(WsTrustVersion.TrustFeb2005);
+            if (version == WsTrustConstants.Trust13) return nameof(WsTrustConstants.Trust13);
+            if (version == WsTrustConstants.Trust14) return nameof(WsTrustConstants.Trust14);
+            if (version == WsTrustConstants.TrustFeb2005) return nameof(WsTrustConstants.TrustFeb2005);
 
             return "unknown";
         }

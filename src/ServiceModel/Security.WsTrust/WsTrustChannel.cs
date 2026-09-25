@@ -2,7 +2,6 @@
 using Solid.IdentityModel.Protocols;
 using Solid.IdentityModel.Protocols.WsAddressing;
 using Solid.IdentityModel.Protocols.WsTrust;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Solid.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;

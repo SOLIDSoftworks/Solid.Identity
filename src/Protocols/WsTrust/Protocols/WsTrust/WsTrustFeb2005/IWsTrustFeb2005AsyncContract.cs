@@ -15,7 +15,7 @@ namespace Solid.Identity.Protocols.WsTrust.WsTrustFeb2005
         /// </summary>
         /// <param name="request">Request Message containing the RST.</param>
         /// <returns>IAsyncResult result instance.</returns>
-        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005CancelAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005CancelRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005CancelRequest)]
+        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005CancelAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005CancelRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005CancelResponse)]
         Task<Message> TrustFeb2005CancelAsync(Message request);
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Solid.Identity.Protocols.WsTrust.WsTrustFeb2005
         /// </summary>
         /// <param name="request">Request Message containing the RST.</param>
         /// <returns>IAsyncResult result instance.</returns>
-        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005IssueAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005IssueRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005IssueRequest)]
+        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005IssueAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005IssueRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005IssueResponse)]
         Task<Message> TrustFeb2005IssueAsync(Message request);
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Solid.Identity.Protocols.WsTrust.WsTrustFeb2005
         /// </summary>
         /// <param name="request">Request Message containing the RST.</param>
         /// <returns>IAsyncResult result instance.</returns>
-        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005RenewAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005RenewRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005RenewRequest)]
+        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005RenewAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005RenewRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005RenewResponse)]
         Task<Message> TrustFeb2005RenewAsync(Message request);
 
 
@@ -40,7 +40,7 @@ namespace Solid.Identity.Protocols.WsTrust.WsTrustFeb2005
         /// </summary>
         /// <param name="request">Request Message containing the RST.</param>
         /// <returns>IAsyncResult result instance.</returns>
-        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005ValidateAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005ValidateRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005ValidateRequest)]
+        [OperationContract(Name = WsTrustServiceContractConstants.Operations.TrustFeb2005ValidateAsync, AsyncPattern = true, Action = WsTrustServiceContractConstants.Actions.TrustFeb2005ValidateRequest, ReplyAction = WsTrustServiceContractConstants.Actions.TrustFeb2005ValidateResponse)]
         Task<Message> TrustFeb2005ValidateAsync(Message request);
 
         /// <summary>

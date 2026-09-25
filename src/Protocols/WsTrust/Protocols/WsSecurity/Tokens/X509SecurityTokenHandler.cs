@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Microsoft.IdentityModel.Tokens;
 using Solid.Identity.Protocols.WsSecurity.Abstractions;
 using System;
@@ -75,7 +74,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
             if (!CanReadToken(reader))
                 throw new Exception("Expected BinarySecurityToken element not found");
 
-            var id = reader.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace);
+            var id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
             var base64 = reader.ReadElementContentAsString();
             var bytes = Convert.FromBase64String(base64);
             var certificate = new X509Certificate2(bytes);

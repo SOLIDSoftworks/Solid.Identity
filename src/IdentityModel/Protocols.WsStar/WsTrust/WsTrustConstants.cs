@@ -19,11 +19,10 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// </summary>
         public static WsTrustConstants Trust13 { get; } = new WsTrust13();
 
-        // /// <summary>
-        // /// Gets an instance of WsTrust 1.4 Constants.
-        // /// <para>see: http://specs.xmlsoap.org/ws/2005/02/trust/WS-Trust.pdf </para>
-        // /// </summary>
-        // public static WsTrustConstants Trust14 { get; } = new WsTrust14();
+        /// <summary>
+        /// Gets an instance of WS-Trust 1.4 constants.
+        /// </summary>
+        public static WsTrustConstants Trust14 { get; } = new WsTrust14();
         
         /// <summary>
         /// Gets a list of all known namespaces
@@ -31,7 +30,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         public static IDictionary<string, WsTrustConstants> KnownNamespaces { get; } = new Dictionary<string, WsTrustConstants>
         {
             { TrustFeb2005.Namespace, TrustFeb2005 },
-            { Trust13.Namespace, Trust13 }
+            { Trust13.Namespace, Trust13 },
+            { Trust14.Namespace, Trust14 }
         };
 
         /// <summary>

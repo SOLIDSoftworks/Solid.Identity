@@ -51,9 +51,9 @@ namespace Solid.Http.Soap
 
         public void Close(TimeSpan timeout) => InternalCloseAsync(timeout).GetAwaiter().GetResult();
 
-        public void EndClose(IAsyncResult result) => End(result);
+        public void EndClose(IAsyncResult result) => ((Task)result).GetAwaiter().GetResult();
 
-        public void EndOpen(IAsyncResult result) => End(result);
+        public void EndOpen(IAsyncResult result) => ((Task)result).GetAwaiter().GetResult();
 
         public Message EndRequest(IAsyncResult result) => GetResult<Message>(result);
 
@@ -86,11 +86,7 @@ namespace Solid.Http.Soap
 
         T GetResult<T>(IAsyncResult result)
         {
-            if (!(result is Task<T> task)) return default;
-
-            End(task);
-
-            return task.Result;
+            return ((Task<T>)result).GetAwaiter().GetResult();
         }
 
         void End(IAsyncResult result)

@@ -9,11 +9,11 @@ namespace Solid.ServiceModel.Security
 {
     class WsTrustRequestBodyWriter : BodyWriter
     {
-        private WsTrustVersion _version;
+        private WsTrustConstants _version;
         private WsTrustRequest _request;
         private WsTrustSerializer _serializer;
 
-        public WsTrustRequestBodyWriter(WsTrustVersion version, WsTrustSerializer serializer, WsTrustRequest request) 
+        public WsTrustRequestBodyWriter(WsTrustConstants version, WsTrustSerializer serializer, WsTrustRequest request)
             : base(true)
         {
             _version = version;

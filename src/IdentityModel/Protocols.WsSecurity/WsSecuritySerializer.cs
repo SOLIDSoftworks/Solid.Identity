@@ -59,10 +59,15 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
                 Usage = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.Usage, context.Security.Namespace)
             };
 
+            var empty = reader.IsEmptyElement;
             reader.ReadStartElement();
-            while (reader.NodeType != XmlNodeType.EndElement)
+            if (empty)
+                return Out.True(r, out reference);
+            reader.MoveToContent();
+            while (reader.NodeType == XmlNodeType.Element)
             {
                 ReadSecurityTokenReferenceChildNode(reader, context, serializer, r);
+                reader.MoveToContent();
             }
             reader.ReadEndElement();
 
@@ -95,7 +100,8 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             var keyIdentifier = new KeyIdentifier
             {
                 Id = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace),
-                ValueType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.ValueType, context.Security.Namespace)
+                ValueType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.ValueType, context.Security.Namespace),
+                EncodingType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.EncodingType, context.Security.Namespace)
             };
 
             reader.ReadStartElement();
@@ -125,17 +131,16 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             foreach(var attribute in XmlAttributeDescriptor.ReadAttributes(reader))
                 h.AdditionalXmlAttributes.Add(attribute);
             
+            var empty = reader.IsEmptyElement;
             reader.ReadStartElement();
+            if (empty)
+                return Out.True(h, out header);
 
-            while (reader.NodeType != XmlNodeType.EndElement)
+            reader.MoveToContent();
+            while (reader.NodeType == XmlNodeType.Element)
             {
-                if (reader.NodeType != XmlNodeType.Element)
-                {
-                    reader.Read();
-                    continue;
-                }
-
                 ReadSecurityHeaderChildNode(reader, context, serializer, h);
+                reader.MoveToContent();
             }
 
             reader.ReadEndElement();
@@ -174,7 +179,8 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         {
             if (reader == null)
                 throw LogHelper.LogArgumentNullException(nameof(reader));
-            
+
+            reader.MoveToContent();
             var name = reader.LocalName;
             if (!WsSecurityElements.All.Contains(name))
                 throw new XmlException("Cannot create WS serialization context for " + name);
@@ -204,7 +210,7 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         
         KeyIdentifier IProtocolSerializer<KeyIdentifier>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
         {
-            AssertReader(reader, WsSecurityElements.SecurityTokenReference, context);
+            AssertReader(reader, WsSecurityElements.KeyIdentifier, context);
             _ = TryReadKeyIdentifier(reader, context, serializer, out var identifier);
             return identifier;
         }
@@ -221,10 +227,13 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             writer.WriteStartElement(context.Security.DefaultPrefix, WsSecurityElements.KeyIdentifier, context.Security.Namespace);
 
             if (!string.IsNullOrEmpty(entity.Id))
-                writer.WriteAttributeString(WsSecurityUtilityAttributes.Id, entity.Id);
+                writer.WriteAttributeString(context.SecurityUtility.DefaultPrefix, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace, entity.Id);
 
             if (!string.IsNullOrEmpty(entity.ValueType))
                 writer.WriteAttributeString(WsSecurityAttributes.ValueType, entity.ValueType);
+
+            if (!string.IsNullOrEmpty(entity.EncodingType))
+                writer.WriteAttributeString(WsSecurityAttributes.EncodingType, entity.EncodingType);
 
             if (!string.IsNullOrEmpty(entity.Value))
                 writer.WriteString(entity.Value);
@@ -248,7 +257,13 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         void IProtocolSerializer<SecurityHeader>.WriteEntity(XmlDictionaryWriter writer, SecurityHeader entity, WsSerializer serializer,
             WsSerializationContext context)
         {
-            throw new NotImplementedException();
+            WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
+            writer.WriteStartElement(context.Security.DefaultPrefix, WsSecurityElements.Security, context.Security.Namespace);
+            WriteXmlOpenItemAttributes(writer, context, entity);
+            if (entity.Timestamp != null)
+                serializer.WriteEntity(writer, entity.Timestamp, context);
+            WriteXmlOpenItemElements(writer, context, entity);
+            writer.WriteEndElement();
         }
 
         SecurityTokenReference IProtocolSerializer<SecurityTokenReference>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
@@ -281,7 +296,10 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
                 writer.WriteAttributeString(WsSecurityAttributes.TokenType, WsSecurityConstants.WsSecurity11.Namespace, entity.TokenType);
 
             if (!string.IsNullOrEmpty(entity.Id))
-                writer.WriteAttributeString(WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace, entity.Id);
+                writer.WriteAttributeString(context.SecurityUtility.DefaultPrefix, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace, entity.Id);
+
+            if (!string.IsNullOrEmpty(entity.Usage))
+                writer.WriteAttributeString(WsSecurityAttributes.Usage, entity.Usage);
 
             if (entity.KeyIdentifier != null)
                 KeyIdentifierSerializer.WriteEntity(writer, entity.KeyIdentifier, serializer, context);

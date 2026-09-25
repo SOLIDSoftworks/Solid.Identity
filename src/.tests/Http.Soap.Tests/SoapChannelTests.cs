@@ -56,4 +56,32 @@ public class SoapChannelTests : IClassFixture<TestingServerFixture<Startup>>
         [ new ShouldCallEchoData { MessageVersion = MessageVersion.Soap12WSAddressingAugust2004, Path = "/echo3"}],
         [ new ShouldCallEchoData { MessageVersion = MessageVersion.Soap12WSAddressing10, Path = "/echo4"}],
     ];
+
+    [Fact]
+    public void UsesConfiguredChannelFactoryAndChannel()
+    {
+        var services = new ServiceCollection().AddSolidHttpCore().BuildServiceProvider();
+        var clientFactory = services.GetRequiredService<ISolidHttpClientFactory>();
+        var factoryCreated = false;
+        var channelCreated = false;
+        var options = new ProxyOptions<IEchoServiceContract>
+        {
+            Address = new EndpointAddress(new Uri(_fixture.TestingServer.BaseAddress, "/echo")),
+            CreateChannelFactory = (binding, address) =>
+            {
+                factoryCreated = true;
+                return new ChannelFactory<IEchoServiceContract>(binding, address);
+            },
+            CreateChannel = factory =>
+            {
+                channelCreated = true;
+                return factory.CreateChannel();
+            }
+        };
+
+        var channel = clientFactory.CreateProxy(new BasicHttpBinding(), options);
+        Assert.Equal("hello", channel.Echo("hello"));
+        Assert.True(factoryCreated);
+        Assert.True(channelCreated);
+    }
 }

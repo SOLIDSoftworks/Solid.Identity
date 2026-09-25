@@ -33,7 +33,7 @@ public static class SolidHttpClientFactoryExtensions
         var custom = binding.WithSolidHttpTransport(client);
         ConfigureBinding(custom, options);
         var factory = CreateChannelFactory(custom, options);
-        return factory.CreateChannel();
+        return CreateChannel(factory, options);
     }
 
     private static void ConfigureBinding<T>(CustomBinding binding, ProxyOptions<T> options)
@@ -42,8 +42,6 @@ public static class SolidHttpClientFactoryExtensions
             options.ConfigureBinding(binding);
         
         binding.Elements.Find<MessageEncodingBindingElement>().MessageVersion = options.MessageVersion;
-        
-        
     }
 
     private static T CreateChannel<T>(ChannelFactory<T> factory, ProxyOptions<T> options)

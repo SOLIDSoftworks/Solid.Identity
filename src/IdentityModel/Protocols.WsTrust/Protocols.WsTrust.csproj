@@ -24,6 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
       <ProjectReference Include="..\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
       <ProjectReference Include="..\Protocols.XmlEnc\Protocols.XmlEnc.csproj" />
       <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />
