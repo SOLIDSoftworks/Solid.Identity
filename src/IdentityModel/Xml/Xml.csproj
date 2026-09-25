@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Protocols.WsTrust\Protocols.WsTrust.csproj" />
+    <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />
     <ProjectReference Include="..\Tokens\Tokens.csproj" />
   </ItemGroup>
 

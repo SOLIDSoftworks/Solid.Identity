@@ -17,12 +17,7 @@ using Solid.IdentityModel.Protocols.WsTrust;
 
 namespace Solid.IdentityModel.Xml
 {
-    public class ExtendedDSigSerializer
-    #if NET6_0
-        : ExtendableDSigSerializer
-    #else
-        : DSigSerializer
-    #endif
+    public class ExtendedDSigSerializer : DSigSerializer
     {
         static ExtendedDSigSerializer()
         {
@@ -228,13 +223,13 @@ namespace Solid.IdentityModel.Xml
                 writer.WriteStartElement(XmlSignatureConstants.Elements.KeyInfo, XmlSignatureConstants.Namespace);
                 var binarySecret = new BinarySecret(binary.Key);
                 var xmlDictionaryWriter = XmlDictionaryWriter.CreateDictionaryWriter(writer);
-                var version = null as WsTrustVersion; 
+                var version = null as WsTrustConstants; 
                 if (xmlDictionaryWriter.LookupPrefix(WsTrustConstants.TrustFeb2005.Namespace) != null)
-                    version = WsTrustVersion.TrustFeb2005;
+                    version = WsTrustConstants.TrustFeb2005;
                 else if (xmlDictionaryWriter.LookupPrefix(WsTrustConstants.Trust14.Namespace) != null)
-                    version = WsTrustVersion.Trust14;
+                    version = WsTrustConstants.Trust14;
                 else
-                    version = WsTrustVersion.Trust13; // default to Trust 1.3
+                    version = WsTrustConstants.Trust13; // default to Trust 1.3
                 WsTrustSerializer.WriteBinarySecret(xmlDictionaryWriter, new WsSerializationContext(version), binarySecret);
                 writer.WriteEndElement();
                 return;
@@ -245,8 +240,8 @@ namespace Solid.IdentityModel.Xml
             {
                 // <KeyInfo>
                 writer.WriteStartElement(XmlSignatureConstants.Elements.KeyInfo, XmlSignatureConstants.Namespace);
-                writer.WriteStartElement(WsSecurityConstants.WsSecurity10.Prefix, "SecurityTokenReference", WsSecurityConstants.WsSecurity10.Namespace);
-                writer.WriteStartElement(WsSecurityConstants.WsSecurity10.Prefix, "KeyIdentifier", WsSecurityConstants.WsSecurity10.Namespace);
+                writer.WriteStartElement(WsSecurityConstants.WsSecurity10.DefaultPrefix, "SecurityTokenReference", WsSecurityConstants.WsSecurity10.Namespace);
+                writer.WriteStartElement(WsSecurityConstants.WsSecurity10.DefaultPrefix, "KeyIdentifier", WsSecurityConstants.WsSecurity10.Namespace);
                 writer.WriteAttributeString("ValueType", securityTokenReference.KeyIdValueType);
 
                 writer.WriteString(securityTokenReference.KeyId);
@@ -300,8 +295,8 @@ namespace Solid.IdentityModel.Xml
             if (credentials.Key is X509SecurityKey x509)
             {
                 digestMethod = "http://www.w3.org/2000/09/xmldsig#sha1";
-                var securityTokenReference = document.CreateElement(WsSecurityConstants.WsSecurity10.Prefix, "SecurityTokenReference", WsSecurityConstants.WsSecurity10.Namespace);
-                var keyIdentifier = document.CreateElement(WsSecurityConstants.WsSecurity10.Prefix, "KeyIdentifier", WsSecurityConstants.WsSecurity10.Namespace);
+                var securityTokenReference = document.CreateElement(WsSecurityConstants.WsSecurity10.DefaultPrefix, "SecurityTokenReference", WsSecurityConstants.WsSecurity10.Namespace);
+                var keyIdentifier = document.CreateElement(WsSecurityConstants.WsSecurity10.DefaultPrefix, "KeyIdentifier", WsSecurityConstants.WsSecurity10.Namespace);
                 keyIdentifier.SetAttribute("ValueType", "http://docs.oasis-open.org/wss/oasis-wss-soap-message-security-1.1#ThumbprintSHA1");
                 keyIdentifier.InnerText = x509.X5t;
                 securityTokenReference.AppendChild(keyIdentifier);

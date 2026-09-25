@@ -13,28 +13,8 @@ namespace System.ServiceModel.Channels
 {
     public static class BindingExtensions
     {
-        public static Binding WithSolidHttpTransport(this Binding binding, TestingServer server, XmlWriterSettings writerSettings = null)
-        {
-            var settings = writerSettings?.Clone() ?? new XmlWriterSettings();
-            settings.CloseOutput = false;
-
-            var custom = binding as CustomBinding;
-            if (custom == null)
-                custom = new CustomBinding(binding);
-
-            var http = custom
-                .Elements
-                .OfType<HttpTransportBindingElement>()
-                .Where(e => e.Scheme == "http" || e.Scheme == "https")
-                .FirstOrDefault()
-            ;
-            if (http != null)
-            {
-                var solid = new SolidHttpTransportBindingElement(server, settings);
-                custom.Elements.Remove(http);
-                custom.Elements.Add(solid);
-            }
-            return custom;
-        }
+        public static Binding WithSolidHttpTransport(this Binding binding, TestingServer server,
+            XmlWriterSettings writerSettings = null)
+            => binding.WithSolidHttpTransport(server as ISolidHttpClient, writerSettings: writerSettings);
     }
 }

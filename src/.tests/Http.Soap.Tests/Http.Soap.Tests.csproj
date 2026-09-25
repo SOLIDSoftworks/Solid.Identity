@@ -1,0 +1,8 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="..\..\Http\Http.Soap\Http.Soap.csproj" />
+        <ProjectReference Include="..\..\Testing\Testing.AspNetCore.Extensions.XUnit\Testing.AspNetCore.Extensions.XUnit.csproj" />
+        <ProjectReference Include="..\..\Testing\Testing.AspNetCore\Testing.AspNetCore.csproj" />
+        <ProjectReference Include="..\..\Utility\Extensions.AspNetCore.Soap\Extensions.AspNetCore.Soap.csproj" />
+    </ItemGroup>
+</Project>

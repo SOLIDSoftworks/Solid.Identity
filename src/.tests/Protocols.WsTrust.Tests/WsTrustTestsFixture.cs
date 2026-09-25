@@ -217,7 +217,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
         protected override ChannelFactory<TChannel> CreateChannelFactory<TChannel>(Binding binding, EndpointAddress endpointAddress, SoapChannelCreationContext context)
         {
             var factory = new WsTrustChannelFactory(binding, endpointAddress);
-            factory.TrustVersion = WsTrustVersion.Trust13;
+            factory.TrustVersion = WsTrustConstants.Trust13;
             if (context.Properties.TryGetValue("handler", out var handler))
             {
                 var other = factory.SecurityTokenHandlers.FirstOrDefault(h => h.GetType() == handler.GetType());

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Solid.Identity.Protocols.WsTrust.WsTrustFeb2005;
 
 namespace Solid.Identity.DependencyInjection
 {
@@ -39,12 +40,26 @@ namespace Solid.Identity.DependencyInjection
             return this;
         }
 
-        // public WsTrustBuilder AddWsTrust13SyncContract()
-        // {
-        //     Services.TryAddSingleton<WsTrustService>();
-        //     Services.AddSingletonSoapService<IWsTrust13AsyncContract>(p => p.GetService<WsTrustService>());
-        //     return this;
-        // }
+        public WsTrustBuilder AddWsTrust13SyncContract()
+        {
+            Services.TryAddSingleton<WsTrustService>();
+            Services.AddSingletonSoapService<IWsTrust13SyncContract>(p => p.GetService<WsTrustService>());
+            return this;
+        }
+
+        public WsTrustBuilder AddWsTrustFeb2005AsyncContract()
+        {
+            Services.TryAddSingleton<WsTrustService>();
+            Services.AddSingletonSoapService<IWsTrustFeb2005AsyncContract>(p => p.GetService<WsTrustService>());
+            return this;
+        }
+
+        public WsTrustBuilder AddWsTrustFeb2005SyncContract()
+        {
+            Services.TryAddSingleton<WsTrustService>();
+            Services.AddSingletonSoapService<IWsTrustFeb2005SyncContract>(p => p.GetService<WsTrustService>());
+            return this;
+        }
 
         public WsTrustBuilder AddTokenValidationParametersFactory<TTokenValidationParametersFactory>(Func<IServiceProvider, TTokenValidationParametersFactory> factory)
             where TTokenValidationParametersFactory : class, ITokenValidationParametersFactory

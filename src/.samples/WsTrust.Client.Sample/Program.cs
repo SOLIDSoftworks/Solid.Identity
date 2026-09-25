@@ -59,7 +59,7 @@ namespace WsTrust.Client.Sample
             {
                 var channel = factory.CreateChannelWithIssuedToken(token);
 
-                var request = new WsTrustRequest(WsTrustConstants.Trust13.WsTrustActions.Issue)
+                var request = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Issue)
                 {
                     KeyType = WsTrustKeyTypes.Trust13.Bearer,
                     AppliesTo = new AppliesTo(new EndpointReference("urn:sample:relyingparty"))

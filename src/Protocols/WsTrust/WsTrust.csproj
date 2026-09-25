@@ -8,11 +8,13 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
   
-  <ItemGroup>    
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsTrust\Protocols.WsTrust.csproj" />
     <ProjectReference Include="..\..\IdentityModel\Tokens.Saml\Tokens.Saml.csproj" />
     <ProjectReference Include="..\..\Utility\Extensions.AspNetCore.Soap\Extensions.AspNetCore.Soap.csproj" />
   </ItemGroup>

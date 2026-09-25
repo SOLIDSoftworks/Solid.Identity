@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Microsoft.IdentityModel.Tokens;
 using Solid.Extensions.AspNetCore.Soap;
 using Solid.Identity.Protocols.WsSecurity.Abstractions;
@@ -75,15 +74,15 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
             var timestamp = _soapContextAccessor.SoapContext.GetWsSecurityTimestamp();
 
-            var id = reader.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace);
+            var id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
             var userName = "";
             var password = "";
             var type = "";
-            if (reader.ReadToDescendant("Username", WsSecurityConstants.WsSecurity10.Namespace))
+            if (reader.ReadToDescendant(WsSecurityElements.Username, WsSecurityConstants.WsSecurity10.Namespace))
                 userName = reader.ReadElementContentAsString();
-            if (reader.IsStartElement("Password", WsSecurityConstants.WsSecurity10.Namespace))
+            if (reader.IsStartElement(WsSecurityElements.Password, WsSecurityConstants.WsSecurity10.Namespace))
             {
-                type = reader.GetAttribute("Type", WsSecurityConstants.WsSecurity10.Namespace);
+                type = reader.GetAttribute(WsSecurityAttributes.Type, WsSecurityConstants.WsSecurity10.Namespace);
                 password = reader.ReadElementContentAsString();
             }
 

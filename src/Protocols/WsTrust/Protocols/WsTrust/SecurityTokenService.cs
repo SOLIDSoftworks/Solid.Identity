@@ -169,7 +169,7 @@ namespace Solid.Identity.Protocols.WsTrust
             if (!(descriptor.ProofKey is SymmetricSecurityKey symmetric)) throw new NotSupportedException($"Asymmetric proof keys not supported for now.");
 
             // The microsoft ws-trust serializer can't handle encrypted RequestedProofToken. Hard code unencrypted for now.
-            var secret = new BinarySecret(symmetric.Key, Constants.WsTrustKeyTypes.Symmetric);
+            var secret = new BinarySecret(symmetric.Key, Constants.KeyTypes.Symmetric);
             return new ValueTask<RequestedProofToken>(new RequestedProofToken(secret));
         }
 
@@ -225,10 +225,10 @@ namespace Solid.Identity.Protocols.WsTrust
 
             // asymmetric and psha1
             // not supported at this moment
-            if (keyType == Constants.WsTrustKeyTypes.PublicKey || keyType == Constants.WsTrustKeyTypes.PSHA1)
+            if (keyType == Constants.KeyTypes.PublicKey || keyType == Constants.KeyTypes.PSHA1)
                 throw new NotSupportedException($"Key type '{keyType}' not supported at this time.");
 
-            if (keyType == Constants.WsTrustKeyTypes.Bearer)
+            if (keyType == Constants.KeyTypes.Bearer)
                 return null;
 
             // symmetric
@@ -355,7 +355,7 @@ namespace Solid.Identity.Protocols.WsTrust
 
         protected virtual async ValueTask ValidateRequestAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
         {
-            // TODO: add virtual methods for each validation so they can be overridden seperately
+            // TODO: add virtual methods for each validation so they can be overridden separately
 
             using var activity = Tracing.WsTrust.Base.StartActivity($"{GetType().Name}.{nameof(ValidateRequestAsync)}");
             var issuer = principal.FindFirst(WsSecurityClaimTypes.Issuer)?.Value;
@@ -375,7 +375,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("AppliesTo not specified.");
 
             // STS only support Issue for now
-            if (request.RequestType != null && request.RequestType != Constants.WsTrustActions.Issue)
+            if (request.RequestType != null && request.RequestType != Constants.Actions.Issue)
                 throw new InvalidRequestException("ID2052");
 
             // key type must be one of the supported types
@@ -383,7 +383,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("ID2053");
 
             // if key type is bearer key, we should fault if the KeySize element is present and its value is not equal to zero.
-            if (StringComparer.Ordinal.Equals(request.KeyType, Constants.WsTrustKeyTypes.Bearer) && request.KeySizeInBits.HasValue && (request.KeySizeInBits.Value != 0))
+            if (StringComparer.Ordinal.Equals(request.KeyType, Constants.KeyTypes.Bearer) && request.KeySizeInBits.HasValue && (request.KeySizeInBits.Value != 0))
                 throw new InvalidRequestException("ID2050");
 
             if (request.TokenType == null)
@@ -399,11 +399,11 @@ namespace Solid.Identity.Protocols.WsTrust
             //
             // Check if the key size is within certain limit to prevent Dos attack
             //
-            if (request.KeyType.Equals(Constants.WsTrustKeyTypes.Symmetric, StringComparison.OrdinalIgnoreCase) &&
+            if (request.KeyType.Equals(Constants.KeyTypes.Symmetric, StringComparison.OrdinalIgnoreCase) &&
                 request.KeySizeInBits > Options.DefaultMaxSymmetricKeySizeInBits)
                 throw new InvalidRequestException("ID2056", request.KeySizeInBits.Value, Options.DefaultMaxSymmetricKeySizeInBits);
 
-            if (request.KeyType.Equals(Constants.WsTrustKeyTypes.PublicKey, StringComparison.OrdinalIgnoreCase) &&
+            if (request.KeyType.Equals(Constants.KeyTypes.PublicKey, StringComparison.OrdinalIgnoreCase) &&
                 request.UseKey == null)
                 throw new InvalidRequestException($"Asymmetric key type requires a UseKey.");
         }
@@ -491,13 +491,13 @@ namespace Solid.Identity.Protocols.WsTrust
             => IsSupportedSymmetricKeyType(keyType) || IsSupportedBearerKeyType(keyType) || IsSupportedAsymmetricKeyType(keyType);
 
         protected virtual bool IsSupportedAsymmetricKeyType(string keyType)
-            => StringComparer.Ordinal.Equals(keyType, Constants.WsTrustKeyTypes.PublicKey) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Asymmetric);
+            => StringComparer.Ordinal.Equals(keyType, Constants.KeyTypes.PublicKey) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Asymmetric);
 
         protected virtual bool IsSupportedSymmetricKeyType(string keyType)
-            => StringComparer.Ordinal.Equals(keyType, Constants.WsTrustKeyTypes.Symmetric) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Symmetric);
+            => StringComparer.Ordinal.Equals(keyType, Constants.KeyTypes.Symmetric) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Symmetric);
 
         protected virtual bool IsSupportedBearerKeyType(string keyType)
-            => StringComparer.Ordinal.Equals(keyType, Constants.WsTrustKeyTypes.Bearer) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Bearer);
+            => StringComparer.Ordinal.Equals(keyType, Constants.KeyTypes.Bearer) || StringComparer.Ordinal.Equals(keyType, MicrosoftKeyTypes.Bearer);
 
         protected virtual async ValueTask ApplyDefaultIssueValuesAsync(WsTrustRequest request, CancellationToken cancellationToken)
         {
@@ -509,17 +509,17 @@ namespace Solid.Identity.Protocols.WsTrust
             if (request.TokenType == null)
                 request.TokenType = party?.DefaultTokenType ?? Options.DefaultTokenType;
 
-            var keyType = string.IsNullOrEmpty(request.KeyType) ? Constants.WsTrustKeyTypes.Symmetric : request.KeyType;
+            var keyType = string.IsNullOrEmpty(request.KeyType) ? Constants.KeyTypes.Symmetric : request.KeyType;
             if (IsSupportedAsymmetricKeyType(keyType))
-                request.KeyType = Constants.WsTrustKeyTypes.PublicKey;
+                request.KeyType = Constants.KeyTypes.PublicKey;
             else if (IsSupportedSymmetricKeyType(keyType))
-                request.KeyType = Constants.WsTrustKeyTypes.Symmetric;
+                request.KeyType = Constants.KeyTypes.Symmetric;
             else if (IsSupportedBearerKeyType(keyType))
-                request.KeyType = Constants.WsTrustKeyTypes.Bearer;
+                request.KeyType = Constants.KeyTypes.Bearer;
             else
                 request.KeyType = keyType;
 
-            if (request.KeyType == Constants.WsTrustKeyTypes.Symmetric && !request.KeySizeInBits.HasValue)
+            if (request.KeyType == Constants.KeyTypes.Symmetric && !request.KeySizeInBits.HasValue)
                 request.KeySizeInBits = Options.DefaultSymmetricKeySizeInBits;
         }
 

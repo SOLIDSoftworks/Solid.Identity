@@ -15,6 +15,8 @@ namespace Solid.Identity.Protocols.WsTrust
             public const string IWsTrustFeb2005Sync = "IWSTrustFeb2005Sync";
             public const string IWsTrust13Sync = "IWSTrust13Sync";
             public const string IWsTrust13Async = "IWSTrust13Async";
+            public const string IWsTrust14Sync = "IWSTrust14Sync";
+            public const string IWsTrust14Async = "IWSTrust14Async";
         }
 
         public static class Actions

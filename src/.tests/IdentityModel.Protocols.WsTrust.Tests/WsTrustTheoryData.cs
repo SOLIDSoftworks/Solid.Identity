@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
 using System.Xml;
 using Microsoft.IdentityModel.Tokens;
 using Solid.IdentityModel.Protocols.WsSecurity;
@@ -7,11 +9,11 @@ using Solid.IdentityModel.Protocols.WsSecurity;
 
 namespace Solid.IdentityModel.Protocols.WsTrust.Tests
 {
-    public class WsTrustTheoryData
+    public class WsTrustTheoryData : TheoryDataBase
     {
         public WsTrustTheoryData() { }
 
-        public WsTrustTheoryData(WsTrustVersion trustVersion)
+        public WsTrustTheoryData(WsTrustConstants trustVersion)
         {
             WsSerializationContext = new WsSerializationContext(trustVersion);
             WsTrustVersion = trustVersion;
@@ -28,7 +30,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
             Writer = XmlDictionaryWriter.CreateTextWriter(memoryStream, Encoding.UTF8);
         }
 
-        public WsTrustTheoryData(MemoryStream memoryStream, WsTrustVersion trustVersion)
+        public WsTrustTheoryData(MemoryStream memoryStream, WsTrustConstants trustVersion)
         {
             MemoryStream = memoryStream;
             Writer = XmlDictionaryWriter.CreateTextWriter(memoryStream, Encoding.UTF8);
@@ -36,6 +38,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
             WsTrustVersion = trustVersion;
         }
 
+        public BinaryExchange BinaryExchange { get; set; }
         public BinarySecret BinarySecret { get; set; }
 
         public Claims Claims { get; set; }
@@ -80,6 +83,6 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
 
         public WsTrustSerializer WsTrustSerializer { get; set; } = new WsTrustSerializer();
 
-        public WsTrustVersion WsTrustVersion { get; set; }
+        public WsTrustConstants WsTrustVersion { get; set; }
     }
 }

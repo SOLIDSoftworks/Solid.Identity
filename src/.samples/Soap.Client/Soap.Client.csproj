@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="System.ServiceModel.Http" Version="$(MicrosoftExtensionsVersion)" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\ServiceModel\Extensions\Extensions.csproj" />
     <ProjectReference Include="..\Soap.Server\Soap.Server.csproj" />
   </ItemGroup>
 

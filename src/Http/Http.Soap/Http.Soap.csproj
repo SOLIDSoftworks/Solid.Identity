@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageDescription>Solid.Http.Soap is an extension to Solid.Http.Core for working with SOAP requests over http transports provided by Solid.Http.Core.</PackageDescription>
+        <PackageTags>$(PackageTags);soap</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\ServiceModel\Core\Core.csproj" />
+        <ProjectReference Include="..\Http.Core\Http.Core.csproj" />
+    </ItemGroup>
+
+
+</Project>

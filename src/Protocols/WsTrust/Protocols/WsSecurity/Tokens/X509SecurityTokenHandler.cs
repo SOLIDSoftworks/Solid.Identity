@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Microsoft.IdentityModel.Tokens;
 using Solid.Identity.Protocols.WsSecurity.Abstractions;
 using System;
@@ -12,19 +11,19 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Solid.IdentityModel.Protocols.WsTrust;
 
 namespace Solid.Identity.Protocols.WsSecurity.Tokens
 {
     internal class X509SecurityTokenHandler : AsyncSecurityTokenHandler
     {
-        private ILogger<X509SecurityTokenHandler> _logger;
-        private IX509Validator _validator;
+        private readonly IX509Validator _validator;
 
-        public X509SecurityTokenHandler(ILogger<X509SecurityTokenHandler> logger, IX509Validator validator = null)
+        public X509SecurityTokenHandler(IX509Validator validator = null)
         {
-            _logger = logger;
             _validator = validator;
         }
+        
         public override Type TokenType => typeof(X509SecurityToken);
 
         public override SecurityToken ReadToken(XmlReader reader, TokenValidationParameters validationParameters) => ReadToken(reader);
@@ -45,8 +44,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
         {
             try
             {
-                using (var reader = CreateReader(tokenString))
-                    return CanReadToken(reader);
+                using var reader = CreateReader(tokenString);
+                return CanReadToken(reader);
             }
             catch
             {
@@ -56,8 +55,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
         public override bool CanReadToken(XmlReader reader)
             => reader?.IsStartElement("BinarySecurityToken", WsSecurityConstants.WsSecurity10.Namespace) == true
-            && reader.GetAttribute("ValueType") == "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
-            && reader.GetAttribute("EncodingType") == "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary"
+            && reader.GetAttribute(WsTrustAttributes.ValueType) == "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-x509-token-profile-1.0#X509v3"
+            && reader.GetAttribute(WsTrustAttributes.EncodingType) == "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary"
         ;
 
         public override SecurityToken ReadToken(string tokenString) => ReadX509Certificate2Token(tokenString);
@@ -65,8 +64,8 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
         public X509SecurityToken ReadX509Certificate2Token(string tokenString)
         {
-            using (var reader = CreateReader(tokenString))
-                return ReadX509Certificate2Token(reader);
+            using var reader = CreateReader(tokenString);
+            return ReadX509Certificate2Token(reader);
         }
 
         public X509SecurityToken ReadX509Certificate2Token(XmlReader reader)
@@ -75,7 +74,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
             if (!CanReadToken(reader))
                 throw new Exception("Expected BinarySecurityToken element not found");
 
-            var id = reader.GetAttribute("Id", WsUtilityConstants.WsUtility10.Namespace);
+            var id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
             var base64 = reader.ReadElementContentAsString();
             var bytes = Convert.FromBase64String(base64);
             var certificate = new X509Certificate2(bytes);
