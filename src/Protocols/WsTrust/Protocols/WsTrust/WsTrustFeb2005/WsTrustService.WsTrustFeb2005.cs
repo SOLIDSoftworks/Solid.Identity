@@ -19,28 +19,10 @@ namespace Solid.Identity.Protocols.WsTrust
                .AsTask()
         ;
 
-        public Task<Message> TrustFeb2005CancelResponseAsync(Message request)
-            => ProcessCoreAsync(
-                request,
-                WsTrustConstants.TrustFeb2005.Actions.CancelResponse,
-                WsTrustConstants.TrustFeb2005.Actions.CancelResponse,
-                WsTrustConstants.TrustFeb2005)
-               .AsTask()
-        ;
-
         public Task<Message> TrustFeb2005IssueAsync(Message request)
             => ProcessCoreAsync(
                 request,
                 WsTrustConstants.TrustFeb2005.Actions.IssueRequest,
-                WsTrustConstants.TrustFeb2005.Actions.IssueResponse,
-                WsTrustConstants.TrustFeb2005)
-               .AsTask()
-        ;
-
-        public Task<Message> TrustFeb2005IssueResponseAsync(Message request)
-            => ProcessCoreAsync(
-                request,
-                WsTrustConstants.TrustFeb2005.Actions.IssueResponse,
                 WsTrustConstants.TrustFeb2005.Actions.IssueResponse,
                 WsTrustConstants.TrustFeb2005)
                .AsTask()
@@ -55,15 +37,6 @@ namespace Solid.Identity.Protocols.WsTrust
                .AsTask()
         ;
 
-        public Task<Message> TrustFeb2005RenewResponseAsync(Message request)
-            => ProcessCoreAsync(
-                request,
-                WsTrustConstants.TrustFeb2005.Actions.RenewResponse,
-                WsTrustConstants.TrustFeb2005.Actions.RenewResponse,
-                WsTrustConstants.TrustFeb2005)
-               .AsTask()
-        ;
-
         public Task<Message> TrustFeb2005ValidateAsync(Message request)
             => ProcessCoreAsync(
                 request,
@@ -73,13 +46,5 @@ namespace Solid.Identity.Protocols.WsTrust
                .AsTask()
         ;
 
-        public Task<Message> TrustFeb2005ValidateResponseAsync(Message request)
-            => ProcessCoreAsync(
-                request,
-                WsTrustConstants.TrustFeb2005.Actions.ValidateResponse,
-                WsTrustConstants.TrustFeb2005.Actions.ValidateResponse,
-                WsTrustConstants.TrustFeb2005)
-               .AsTask()
-        ;
     }
 }

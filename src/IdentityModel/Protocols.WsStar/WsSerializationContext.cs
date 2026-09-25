@@ -84,6 +84,8 @@ namespace Solid.IdentityModel.Protocols
         public WsSerializationContext(WsTrustConstants trustVersion)
         {
             Trust = trustVersion ?? throw new System.ArgumentNullException(nameof(trustVersion));
+            TrustActions = trustVersion.Actions;
+            TrustKeyTypes = trustVersion.KeyTypes;
             AddressingVersion = AddressingVersion.WSAddressing10;
             Addressing = WsAddressingConstants.Addressing10;
             Federation = WsFederationConstants.Federation12;
@@ -109,6 +111,10 @@ namespace Solid.IdentityModel.Protocols
         public WsSecureConversationConstants SecureConversation { get; init; }
 
         public WsTrustConstants Trust { get; init; }
+
+        public WsTrustActions TrustActions { get; init; }
+
+        public WsTrustKeyTypes TrustKeyTypes { get; init; }
 
         public AddressingVersion AddressingVersion { get; init; }
 

@@ -1,4 +1,4 @@
-namespace Solid.IdentityModel.Protocols.WsTrust.WsSecureConversation;
+namespace Solid.IdentityModel.Protocols.WsSecureConversation;
 
 public class WsSecureConversationSerializer
 {

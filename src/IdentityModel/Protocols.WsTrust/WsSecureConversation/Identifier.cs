@@ -1,4 +1,4 @@
-namespace Solid.IdentityModel.Protocols.WsTrust.WsSecureConversion;
+namespace Solid.IdentityModel.Protocols.WsSecureConversation;
 
 public class Identifier
 {

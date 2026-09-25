@@ -49,7 +49,11 @@ namespace Solid.Extensions.ServiceModel
             var key = KeyFactory.CreateKey<TProxy>();
             var options = _optionsSnapshop.Get(key);
             if (token == null)
-                token = ReadSecurityToken(await GetSecurityTokenAsync(), options);
+            {
+                var tokenText = await GetSecurityTokenAsync();
+                if (tokenText != null)
+                    token = ReadSecurityToken(tokenText, options);
+            }
             return await CreateProxyAsync<TProxy>(key, options, token, cancellationToken);
         }
 

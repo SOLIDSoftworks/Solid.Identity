@@ -2,7 +2,7 @@ using System;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Solid.IdentityModel.Protocols.WsTrust.WsSecureConversion;
+using Solid.IdentityModel.Protocols.WsSecureConversation;
 
 namespace Solid.IdentityModel.Protocols.WsTrust
 {

@@ -1,4 +1,4 @@
-namespace Solid.IdentityModel.Protocols.WsTrust.WsSecureConversation.WsSecureConversation;
+namespace Solid.IdentityModel.Protocols.WsSecureConversation;
 
 public static class WsSecureConversationElements
 {

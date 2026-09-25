@@ -45,6 +45,8 @@ namespace Solid.Identity.Protocols.WsTrust
                 return new WsSerializationContext(version)
                 {
                     Trust = _options.TrustConstants ?? defaults.Trust,
+                    TrustActions = _options.TrustActions ?? defaults.TrustActions,
+                    TrustKeyTypes = _options.TrustKeyTypes ?? defaults.TrustKeyTypes,
                     Addressing = _options.AddressingConstants ?? defaults.Addressing,
                     Federation = _options.FedConstants ?? defaults.Federation,
                     Security = _options.SecurityConstants ?? defaults.Security,

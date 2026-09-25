@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
 using Microsoft.IdentityModel.Xml;
+using Solid.IdentityModel.Protocols.WsSecureConversation;
 
 namespace Solid.IdentityModel.Protocols.WsTrust
 {
@@ -399,7 +400,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 bool isEmptyElement = reader.IsEmptyElement;
 
                 XmlAttributeDescriptor[] xmlAttributes = XmlAttributeDescriptor.ReadAttributes(reader);
-                var trustRequest = new WsTrustRequest(serializationContext.Trust.Actions.Issue);
+                var trustRequest = new WsTrustRequest(serializationContext.TrustActions.Issue);
                 string context = XmlAttributeDescriptor.GetAttribute(xmlAttributes, WsTrustAttributes.Context, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(context))
                     trustRequest.Context = context;
@@ -586,6 +587,17 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     {
                         tokenResponse.Entropy = ReadEntropy(reader, serializationContext);
                     }
+                    else if (reader.IsStartElement(WsTrustElements.Authenticator, serializationContext.Trust.Namespace))
+                    {
+                        bool empty = reader.IsEmptyElement;
+                        reader.ReadStartElement();
+                        var authenticator = new Authenticator();
+                        if (reader.IsStartElement(WsTrustElements.CombinedHash, serializationContext.Trust.Namespace))
+                            authenticator.CombinedHash = new CombinedHash { Value = reader.ReadElementContentAsString() };
+                        if (!empty)
+                            reader.ReadEndElement();
+                        tokenResponse.Authenticator = authenticator;
+                    }
                     else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                     {
                         foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces.Keys)
@@ -762,8 +774,25 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                 reader.ReadStartElement();
                 reader.MoveToContent();
-                XmlElement xmlElement = CreateXmlElement(reader);
-                RequestedSecurityToken requestedSecurityToken = new RequestedSecurityToken(xmlElement);
+                RequestedSecurityToken requestedSecurityToken;
+                if (reader.IsStartElement(WsSecureConversationElements.SecurityContextToken, serializationContext.SecureConversation.Namespace))
+                {
+                    var token = new SecurityContextToken
+                    {
+                        Id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, serializationContext.SecurityUtility.Namespace)
+                    };
+                    bool empty = reader.IsEmptyElement;
+                    reader.ReadStartElement();
+                    if (reader.IsStartElement(WsSecureConversationElements.Identifier, serializationContext.SecureConversation.Namespace))
+                        token.Identifier = new Identifier { Value = reader.ReadElementContentAsString() };
+                    if (!empty)
+                        reader.ReadEndElement();
+                    requestedSecurityToken = new RequestedSecurityToken { SecurityContextToken = token };
+                }
+                else
+                {
+                    requestedSecurityToken = new RequestedSecurityToken(CreateXmlElement(reader));
+                }
                 reader.ReadEndElement();
                 return requestedSecurityToken;
             }
@@ -1549,6 +1578,14 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 if (requestSecurityTokenResponse.UnattachedReference != null)
                     WriteRequestedUnattachedReference(writer, serializationContext, requestSecurityTokenResponse.UnattachedReference);
 
+                if (requestSecurityTokenResponse.Authenticator != null)
+                {
+                    writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.Authenticator, serializationContext.Trust.Namespace);
+                    if (requestSecurityTokenResponse.Authenticator.CombinedHash != null)
+                        writer.WriteElementString(serializationContext.Trust.DefaultPrefix, WsTrustElements.CombinedHash, serializationContext.Trust.Namespace, requestSecurityTokenResponse.Authenticator.CombinedHash.Value);
+                    writer.WriteEndElement();
+                }
+
                 // </RequestSecurityTokenResponse>
                 writer.WriteEndElement();
             }
@@ -1670,6 +1707,16 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 if (requestedSecurityToken.TokenElement != null)
                 {
                     requestedSecurityToken.TokenElement.WriteTo(writer);
+                }
+                else if (requestedSecurityToken.SecurityContextToken != null)
+                {
+                    var token = requestedSecurityToken.SecurityContextToken;
+                    writer.WriteStartElement(serializationContext.SecureConversation.DefaultPrefix, WsSecureConversationElements.SecurityContextToken, serializationContext.SecureConversation.Namespace);
+                    if (token.Id != null)
+                        writer.WriteAttributeString(serializationContext.SecurityUtility.DefaultPrefix, WsSecurityUtilityAttributes.Id, serializationContext.SecurityUtility.Namespace, token.Id);
+                    if (token.Identifier != null)
+                        writer.WriteElementString(serializationContext.SecureConversation.DefaultPrefix, WsSecureConversationElements.Identifier, serializationContext.SecureConversation.Namespace, token.Identifier.Value);
+                    writer.WriteEndElement();
                 }
                 else if (requestedSecurityToken.SecurityToken != null)
                 {
