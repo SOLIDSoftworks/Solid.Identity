@@ -67,4 +67,11 @@ public class WsSecurityWritingTests
         Assert.Equal("type", result.ValueType);
         Assert.Equal("encoding", result.EncodingType);
     }
+
+    [Fact]
+    public void SecurityAssemblyDoesNotDependOnTrust()
+    {
+        Assert.DoesNotContain(typeof(WsSecuritySerializer).Assembly.GetReferencedAssemblies(),
+            assembly => assembly.Name == "Solid.IdentityModel.Protocols.WsTrust");
+    }
 }
