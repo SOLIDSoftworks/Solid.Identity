@@ -1,6 +1,17 @@
 # Solid.Identity [![build](https://github.com/SOLIDSoftworks/Solid.Identity/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/SOLIDSoftworks/Solid.Identity/actions/workflows/test.yml)
 This repository is a collection of packages that we have written over the years, consolodated into a single repository.
 
+## Documentation
+
+The website source is in [`docs/`](docs/index.md), with navigation in [`mkdocs.yml`](mkdocs.yml) and a [Read the Docs configuration](.readthedocs.yaml). To build it locally, install Python and run:
+
+```console
+python -m pip install -r docs/requirements.txt
+python -m mkdocs build --strict
+```
+
+Run `python -m mkdocs serve` to preview the site locally. Read the Docs can build the site directly from this repository using `.readthedocs.yaml`.
+
 ## The packages
 - Solid.Http.Core
 - Solid.Http.Json

@@ -332,6 +332,9 @@ paket-files/
 __pycache__/
 *.pyc
 
+# MkDocs generated site
+/site/
+
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
