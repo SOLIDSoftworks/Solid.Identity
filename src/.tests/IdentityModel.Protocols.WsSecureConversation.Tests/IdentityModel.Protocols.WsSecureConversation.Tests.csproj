@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsSecureConversation\Protocols.WsSecureConversation.csproj" />
+  </ItemGroup>
+</Project>
