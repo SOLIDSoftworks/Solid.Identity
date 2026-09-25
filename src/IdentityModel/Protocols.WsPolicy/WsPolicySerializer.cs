@@ -10,7 +10,7 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
     /// <summary>
     /// Base class for support of serializing versions of WS-Policy.
     /// </summary>
-    internal class WsPolicySerializer
+    public class WsPolicySerializer
     {
         private WsAddressingSerializer _wsAddressingSerializer = new WsAddressingSerializer();
 
@@ -26,6 +26,7 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
         /// <returns>An <see cref="EndpointReference"/> instance.</returns>
         public virtual AppliesTo ReadAppliesTo(XmlDictionaryReader reader, string @namespace)
         {
+            XmlUtil.CheckReaderOnEntry(reader, WsSecurityPolicyElements.AppliesTo, @namespace);
             if (reader.IsEmptyElement)
             {
                 reader.Skip();
@@ -46,8 +47,7 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
         /// <param name="namespace"></param>
         public virtual PolicyReference ReadPolicyReference(XmlDictionaryReader reader, string @namespace)
         {
-            //  if this clas becomes public, we will need to check parameters
-            //  XmlUtil.CheckReaderOnEntry(reader, WsPolicyElements.PolicyReference, @namespace);
+            XmlUtil.CheckReaderOnEntry(reader, WsSecurityPolicyElements.PolicyReference, @namespace);
 
             bool isEmptyElement = reader.IsEmptyElement;
             var attributes = XmlAttributeDescriptor.ReadAttributes(reader);

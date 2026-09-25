@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
+    <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />
+  </ItemGroup>
+</Project>

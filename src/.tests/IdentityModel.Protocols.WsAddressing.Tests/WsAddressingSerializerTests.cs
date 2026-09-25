@@ -4,7 +4,7 @@ using System.Xml;
 using Solid.IdentityModel.Protocols.WsAddressing;
 using Xunit;
 
-namespace Solid.IdentityModel.Protocols.WsTrust.Tests;
+namespace Solid.IdentityModel.Protocols.WsAddressing.Tests;
 
 public class WsAddressingSerializerTests
 {
@@ -32,5 +32,12 @@ public class WsAddressingSerializerTests
         stream.Position = 0;
         using var reader = XmlDictionaryReader.CreateTextReader(stream, XmlDictionaryReaderQuotas.Max);
         Assert.Equal("https://example.test/service", new WsAddressingSerializer().ReadEntity(reader, null, context).Uri);
+    }
+
+    [Fact]
+    public void AddressingAssemblyDoesNotDependOnTrust()
+    {
+        Assert.DoesNotContain(typeof(WsAddressingSerializer).Assembly.GetReferencedAssemblies(),
+            assembly => assembly.Name == "Solid.IdentityModel.Protocols.WsTrust");
     }
 }
