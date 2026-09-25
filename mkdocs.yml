@@ -1,0 +1,18 @@
+site_name: Solid.Identity
+site_description: Documentation for the Solid.Identity .NET packages
+repo_url: https://github.com/SOLIDSoftworks/Solid.Identity
+repo_name: SOLIDSoftworks/Solid.Identity
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Packages: packages.md
+  - Guides:
+      - HTTP client: http.md
+      - SAML 2.0: saml2p.md
+      - Testing web APIs: testing.md
+      - SOAP services: soap.md
+
+strict: true
