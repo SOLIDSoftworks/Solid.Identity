@@ -10,28 +10,32 @@ namespace System.Threading.Tasks
         {
             var source = new TaskCompletionSource<object>(state);
             if (callback != null)
-                source.Task.ContinueWith(t => callback(t));
+                source.Task.ContinueWith(t => callback(t), TaskScheduler.Default);
             task.ContinueWith(t =>
             {
-                if (t.IsCompleted)
-                    source.SetResult(null);
+                if (t.IsCanceled)
+                    source.TrySetCanceled();
                 else if (t.IsFaulted)
-                    source.SetException(t.Exception);
-            });
+                    source.TrySetException(t.Exception!.InnerExceptions);
+                else
+                    source.TrySetResult(null);
+            }, TaskScheduler.Default);
             return source.Task;
         }
         public static IAsyncResult ConvertToAsyncResult<TResult>(this Task<TResult> task, AsyncCallback callback, object state)
         {
             var source = new TaskCompletionSource<TResult>(state);
             if (callback != null)
-                source.Task.ContinueWith(t => callback(t));
+                source.Task.ContinueWith(t => callback(t), TaskScheduler.Default);
             task.ContinueWith(t =>
             {
-                if (t.IsCompleted)
-                    source.SetResult(t.Result);
+                if (t.IsCanceled)
+                    source.TrySetCanceled();
                 else if (t.IsFaulted)
-                    source.SetException(t.Exception);
-            });
+                    source.TrySetException(t.Exception!.InnerExceptions);
+                else
+                    source.TrySetResult(t.Result);
+            }, TaskScheduler.Default);
             return source.Task;
         }
     }

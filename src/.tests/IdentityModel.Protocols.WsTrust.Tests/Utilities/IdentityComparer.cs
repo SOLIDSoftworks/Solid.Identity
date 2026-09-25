@@ -1328,7 +1328,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
                  return retval;
 
              if (str is IEnumerable<string> enum1)
-                 return TestUtilities.SerializeAsSingleCommaDelimitedString(enum1);
+                 return global::Solid.IdentityModel.Protocols.WsTrust.Tests.TestUtilities.SerializeAsSingleCommaDelimitedString(enum1);
 
              else
                  return string.Format(CultureInfo.InvariantCulture, "{0}", (str ?? "null"));

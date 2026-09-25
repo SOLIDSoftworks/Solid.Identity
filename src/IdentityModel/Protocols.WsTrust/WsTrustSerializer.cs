@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Logging;
 using Solid.IdentityModel.Protocols.WsFed;
 using Solid.IdentityModel.Protocols.WsPolicy;
 using Solid.IdentityModel.Protocols.WsSecurity;
+using Solid.IdentityModel.Protocols.WsFederation;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
@@ -31,6 +32,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         private static Type _saml2AssertionType = typeof(Saml2Assertion);
         private static Type _samlAssertionType = typeof(SamlAssertion);
         private static Type _xmlTokenStreamType;
+        private static readonly WsSerializer SecurityReferenceSerializer = new WsSerializer(new ProtocolSerializer[] { new WsSecuritySerializer() });
 
         private readonly WsFedSerializer _wsFedSerializer = new WsFedSerializer();
         private readonly WsPolicySerializer _wsPolicySerializer = new WsPolicySerializer();
@@ -177,7 +179,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 {
                     if (reader.IsLocalName(WsFedElements.ClaimType))
                     {
-                        claimTypes.Add(_wsFedSerializer.ReadClaimType(reader, serializationContext.FederationVersion.AuthNamespace));
+                        claimTypes.Add(_wsFedSerializer.ReadClaimType(reader, serializationContext.Federation.Authorization.Namespace));
                     }
                     else
                     {
@@ -346,7 +348,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             {
                 bool isEmptyElement = reader.IsEmptyElement;
                 reader.ReadStartElement();
-                SecurityTokenReference tokenReference = WsSecuritySerializer.ReadSecurityTokenReference(reader);
+                SecurityTokenReference tokenReference = SecurityReferenceSerializer.ReadEntity<SecurityTokenReference>(reader);
 
                 if (!isEmptyElement)
                     reader.ReadEndElement();
@@ -397,7 +399,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 bool isEmptyElement = reader.IsEmptyElement;
 
                 XmlAttributeDescriptor[] xmlAttributes = XmlAttributeDescriptor.ReadAttributes(reader);
-                var trustRequest = new WsTrustRequest(serializationContext.TrustActions.Issue);
+                var trustRequest = new WsTrustRequest(serializationContext.Trust.Actions.Issue);
                 string context = XmlAttributeDescriptor.GetAttribute(xmlAttributes, WsTrustAttributes.Context, serializationContext.Trust.Namespace);
                 if (!string.IsNullOrEmpty(context))
                     trustRequest.Context = context;
@@ -419,7 +421,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             }
         }
         
-        protected virtual WsSerializationContext CreateSerializationContext(TrustVersion version)
+        protected virtual WsSerializationContext CreateSerializationContext(WsTrustConstants version)
             => new (version);
 
         private void ReadRequest(XmlDictionaryReader reader, WsTrustRequest trustRequest, WsSerializationContext serializationContext)
@@ -479,7 +481,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 }
                 else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                 {
-                    foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces)
+                    foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces.Keys)
                     {
                         if (reader.IsNamespaceUri(@namespace))
                         {
@@ -586,7 +588,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     }
                     else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                     {
-                        foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces)
+                        foreach (string @namespace in WsSecurityPolicyConstants.KnownNamespaces.Keys)
                         {
                             if (reader.IsNamespaceUri(@namespace))
                             {
@@ -928,7 +930,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 UseKey useKey = null;
 
                 if (reader.IsStartElement() && reader.IsLocalName(WsSecurityElements.SecurityTokenReference))
-                    useKey = new UseKey(new SecurityTokenElement(WsSecuritySerializer.ReadSecurityTokenReference(reader)));
+                    useKey = new UseKey(new SecurityTokenElement(SecurityReferenceSerializer.ReadEntity<SecurityTokenReference>(reader)));
 
                 if (!string.IsNullOrEmpty(signatureId))
                     useKey.SignatureId = signatureId;
@@ -1027,6 +1029,17 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             }
         }
 
+        private static void WriteXmlAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttributeDescriptor attribute)
+        {
+            WsUtils.ValidateParamsForWriting(writer, serializationContext, attribute, nameof(attribute));
+            writer.WriteAttributeString(attribute.Prefix, attribute.LocalName, attribute.NamespaceUri, attribute.Value);
+        }
+
+        private static void WriteSecurityTokenReference(XmlDictionaryWriter writer, WsSerializationContext context, SecurityTokenReference reference)
+        {
+            SecurityReferenceSerializer.WriteEntity(writer, reference, context);
+        }
+
         private static string NormalizePrefix(WsSerializationContext serializationContext, string prefix,
             string namespaceUri)
         {
@@ -1102,10 +1115,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 if (!string.IsNullOrEmpty(binarySecret.Type))
                     writer.WriteAttributeString(WsTrustAttributes.Type, serializationContext.Trust.Namespace, binarySecret.Type);
 
-                if (binarySecret.Type == serializationContext.Security.EncodingTypes.Base64)
-                    writer.WriteBase64(binarySecret.Data, 0, binarySecret.Data.Length);
-                else if(binarySecret.Type == serializationContext.Security.EncodingTypes.HexBinary)
-                    writer.WriteBinHex(binarySecret.Data, 0, binarySecret.Data.Length);
+                // WS-Trust BinarySecret/@Type describes the kind of secret, not its encoding.
+                // The element content is always base64-encoded octets (WS-Trust 1.3 §3.3).
+                writer.WriteBase64(binarySecret.Data, 0, binarySecret.Data.Length);
                 writer.WriteEndElement();
             }
             catch (Exception ex)
@@ -1572,7 +1584,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedAttachedReference, serializationContext.Trust.Namespace);
-                WsSecuritySerializer.WriteSecurityTokenReference(writer, securityTokenReference);
+                WriteSecurityTokenReference(writer, serializationContext, securityTokenReference);
                 writer.WriteEndElement();
             }
             catch (Exception ex)
@@ -1708,7 +1720,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.RequestedUnattachedReference, serializationContext.Trust.Namespace);
-                WsSecuritySerializer.WriteSecurityTokenReference(writer, securityTokenReference);
+                WriteSecurityTokenReference(writer, serializationContext, securityTokenReference);
                 writer.WriteEndElement();
             }
             catch (Exception ex)
@@ -1792,7 +1804,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     writer.WriteAttributeString(WsTrustAttributes.Sig, useKey.SignatureId);
 
                 if (useKey.SecurityTokenElement.SecurityTokenReference != null)
-                    WsSecuritySerializer.WriteSecurityTokenReference(writer, useKey.SecurityTokenElement.SecurityTokenReference);
+                    WriteSecurityTokenReference(writer, serializationContext, useKey.SecurityTokenElement.SecurityTokenReference);
 
                 writer.WriteEndElement();
             }

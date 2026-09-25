@@ -27,7 +27,7 @@ namespace Solid.ServiceModel.Security
         /// <summary>
         /// The WS-Trust version to use for serialization and deserialization.
         /// </summary>
-        public WsTrustVersion TrustVersion { get; set; } = WsTrustVersion.Trust13;
+        public WsTrustConstants TrustVersion { get; set; } = WsTrustConstants.Trust13;
 
         /// <summary>
         /// Creates a channel.

@@ -19,5 +19,7 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         public string Value { get; set; }
 
         public string ValueType { get; set; }
+
+        public string? EncodingType { get; set; }
     }
 }

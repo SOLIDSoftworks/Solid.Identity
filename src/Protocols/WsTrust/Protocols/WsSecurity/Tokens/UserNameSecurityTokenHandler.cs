@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Solid.IdentityModel.Protocols.WsSecurity;
-using Solid.IdentityModel.Protocols.WsUtility;
 using Microsoft.IdentityModel.Tokens;
 using Solid.Extensions.AspNetCore.Soap;
 using Solid.Identity.Protocols.WsSecurity.Abstractions;
@@ -75,7 +74,7 @@ namespace Solid.Identity.Protocols.WsSecurity.Tokens
 
             var timestamp = _soapContextAccessor.SoapContext.GetWsSecurityTimestamp();
 
-            var id = reader.GetAttribute(WsUtilityAttributes.Id, WsUtilityConstants.WsUtility10.Namespace);
+            var id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
             var userName = "";
             var password = "";
             var type = "";

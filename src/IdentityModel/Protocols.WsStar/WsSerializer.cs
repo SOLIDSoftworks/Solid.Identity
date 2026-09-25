@@ -67,7 +67,13 @@ public class WsSerializer
         where T : class
     {
         var type = typeof(IProtocolSerializer<T>);
-        return _cache.GetOrAdd(type, _ => FindSerializerFor<T>()) as IProtocolSerializer<T>;
+        if (_cache.TryGetValue(type, out var cached))
+            return cached as IProtocolSerializer<T>;
+
+        var serializer = FindSerializerFor<T>();
+        if (serializer != null)
+            _cache.TryAdd(type, serializer);
+        return serializer as IProtocolSerializer<T>;
     }
     
 

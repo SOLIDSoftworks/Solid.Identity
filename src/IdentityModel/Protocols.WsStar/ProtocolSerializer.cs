@@ -34,17 +34,9 @@ public abstract class ProtocolSerializer
     
     protected void ReadAdditionalXmlElement(XmlDictionaryReader reader, XmlOpenItem entity)
     {
-        bool isEmptyElement = reader.IsEmptyElement;
         var doc = new XmlDocument();
-        doc.Load(reader.ReadSubtree());
-        entity.AdditionalXmlElements.Add(doc.DocumentElement);
-
-        if (isEmptyElement)
-        {
-            // ReadSubTree will advance the reader to the current element's end element. If the reader is at
-            // an empty element, it won't advance and the deserializer will be stuck on the empty unknown element.
-            reader.Read();
-        }
+        doc.LoadXml(reader.ReadOuterXml());
+        entity.AdditionalXmlElements.Add(doc.DocumentElement!);
     }
     
     protected void WriteXmlOpenItemAttributes(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlOpenItem item)
@@ -77,15 +69,8 @@ public abstract class ProtocolSerializer
             foreach (var attribute in xmlElement.Attributes.Cast<XmlAttribute>())
                 WriteXmlAttribute(writer, serializationContext, attribute);
 
-            if (!string.IsNullOrEmpty(xmlElement.InnerText))
-                writer.WriteString(xmlElement.InnerText);
-            else if (xmlElement.HasChildNodes)
-            {
-                foreach (var element in xmlElement.ChildNodes.OfType<XmlElement>())
-                {
-                    WriteXmlElement(writer, serializationContext, element);
-                }
-            }
+            foreach (XmlNode child in xmlElement.ChildNodes)
+                child.WriteTo(writer);
 
             writer.WriteEndElement();
         }

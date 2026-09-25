@@ -5,6 +5,7 @@ using System.Text;
 using System.Xml;
 using Microsoft.IdentityModel.Xml;
 using Solid.IdentityModel.Protocols.WsFed;
+using Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities;
 using Solid.IdentityModel.Protocols.WsSecurity;
 using Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities;
 using Xunit;

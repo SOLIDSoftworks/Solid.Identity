@@ -4,6 +4,7 @@ using System.ServiceModel.Channels;
 using System.Text;
 using System.Xml;
 using Solid.IdentityModel.Protocols;
+using Solid.IdentityModel.Protocols.WsSecurity;
 
 namespace Solid.Identity.Protocols.WsSecurity.Headers
 {
@@ -25,12 +26,12 @@ namespace Solid.Identity.Protocols.WsSecurity.Headers
         protected override void OnWriteHeaderContents(XmlDictionaryWriter writer, MessageVersion messageVersion)
         {
             writer.WriteStartElement(WsSecurityUtilityElements.Timestamp, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
-            writer.WriteAttributeString(WsSecurityUtilityAttributes.Id, "_0");
+            writer.WriteAttributeString(WsSecurityUtilityConstants.SecurityUtility10.DefaultPrefix, WsSecurityUtilityAttributes.Id, WsSecurityUtilityConstants.SecurityUtility10.Namespace, "_0");
             writer.WriteStartElement(WsSecurityUtilityElements.Created, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
-            writer.WriteString(_created.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            writer.WriteString(XmlConvert.ToString(_created.ToUniversalTime(), XmlDateTimeSerializationMode.Utc));
             writer.WriteEndElement();
             writer.WriteStartElement(WsSecurityUtilityElements.Expires, WsSecurityUtilityConstants.SecurityUtility10.Namespace);
-            writer.WriteString(_expires.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+            writer.WriteString(XmlConvert.ToString(_expires.ToUniversalTime(), XmlDateTimeSerializationMode.Utc));
             writer.WriteEndElement();
             writer.WriteEndElement();
         }

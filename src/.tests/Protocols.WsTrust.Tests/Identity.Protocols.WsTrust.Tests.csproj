@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
     <ProjectReference Include="..\..\Protocols\WsTrust\WsTrust.csproj" />
     <ProjectReference Include="..\..\ServiceModel\Security.WsTrust\Security.WsTrust.csproj" />
     <ProjectReference Include="..\..\Utility\Testing.AspNetCore.Extensions.XUnit.Soap\Testing.AspNetCore.Extensions.XUnit.Soap.csproj" />

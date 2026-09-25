@@ -1,6 +1,7 @@
 using System.Xml;
 using Solid.IdentityModel.Protocols.WsAddressing;
 using Microsoft.IdentityModel.Xml;
+using Solid.IdentityModel.Protocols.WsSecurity;
 
 #pragma warning disable 1591
 
@@ -69,7 +70,7 @@ namespace Solid.IdentityModel.Protocols.WsPolicy
 
             writer.WriteStartElement(serializationContext.SecurityPolicy.DefaultPrefix, WsSecurityPolicyElements.AppliesTo, serializationContext.SecurityPolicy.Namespace);
             if (appliesTo.EndpointReference != null)
-                WsAddressingSerializer.WriteEndpointReference(writer, serializationContext, appliesTo.EndpointReference);
+                new WsAddressingSerializer().WriteEntity(writer, appliesTo.EndpointReference, null, serializationContext);
 
             writer.WriteEndElement();
         }

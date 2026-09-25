@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml;
-using Solid.IdentityModel.Protocols.WsSecurity;
 
 namespace Solid.IdentityModel.Protocols.WsSecurity;
 
@@ -33,7 +31,17 @@ public class WsSecurityUtilitySerializer : ProtocolSerializer, IProtocolSerializ
 
     void IProtocolSerializer<Timestamp>.WriteEntity(XmlDictionaryWriter writer, Timestamp entity, WsSerializer serializer, WsSerializationContext context)
     {
-        throw new NotImplementedException();
+        WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
+        var utility = context.SecurityUtility ?? throw new ArgumentNullException(nameof(context.SecurityUtility));
+        writer.WriteStartElement(utility.DefaultPrefix, WsSecurityUtilityElements.Timestamp, utility.Namespace);
+        if (!string.IsNullOrEmpty(entity.Id))
+            writer.WriteAttributeString(utility.DefaultPrefix, WsSecurityUtilityAttributes.Id, utility.Namespace, entity.Id);
+
+        writer.WriteElementString(utility.DefaultPrefix, WsSecurityUtilityElements.Created, utility.Namespace,
+            XmlConvert.ToString(entity.Created.ToUniversalTime(), XmlDateTimeSerializationMode.Utc));
+        writer.WriteElementString(utility.DefaultPrefix, WsSecurityUtilityElements.Expires, utility.Namespace,
+            XmlConvert.ToString(entity.Expires.ToUniversalTime(), XmlDateTimeSerializationMode.Utc));
+        writer.WriteEndElement();
     }
     
     protected virtual bool TryReadTimestamp(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, out Timestamp timestamp)
@@ -45,11 +53,17 @@ public class WsSecurityUtilitySerializer : ProtocolSerializer, IProtocolSerializ
         {
             Id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace)
         };
+        var empty = reader.IsEmptyElement;
         reader.ReadStartElement();
 
-        while (reader.NodeType != XmlNodeType.EndElement)
+        if (empty)
+            return Out.True(t, out timestamp);
+
+        reader.MoveToContent();
+        while (reader.NodeType == XmlNodeType.Element)
         {
             ReadTimestampChildNode(reader, context, serializer, t);
+            reader.MoveToContent();
         }
         reader.ReadEndElement();
 
@@ -74,14 +88,16 @@ public class WsSecurityUtilitySerializer : ProtocolSerializer, IProtocolSerializ
         if(reader.LocalName != name || reader.NamespaceURI != context.SecurityUtility.Namespace)
             return Out.False(out value);
         
-        reader.ReadStartElement();
-        value = reader.ReadContentAsDateTime();
-        reader.ReadEndElement();
+        value = XmlConvert.ToDateTime(reader.ReadElementContentAsString(), XmlDateTimeSerializationMode.Utc);
         return true;
     }
     
     private WsSerializationContext CreateContext(XmlDictionaryReader reader)
     {
+        if (reader == null)
+            throw new ArgumentNullException(nameof(reader));
+
+        reader.MoveToContent();
         var name = reader.LocalName;
         if (!WsSecurityUtilityElements.All.Contains(name))
             throw new XmlException("Cannot create WS serialization context for " + name);

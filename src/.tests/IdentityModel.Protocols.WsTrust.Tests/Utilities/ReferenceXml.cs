@@ -28,6 +28,7 @@
 using System;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
+using Solid.IdentityModel.Protocols.TestUtilities;
 
 namespace Solid.IdentityModel.Protocols.WsTrust.Tests.Utilities
 {

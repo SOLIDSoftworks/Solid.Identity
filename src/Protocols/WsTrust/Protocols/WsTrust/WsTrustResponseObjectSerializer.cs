@@ -9,10 +9,10 @@ namespace Solid.Identity.Protocols.WsTrust
 {
     internal class WsTrustResponseObjectSerializer : XmlObjectSerializer
     {
-        private WsTrustVersion _version;
+        private WsTrustConstants _version;
         private WsTrustSerializer _inner;
 
-        public WsTrustResponseObjectSerializer(WsTrustVersion version, WsTrustSerializer inner)
+        public WsTrustResponseObjectSerializer(WsTrustConstants version, WsTrustSerializer inner)
         {
             _version = version;
             _inner = inner;

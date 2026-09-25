@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using Solid.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Xml;
 using System;
 using System.Collections.Generic;
