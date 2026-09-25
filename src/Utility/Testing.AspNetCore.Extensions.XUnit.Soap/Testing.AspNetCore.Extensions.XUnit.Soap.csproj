@@ -7,7 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\.tests\Http.Soap.Tests\Http.Soap.Tests.csproj" />
+    <ProjectReference Include="..\..\Http\Http.Soap\Http.Soap.csproj" />
   </ItemGroup>
 
 </Project>
