@@ -10,6 +10,7 @@
       <ProjectReference Include="..\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
       <ProjectReference Include="..\Protocols.WsFederation\Protocols.WsFederation.csproj" />
       <ProjectReference Include="..\Protocols.WsPolicy\Protocols.WsPolicy.csproj" />
+      <ProjectReference Include="..\Protocols.WsSecureConversation\Protocols.WsSecureConversation.csproj" />
       <ProjectReference Include="..\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
       <ProjectReference Include="..\Protocols.XmlEnc\Protocols.XmlEnc.csproj" />
       <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />

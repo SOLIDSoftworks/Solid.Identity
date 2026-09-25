@@ -12,12 +12,12 @@ using Microsoft.IdentityModel.Logging;
 using Solid.IdentityModel.Protocols.WsFed;
 using Solid.IdentityModel.Protocols.WsPolicy;
 using Solid.IdentityModel.Protocols.WsSecurity;
+using Solid.IdentityModel.Protocols.WsSecureConversation;
 using Solid.IdentityModel.Protocols.WsFederation;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Microsoft.IdentityModel.Tokens.Saml2;
 using Microsoft.IdentityModel.Xml;
-using Solid.IdentityModel.Protocols.WsSecureConversation;
 
 namespace Solid.IdentityModel.Protocols.WsTrust
 {
@@ -34,6 +34,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         private static Type _samlAssertionType = typeof(SamlAssertion);
         private static Type _xmlTokenStreamType;
         private static readonly WsSerializer SecurityReferenceSerializer = new WsSerializer(new ProtocolSerializer[] { new WsSecuritySerializer() });
+        private static readonly WsSerializer SecureConversationSerializer = new WsSerializer(new ProtocolSerializer[] { new WsSecureConversationSerializer() });
 
         private readonly WsFedSerializer _wsFedSerializer = new WsFedSerializer();
         private readonly WsPolicySerializer _wsPolicySerializer = new WsPolicySerializer();
@@ -774,25 +775,16 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                 reader.ReadStartElement();
                 reader.MoveToContent();
-                RequestedSecurityToken requestedSecurityToken;
                 if (reader.IsStartElement(WsSecureConversationElements.SecurityContextToken, serializationContext.SecureConversation.Namespace))
                 {
-                    var token = new SecurityContextToken
-                    {
-                        Id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, serializationContext.SecurityUtility.Namespace)
-                    };
-                    bool empty = reader.IsEmptyElement;
-                    reader.ReadStartElement();
-                    if (reader.IsStartElement(WsSecureConversationElements.Identifier, serializationContext.SecureConversation.Namespace))
-                        token.Identifier = new Identifier { Value = reader.ReadElementContentAsString() };
-                    if (!empty)
-                        reader.ReadEndElement();
-                    requestedSecurityToken = new RequestedSecurityToken { SecurityContextToken = token };
+                    var contextToken = SecureConversationSerializer.ReadEntity<SecurityContextToken>(reader, serializationContext);
+                    reader.MoveToContent();
+                    reader.ReadEndElement();
+                    return new RequestedSecurityToken { SecurityContextToken = contextToken };
                 }
-                else
-                {
-                    requestedSecurityToken = new RequestedSecurityToken(CreateXmlElement(reader));
-                }
+
+                XmlElement xmlElement = CreateXmlElement(reader);
+                RequestedSecurityToken requestedSecurityToken = new RequestedSecurityToken(xmlElement);
                 reader.ReadEndElement();
                 return requestedSecurityToken;
             }
@@ -1710,13 +1702,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 }
                 else if (requestedSecurityToken.SecurityContextToken != null)
                 {
-                    var token = requestedSecurityToken.SecurityContextToken;
-                    writer.WriteStartElement(serializationContext.SecureConversation.DefaultPrefix, WsSecureConversationElements.SecurityContextToken, serializationContext.SecureConversation.Namespace);
-                    if (token.Id != null)
-                        writer.WriteAttributeString(serializationContext.SecurityUtility.DefaultPrefix, WsSecurityUtilityAttributes.Id, serializationContext.SecurityUtility.Namespace, token.Id);
-                    if (token.Identifier != null)
-                        writer.WriteElementString(serializationContext.SecureConversation.DefaultPrefix, WsSecureConversationElements.Identifier, serializationContext.SecureConversation.Namespace, token.Identifier.Value);
-                    writer.WriteEndElement();
+                    SecureConversationSerializer.WriteEntity(writer, requestedSecurityToken.SecurityContextToken, serializationContext);
                 }
                 else if (requestedSecurityToken.SecurityToken != null)
                 {

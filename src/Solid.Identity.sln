@@ -150,6 +150,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protocols.WsPolicy", "Ident
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityModel.Protocols.WsPolicy.Tests", ".tests\IdentityModel.Protocols.WsPolicy.Tests\IdentityModel.Protocols.WsPolicy.Tests.csproj", "{3B44E143-FAD4-41E6-B883-EC9721134C06}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Protocols.WsSecureConversation", "IdentityModel\Protocols.WsSecureConversation\Protocols.WsSecureConversation.csproj", "{147009B8-02CA-4AE7-912D-F7232065A1EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdentityModel.Protocols.WsSecureConversation.Tests", ".tests\IdentityModel.Protocols.WsSecureConversation.Tests\IdentityModel.Protocols.WsSecureConversation.Tests.csproj", "{3423918A-20AC-4861-A440-720BB49EF2B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -214,8 +218,18 @@ Global
 		{1BA9950F-52F1-4409-957C-5726075B5AC4} = {E429B11D-2949-4C62-9DBD-22183255C740}
 		{741EDF74-60EB-42D6-93CF-59759F108197} = {AF787407-387C-45D7-B84A-99D618E7B74B}
 		{3B44E143-FAD4-41E6-B883-EC9721134C06} = {E429B11D-2949-4C62-9DBD-22183255C740}
+		{147009B8-02CA-4AE7-912D-F7232065A1EB} = {AF787407-387C-45D7-B84A-99D618E7B74B}
+		{3423918A-20AC-4861-A440-720BB49EF2B3} = {E429B11D-2949-4C62-9DBD-22183255C740}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{147009B8-02CA-4AE7-912D-F7232065A1EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{147009B8-02CA-4AE7-912D-F7232065A1EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{147009B8-02CA-4AE7-912D-F7232065A1EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{147009B8-02CA-4AE7-912D-F7232065A1EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3423918A-20AC-4861-A440-720BB49EF2B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3423918A-20AC-4861-A440-720BB49EF2B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3423918A-20AC-4861-A440-720BB49EF2B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3423918A-20AC-4861-A440-720BB49EF2B3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C41CE817-5BA1-4942-A7C6-F0F6071BCD47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C41CE817-5BA1-4942-A7C6-F0F6071BCD47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C41CE817-5BA1-4942-A7C6-F0F6071BCD47}.Release|Any CPU.ActiveCfg = Release|Any CPU
