@@ -1,7 +1,6 @@
 using System;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
-using Solid.IdentityModel.Protocols.WsTrust;
 using Microsoft.IdentityModel.Xml;
 using Solid.IdentityModel.Protocols.WsFederation;
 
@@ -12,8 +11,13 @@ namespace Solid.IdentityModel.Protocols.WsFed
     /// <summary>
     /// Base class for support of serializing versions of WS-Federation.
     /// </summary>
-    internal class WsFedSerializer
+    public class WsFedSerializer
     {
+        private static void AssertReader(XmlDictionaryReader reader, string element, string @namespace)
+        {
+            XmlUtil.CheckReaderOnEntry(reader, element, @namespace);
+        }
+
         public WsFedSerializer()
         {
             //  if this clas becomes public, we will need to check parameters on public methods
@@ -24,6 +28,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
         /// </summary>
         public virtual AdditionalContext ReadAdditionalContext(XmlDictionaryReader reader, string @namespace)
         {
+            AssertReader(reader, WsFedElements.AdditionalContext, @namespace);
             //  <auth:AdditionalContext>
             //    <auth:ContextItem Name="xs:anyURI" Scope="xs:anyURI" ? ...>
             //      (<auth:Value>xs:string</auth:Value> |
@@ -68,6 +73,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
         /// </summary>
         public virtual ContextItem ReadContextItem(XmlDictionaryReader reader, string @namespace)
         {
+            AssertReader(reader, WsFedElements.ContextItem, @namespace);
             //    <auth:ContextItem Name="xs:anyURI" Scope="xs:anyURI" ? ...>
             //      (<auth:Value>xs:string</auth:Value> |
             //       xs:any ) ?
@@ -79,19 +85,19 @@ namespace Solid.IdentityModel.Protocols.WsFed
             if (string.IsNullOrEmpty(name))
                 throw LogHelper.LogExceptionMessage(new XmlReadException(LogHelper.FormatInvariant(LogMessages.IDX15013, WsFedElements.ContextItem, WsFedAttributes.Name)));
 
-            var contextItem = new ContextItem(name)
-            {
-                Scope = XmlAttributeDescriptor.GetAttribute(attributes, WsFedAttributes.Scope, @namespace)
-            };
+            var contextItem = new ContextItem(name);
+            var scope = XmlAttributeDescriptor.GetAttribute(attributes, WsFedAttributes.Scope, @namespace);
+            if (!string.IsNullOrEmpty(scope))
+                contextItem.Scope = scope;
 
             reader.ReadStartElement();
-            if (reader.IsStartElement(WsFedElements.Value, @namespace))
+            if (!isEmptyElement && reader.IsStartElement(WsFedElements.Value, @namespace))
             {
                 string value = WsUtils.ReadStringElement(reader);
                 if (!string.IsNullOrEmpty(value))
                     contextItem.Value = value;
             }
-            else
+            else if (!isEmptyElement && reader.IsStartElement())
                 reader.Skip();
 
             // </ContextItem>
@@ -116,6 +122,7 @@ namespace Solid.IdentityModel.Protocols.WsFed
         /// <exception cref="XmlReadException">if the StartElement does not match the expectations in remarks.</exception>
         public virtual ClaimType ReadClaimType(XmlDictionaryReader reader, string @namespace)
         {
+            AssertReader(reader, WsFedElements.ClaimType, @namespace);
             // <auth:ClaimType 
             //      Uri="a14bf1a3-a189-4a81-9d9a-7d3dfeb7724a"
             //      Optional="true/false">
@@ -164,7 +171,8 @@ namespace Solid.IdentityModel.Protocols.WsFed
             if (claimType.IsOptional.HasValue)
                 writer.WriteAttributeString(WsFedAttributes.Optional, XmlConvert.ToString(claimType.IsOptional.Value));
 
-            writer.WriteElementString(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.Value, serializationContext.Federation.Authorization.Namespace, claimType.Value);
+            if (claimType.Value != null)
+                writer.WriteElementString(serializationContext.Federation.Authorization.DefaultPrefix, WsFedElements.Value, serializationContext.Federation.Authorization.Namespace, claimType.Value);
             writer.WriteEndElement();
         }
 

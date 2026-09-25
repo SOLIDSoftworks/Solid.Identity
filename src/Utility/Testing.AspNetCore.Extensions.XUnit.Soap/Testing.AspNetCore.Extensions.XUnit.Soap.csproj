@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <PackageReference Include="Solid.Testing.AspNetCore.Extensions.XUnit" Version="3.0.14-beta" />
     <PackageReference Include="System.ServiceModel.Http" Version="8.1.*" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.*" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Http\Http.Soap\Http.Soap.csproj" />
+    <ProjectReference Include="..\..\Testing\Testing.AspNetCore.Extensions.XUnit\Testing.AspNetCore.Extensions.XUnit.csproj" />
   </ItemGroup>
 
 </Project>

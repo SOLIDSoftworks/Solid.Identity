@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\Protocols.WsStar\Protocols.WsStar.csproj" />
+    <ProjectReference Include="..\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
+  </ItemGroup>
+</Project>

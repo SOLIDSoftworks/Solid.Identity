@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\IdentityModel\Protocols.XmlEnc\Protocols.XmlEnc.csproj" />
+    <ProjectReference Include="..\..\IdentityModel\Protocols.WsStar\Protocols.WsStar.csproj" />
+  </ItemGroup>
+</Project>

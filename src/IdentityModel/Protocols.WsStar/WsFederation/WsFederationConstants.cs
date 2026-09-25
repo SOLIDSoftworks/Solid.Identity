@@ -47,7 +47,7 @@ namespace Solid.IdentityModel.Protocols.WsFederation
         {
             Namespace = "http://docs.oasis-open.org/wsfed/federation/200706";
             DefaultPrefix = "fed";
-            SchemaLocation = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3.xsd";
+            SchemaLocation = "http://docs.oasis-open.org/wsfed/federation/v1.2/federation.xsd";
             Privacy = WsFederationPrivacyConstants.FederationPrivacy12;
             Authorization = WsFederationAuthorizationConstants.FederationAuthorization12;
         }
@@ -59,7 +59,7 @@ namespace Solid.IdentityModel.Protocols.WsFederation
         {
             Namespace = "http://docs.oasis-open.org/wsfed/authorization/200706";
             DefaultPrefix = "auth";
-            SchemaLocation = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3.xsd";
+            SchemaLocation = "http://docs.oasis-open.org/wsfed/authorization/v1.2/authorization.xsd";
         }
     }
 
@@ -69,10 +69,8 @@ namespace Solid.IdentityModel.Protocols.WsFederation
         {
             Namespace = "http://docs.oasis-open.org/wsfed/privacy/200706";
             DefaultPrefix = "priv";
-            SchemaLocation = "http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3.xsd";
+            SchemaLocation = "http://docs.oasis-open.org/wsfed/privacy/v1.2/privacy.xsd";
         }
     }
 }
-
-
 
