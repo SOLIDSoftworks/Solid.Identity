@@ -25,6 +25,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".repo", ".repo", "{28DA8180-1374-412C-B63A-FBF3A05B4222}"
 	ProjectSection(SolutionItems) = preProject
 		..\README.md = ..\README.md
+		..\AGENTS.md = ..\AGENTS.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "props", "props", "{A5252CA3-F81F-4C68-9C83-1D38D35533AE}"

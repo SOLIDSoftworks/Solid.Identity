@@ -1,6 +1,6 @@
 # Feature development workflow
 
-When a prompt asks you to add a new feature to this repository:
+When a prompt asks you to add a new feature to this repository when on the main branch:
 
 1. Parse the prompt and identify the requested behavior, scope, constraints, and any assumptions or open questions.
 2. Before starting implementation, create a GitHub issue that records the original prompt and explains how you interpreted it, including the planned scope and any assumptions. Keep the prompt distinguishable from your interpretation. Share the issue link in the chat.
