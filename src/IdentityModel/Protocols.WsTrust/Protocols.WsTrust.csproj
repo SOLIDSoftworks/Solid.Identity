@@ -16,14 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Protocols\" />
-      <Folder Include="WsAddressing\" />
-      <Folder Include="WsSecurity\" />
-      <Folder Include="WsUtility\" />
-      <Folder Include="XmlEnc\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Protocols.WsAddressing\Protocols.WsAddressing.csproj" />
       <ProjectReference Include="..\Protocols.WsSecurity\Protocols.WsSecurity.csproj" />
       <ProjectReference Include="..\Protocols.XmlEnc\Protocols.XmlEnc.csproj" />
