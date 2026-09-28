@@ -68,10 +68,10 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             try
             {
                 var binaryExchange = new BinaryExchange();
-                    var encodingType = reader.GetAttribute(WsTrustAttributes.EncodingType);
+                    var encodingType = reader.GetAttribute(WsTrustAttributes.EncodingType) ?? reader.GetAttribute(WsTrustAttributes.EncodingType, serializationContext.Trust.Namespace);
                     if (!string.IsNullOrEmpty(encodingType))
                         binaryExchange.EncodingType = encodingType;
-                    var valueType = reader.GetAttribute(WsTrustAttributes.ValueType);
+                    var valueType = reader.GetAttribute(WsTrustAttributes.ValueType) ?? reader.GetAttribute(WsTrustAttributes.ValueType, serializationContext.Trust.Namespace);
                     if (!string.IsNullOrEmpty(valueType))
                         binaryExchange.ValueType = valueType;
 
