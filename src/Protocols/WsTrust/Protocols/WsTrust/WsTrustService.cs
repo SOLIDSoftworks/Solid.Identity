@@ -66,7 +66,8 @@ namespace Solid.Identity.Protocols.WsTrust
             await DispatchRequestAsync(context, constants);
             var serializer = _serializerFactory.Create();
             _logger.LogInformation($"Serializing response for '{context.ResponseAction}'.");
-            var response = Message.CreateMessage(context.MessageVersion, context.ResponseAction, context.ResponseMessage, new WsTrustResponseObjectSerializer(version, serializer));
+            var response = Message.CreateMessage(context.MessageVersion, context.ResponseAction, context.ResponseMessage,
+                new WsTrustResponseObjectSerializer(version, serializer, context.ResponseAction == version.Actions.IssueResponse));
             return response;
         }
 

@@ -985,7 +985,11 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      ...
             //  </t:RequestSecurityTokenResponse>
 
-            XmlUtil.CheckReaderOnEntry(reader, WsTrustElements.RequestSecurityTokenResponseCollection);
+            if (reader == null) throw LogHelper.LogArgumentNullException(nameof(reader));
+            if (reader.NodeType != XmlNodeType.Element ||
+                (reader.LocalName != WsTrustElements.RequestSecurityTokenResponseCollection &&
+                 reader.LocalName != WsTrustElements.RequestSecurityTokenResponse))
+                XmlUtil.CheckReaderOnEntry(reader, WsTrustElements.RequestSecurityTokenResponseCollection);
 
             try
             {

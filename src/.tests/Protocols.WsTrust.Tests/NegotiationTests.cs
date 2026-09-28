@@ -31,6 +31,7 @@ public class NegotiationTests : IClassFixture<WsTrustTestsFixture>
         Assert.Equal(version.Actions.IssueResponse, challenge.Headers.Action);
         var serializer = new WsTrustSerializer();
         using var reader = challenge.GetReaderAtBodyContents();
+        Assert.Equal(WsTrustElements.RequestSecurityTokenResponse, reader.LocalName);
         var intermediate = serializer.ReadResponse(reader).RequestSecurityTokenResponseCollection[0];
         Assert.Equal(context, intermediate.Context);
         Assert.NotEmpty(intermediate.BinaryExchange.Data);

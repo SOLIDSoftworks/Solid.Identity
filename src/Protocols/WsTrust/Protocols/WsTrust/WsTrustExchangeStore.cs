@@ -53,7 +53,8 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("Intermediate RSTR requires one response with Context.");
             var rstr = responses[0];
             if (rstr.RequestedSecurityToken != null || rstr.RequestedProofToken != null || rstr.Status != null ||
-                rstr.RequestedTokenCancelled || rstr.AdditionalXmlElements.Count != 0)
+                rstr.RequestedTokenCancelled || rstr.AdditionalXmlElements.Count != 0 ||
+                rstr.TokenType != null || rstr.KeyType != null || rstr.Entropy != null)
                 throw new InvalidRequestException("Unexpected result in intermediate RSTR.");
             if (!_pending.TryGetValue(rstr.Context, out var pending))
                 throw new InvalidRequestException("Unknown or replayed exchange Context.");
