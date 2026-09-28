@@ -14,11 +14,15 @@
 | RenewTarget, CancelTarget, ValidateTarget | yes / — | yes / — | Typed `TokenTarget` contains a token XML element or a WS-Security 1.0 KeyIdentifier reference. |
 | Status, RequestedTokenCancelled | — / yes | — / yes | `Status` requires `Code` and permits `Reason`; cancellation is an empty marker. |
 | RequestedSecurityToken, RequestedProofToken, attached/unattached references, Authenticator | — / yes | — / yes | Supported token/key formats are limited by registered handlers and related issues #5 and #9. |
-| BinaryExchange | yes / yes | yes / yes | Base64 and hex encodings; negotiation dispatch is tracked by #8. |
+| BinaryExchange | yes / yes | yes / yes | Base64 and hex encodings; the bounded 1.3 echo negotiation profile is described below. |
 | SecondaryParameters | unavailable | yes / — | Secondary fields remain separate from primary fields; explicit primary parameters take precedence. Nested secondary blocks and secondary RequestType are rejected. |
 | ActAs, DelegateTo, Issuer, Participants | unsupported | unsupported | Known unsupported trust parameters fail explicitly instead of being discarded. |
 
 Other-namespace extension XML is retained in request and response `AdditionalXmlElements`. Known but unsupported WS-Trust elements fail on read. The 1.4 namespace is recognized by the serializer but does not represent a tested 1.4 binding or complete profile.
+
+### Binary challenge exchange (WS-Trust 1.3)
+
+The default STS supports the `urn:solid:identity:wstrust:binary-exchange:echo` ValueType for an authenticated, bounded three-message Issue exchange. A client sends a normal Issue RST with `Context`, `AppliesTo`, and a nonempty `BinaryExchange` (at most 4096 bytes). The STS replies with an intermediate RSTR at the `RSTR/Issue` action carrying a random 32-byte challenge and the same Context. The client echoes those bytes in an RSTR at the `RSTR/Issue` action; the STS then issues a final RSTRC at `RSTRC/IssueFinal`. The response must contain exactly one RSTR and the same authenticated requestor must complete the exchange. Pending challenges expire after two minutes, are single-use, and are capped at 1024 per server process. Other ValueTypes and out-of-order responses fault. The exchange does not establish proof of possession of a secret; configure message/transport protection appropriate to the endpoint. Other negotiation mechanisms require a dedicated implementation.
 
 This guide describes an integration pattern used by an ASP.NET Core WS-Trust application: a SOAP endpoint issues tokens for configured relying parties, validates incoming credentials and tokens, and enriches outgoing claims. The examples use illustrative names and assume certificates, partner identifiers, and credentials are supplied by the application's configuration or secret provider.
 

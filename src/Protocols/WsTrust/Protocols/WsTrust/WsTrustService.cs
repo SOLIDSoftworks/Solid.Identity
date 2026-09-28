@@ -65,7 +65,7 @@ namespace Solid.Identity.Protocols.WsTrust
             await ValidateDispatchContextAsync(context);
             await DispatchRequestAsync(context, constants);
             var serializer = _serializerFactory.Create();
-            _logger.LogInformation($"Serializing response for '{responseAction}'.");
+            _logger.LogInformation($"Serializing response for '{context.ResponseAction}'.");
             var response = Message.CreateMessage(context.MessageVersion, context.ResponseAction, context.ResponseMessage, new WsTrustResponseObjectSerializer(version, serializer));
             return response;
         }
@@ -99,7 +99,26 @@ namespace Solid.Identity.Protocols.WsTrust
             var action = dispatchContext.RequestAction;
             var sts = dispatchContext.SecurityTokenService;
 
+            if (action == constants.Actions.IssueResponse && constants == WsTrustConstants.Trust13)
+            {
+                dispatchContext.ResponseMessage = await _soapContextAccessor.SoapContext.HttpContext.RequestServices
+                    .GetRequiredService<WsTrustExchangeStore>()
+                    .CompleteAsync(dispatchContext.Principal, dispatchContext.IncomingResponse, sts, dispatchContext.CancellationToken);
+                return;
+            }
+
             if (request == null) throw new InvalidRequestException(ErrorMessages.ID3022);
+
+            if (action == constants.Actions.IssueRequest && request.BinaryExchange != null)
+            {
+                if (constants != WsTrustConstants.Trust13)
+                    throw new InvalidRequestException("Binary challenge negotiation requires WS-Trust 1.3.");
+                dispatchContext.ResponseMessage = _soapContextAccessor.SoapContext.HttpContext.RequestServices
+                    .GetRequiredService<WsTrustExchangeStore>()
+                    .Begin(dispatchContext.Principal, request);
+                dispatchContext.ResponseAction = constants.Actions.IssueResponse;
+                return;
+            }
 
             if (action == constants.Actions.CancelRequest)
                 dispatchContext.ResponseMessage = await sts.CancelAsync(dispatchContext.Principal, request, dispatchContext.CancellationToken);
@@ -130,10 +149,12 @@ namespace Solid.Identity.Protocols.WsTrust
 
             using(var reader = requestMessage.GetReaderAtBodyContents())
             {
-                if (reader.IsStartElement(WsTrustElements.RequestSecurityToken, constants.Namespace))
+                if (requestAction != constants.Actions.IssueResponse && reader.IsStartElement(WsTrustElements.RequestSecurityToken, constants.Namespace))
                     context.RequestMessage = serializer.ReadRequest(reader);
-                //else if (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponse))
-                //    context.ResponseMessage = serializer.ReadResponse(reader);
+                else if (requestAction == constants.Actions.IssueResponse &&
+                    (reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponse, constants.Namespace) ||
+                     reader.IsStartElement(WsTrustElements.RequestSecurityTokenResponseCollection, constants.Namespace)))
+                    context.IncomingResponse = serializer.ReadResponse(reader);
                 else
                     throw new InvalidRequestException(ErrorMessages.ID3114);
             }
