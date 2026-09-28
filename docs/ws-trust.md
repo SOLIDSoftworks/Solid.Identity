@@ -4,11 +4,10 @@ This guide describes an integration pattern used by an ASP.NET Core WS-Trust app
 
 ## Packages and service registration
 
-The service uses `Solid.Identity.Protocols.WsTrust` for WS-Trust and WS-Security, `Solid.Http` for outbound requests, and the SOAP hosting integration provided by the WS-Trust builder. An application can configure options and register the async WS-Trust 1.3 contract:
+The service uses `Solid.Identity.Protocols.WsTrust` for WS-Trust and WS-Security, with SOAP hosting configured by the WS-Trust builder. An application can configure options and register the async WS-Trust 1.3 contract:
 
 ```csharp
 services.AddRouting();
-services.AddSolidHttp();
 
 services.Configure<WsTrustOptions>(options =>
 {
@@ -37,7 +36,7 @@ services.AddWsTrust(builder => builder
     .AddWsTrust13AsyncContract());
 ```
 
-The incoming issuer and the requested `AppliesTo` value select the identity provider and relying party. Configure trusted signing keys for token validation and a signing key for issued tokens; do not put private keys or passwords in source code. Applications that construct providers and parties dynamically can register `AddIdentityProviderStore<T>()` and `AddRelyingPartyStore<T>()` to resolve them through custom stores. The application's sample options, store types, and validator types above are illustrative implementations, not built-in types.
+The incoming issuer and the requested `AppliesTo` value select the identity provider and relying party. Configure trusted signing keys for token validation and a signing key for issued tokens; do not put private keys or passwords in source code. Applications that construct providers and parties dynamically can register `AddIdentityProviderStore<T>()` and `AddRelyingPartyStore<T>()` to resolve them through custom stores. See [stores and claims](ws-trust/stores.md) for implementations. The sample validator above is an application-defined type; see [credential validators](ws-trust/validators.md).
 
 ## Map the SOAP endpoint
 
@@ -78,15 +77,10 @@ services.AddWsTrust(builder => builder
 
 For example, a claim mapper can normalize claims from incoming tokens before issuance; a relying-party claim store adds claims for a specific audience, while a token-type claim store contributes claims appropriate to the issued token format. `AddSecurityTokenHandler` supports custom token formats alongside SAML. Register only the extensions your application needs.
 
-## Outbound HTTP and integration testing
+See [stores and claims](ws-trust/stores.md) for identity-provider, relying-party, and claim-store examples, and [credential validators](ws-trust/validators.md) for username/password and X.509 validation.
 
-The service can inject `ISolidHttpClientFactory` after `AddSolidHttp()` to call a credential-validation service or health endpoint. Build request URLs from configuration and keep credentials out of logs and examples:
-
-```csharp
-var client = httpClientFactory.Create();
-var response = await client.GetAsync(healthEndpoint, cancellationToken);
-```
+## Integration testing
 
 Integration tests can use `Solid.Testing.AspNetCore.Extensions.Https`, `Solid.Testing.AspNetCore.Extensions.XUnit.Soap`, and `Solid.Testing.Certificates` to host the service and generate test-only certificates. A `SoapTestingServerFixture<TStartup>` can configure the host and inject test providers and relying parties. Test clients can use `WsTrustChannelFactory` with `WsTrustUserNameBinding` or `WsTrustIssuedTokenBinding`, set `TrustVersion` to `WsTrustVersion.Trust13`, and send requests to the hosted endpoint. Supply credentials through test setup rather than embedding real account data.
 
-See the [HTTP client](http.md) and [SOAP services](soap.md) guides for the underlying client and hosting primitives.
+See the [SOAP services](soap.md) guide for the underlying hosting primitives.
