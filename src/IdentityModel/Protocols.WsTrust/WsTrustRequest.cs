@@ -30,6 +30,18 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// </summary>
         public bool? AllowPostdating { get; set; }
 
+        /// <summary>Token or reference to renew.</summary>
+        public TokenTarget RenewTarget { get; set; }
+
+        /// <summary>Token or reference to cancel.</summary>
+        public TokenTarget CancelTarget { get; set; }
+
+        /// <summary>Token or reference to validate.</summary>
+        public TokenTarget ValidateTarget { get; set; }
+
+        /// <summary>Requested renewal policy.</summary>
+        public Renewing Renewing { get; set; }
+
         /// <summary>
         /// Gets the request type.
         /// </summary>

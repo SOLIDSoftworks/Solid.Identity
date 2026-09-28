@@ -1,5 +1,25 @@
 # Hosting a WS-Trust service
 
+## RST/RSTR wire coverage
+
+`WsTrustSerializer` reads and writes the following parameters in WS-Trust February 2005 and 1.3. The model is a wire-format capability; the default STS currently handles Issue requests only. SOAP contract availability depends on the registered binding.
+
+| Parameter family | Feb 2005 RST / RSTR | 1.3 RST / RSTR | Notes |
+| --- | --- | --- | --- |
+| RequestType, TokenType, KeyType, KeySize, Context | yes / TokenType, KeyType, KeySize, Context | same | Context is on each RSTR, including responses in a collection. |
+| Lifetime, Entropy (BinarySecret), AppliesTo | yes / yes | yes / yes | Encrypted entropy belongs to the token/key writer work (#9). |
+| Claims, OnBehalfOf, UseKey, ProofEncryption, PolicyReference, AdditionalContext | yes / — | yes / — | OnBehalfOf and UseKey support is limited to their existing token/reference implementations; ProofEncryption writing is tracked by #6. |
+| Algorithm choices (canonicalization, encryption, EncryptWith, SignWith, computed key) | yes / encryption algorithm | yes / encryption algorithm | SignatureAlgorithm and KeyWrapAlgorithm are also round-tripped in requests and responses. |
+| AuthenticationType, Forwardable, Delegatable, AllowPostdating, Renewing | yes / — | yes / — | Renewing uses `Allow` and `OK` attributes. |
+| RenewTarget, CancelTarget, ValidateTarget | yes / — | yes / — | Typed `TokenTarget` contains a token XML element or a WS-Security 1.0 KeyIdentifier reference. |
+| Status, RequestedTokenCancelled | — / yes | — / yes | `Status` requires `Code` and permits `Reason`; cancellation is an empty marker. |
+| RequestedSecurityToken, RequestedProofToken, attached/unattached references, Authenticator | — / yes | — / yes | Supported token/key formats are limited by registered handlers and related issues #5 and #9. |
+| BinaryExchange | yes / yes | yes / yes | Base64 and hex encodings; negotiation dispatch is tracked by #8. |
+| SecondaryParameters | unavailable | yes / — | Secondary fields remain separate from primary fields; explicit primary parameters take precedence. Nested secondary blocks and secondary RequestType are rejected. |
+| ActAs, DelegateTo, Issuer, Participants | unsupported | unsupported | Known unsupported trust parameters fail explicitly instead of being discarded. |
+
+Other-namespace extension XML is retained in request and response `AdditionalXmlElements`. Known but unsupported WS-Trust elements fail on read. The 1.4 namespace is recognized by the serializer but does not represent a tested 1.4 binding or complete profile.
+
 This guide describes an integration pattern used by an ASP.NET Core WS-Trust application: a SOAP endpoint issues tokens for configured relying parties, validates incoming credentials and tokens, and enriches outgoing claims. The examples use illustrative names and assume certificates, partner identifiers, and credentials are supplied by the application's configuration or secret provider.
 
 ## Packages and service registration
