@@ -478,8 +478,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 }
                 else if (reader.IsStartElement(WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace))
                 {
-                    // TODO: Read proof encryption key
-                    reader.Read();
+                    trustRequest.ProofEncryption = ReadProofEncryption(reader, serializationContext);
                 }
                 else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                 {
@@ -970,6 +969,50 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             }
         }
 
+        /// <summary>
+        /// Reads a ProofEncryption containing a WS-Security key identifier reference or a token supported by a registered handler.
+        /// </summary>
+        public SecurityTokenElement ReadProofEncryption(XmlDictionaryReader reader, WsSerializationContext serializationContext)
+        {
+            WsUtils.CheckReaderOnEntry(reader, WsTrustElements.ProofEncryption, serializationContext);
+
+            try
+            {
+                if (reader.IsEmptyElement)
+                    throw XmlUtil.LogReadException("ProofEncryption must contain a token or security token reference.");
+
+                reader.ReadStartElement();
+                reader.MoveToContent();
+                SecurityTokenElement result;
+                if (reader.IsStartElement(WsSecurityElements.SecurityTokenReference, serializationContext.Security.Namespace))
+                {
+                    var reference = SecurityReferenceSerializer.ReadEntity<SecurityTokenReference>(reader, serializationContext);
+                    if (reference.KeyIdentifier == null || string.IsNullOrEmpty(reference.KeyIdentifier.Value))
+                        throw XmlUtil.LogReadException("ProofEncryption requires a supported key identifier reference.");
+                    result = new SecurityTokenElement(reference);
+                }
+                else
+                {
+                    var handler = SecurityTokenHandlers.FirstOrDefault(h => h.CanReadToken(reader));
+                    if (handler == null)
+                        throw XmlUtil.LogReadException("ProofEncryption contains an unsupported token.");
+                    result = new SecurityTokenElement(handler.ReadToken(reader));
+                }
+
+                reader.MoveToContent();
+                if (reader.NodeType != XmlNodeType.EndElement || reader.LocalName != WsTrustElements.ProofEncryption || reader.NamespaceURI != serializationContext.Trust.Namespace)
+                    throw XmlUtil.LogReadException("ProofEncryption must contain exactly one token or reference.");
+                reader.ReadEndElement();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                if (ex is XmlReadException)
+                    throw;
+                throw XmlUtil.LogReadException(LogMessages.IDX15017, ex, WsTrustElements.ProofEncryption, ex);
+            }
+        }
+
 
         /// <summary>
         /// Gets the collection of <see cref="SecurityTokenHandler"/> to serialize <see cref="SecurityToken"/>.
@@ -1371,14 +1414,37 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="proofEncryption"/> is null.</exception>
         /// <exception cref="XmlWriteException">If an error occurs when writing the element.</exception>
         public static void WriteProofEncryption(XmlDictionaryWriter writer, WsSerializationContext serializationContext, SecurityTokenElement proofEncryption)
+            => WriteProofEncryption(writer, serializationContext, proofEncryption, null);
+
+        private static void WriteProofEncryption(XmlDictionaryWriter writer, WsSerializationContext serializationContext, SecurityTokenElement proofEncryption, ICollection<SecurityTokenHandler> handlers)
         {
             WsUtils.ValidateParamsForWriting(writer, serializationContext, proofEncryption, nameof(proofEncryption));
 
             try
             {
+                var reference = proofEncryption.SecurityTokenReference;
+                var token = proofEncryption.SecurityToken;
+                SecurityTokenHandler handler = null;
+                if (reference != null)
+                {
+                    if (reference.KeyIdentifier == null || string.IsNullOrEmpty(reference.KeyIdentifier.Value))
+                        throw XmlUtil.LogWriteException("ProofEncryption requires a supported key identifier reference.");
+                }
+                else if (token != null)
+                {
+                    handler = handlers?.FirstOrDefault(h => h.CanWriteToken && h.TokenType.IsInstanceOfType(token));
+                    if (handler == null)
+                        throw XmlUtil.LogWriteException("No registered handler can write the ProofEncryption token.");
+                }
+                else
+                    throw XmlUtil.LogWriteException("ProofEncryption must contain a token or security token reference.");
+
                 writer.WriteStartElement(serializationContext.Trust.DefaultPrefix, WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace);
 
-                // TODO Write proof encryption key
+                if (reference != null)
+                    WriteSecurityTokenReference(writer, serializationContext, reference);
+                else
+                    handler.WriteToken(writer, token);
 
                 writer.WriteEndElement();
             }
@@ -1472,7 +1538,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     WsPolicySerializer.WritePolicyReference(writer, serializationContext, trustRequest.PolicyReference);
 
                 if (trustRequest.ProofEncryption != null)
-                    WriteProofEncryption(writer, serializationContext, trustRequest.ProofEncryption);
+                    WriteProofEncryption(writer, serializationContext, trustRequest.ProofEncryption, SecurityTokenHandlers);
 
                 if (trustRequest.UseKey != null)
                     WriteUseKey(writer, serializationContext, trustRequest.UseKey);
