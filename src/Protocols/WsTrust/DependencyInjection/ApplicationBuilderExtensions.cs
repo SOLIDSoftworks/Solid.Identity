@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using Solid.Identity.Protocols.WsSecurity.Middleware;
 using Solid.Identity.Protocols.WsTrust.WsTrust13;
+using Solid.Identity.Protocols.WsTrust.WsTrustFeb2005;
 using Solid.Identity.Tokens;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,16 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.MapSoapService<IWsTrust13AsyncContract>(path, app =>
             {
                 app.UseTrust13(options);
+            });
+            return builder;
+        }
+
+        public static IApplicationBuilder UseWsTrustFeb2005AsyncService(this IApplicationBuilder builder, PathString path)
+        {
+            builder.ApplicationServices.InitializeCustomCryptoProvider();
+            builder.MapSoapService<IWsTrustFeb2005AsyncContract>(path, app =>
+            {
+                app.UseTrust13(WsTrustContractOptions.DefaultTrustFeb2005Contract);
             });
             return builder;
         }

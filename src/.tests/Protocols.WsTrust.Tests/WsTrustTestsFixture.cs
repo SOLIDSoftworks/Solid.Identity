@@ -138,6 +138,16 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             return channel;
         }
 
+        public IWsTrustChannelContract CreateWsTrustFeb2005UserNameClient(string userName, string password)
+        {
+            var properties = new Dictionary<string, object>
+            {
+                { "userName", userName }, { "password", password }, { "trustVersion", WsTrustConstants.TrustFeb2005 }
+            };
+            var context = SoapChannelCreationContext.Create<IWsTrustChannelContract>(path: "trust/2005", MessageVersion.Default, reusable: false, properties: properties);
+            return CreateChannel<IWsTrustChannelContract>(context);
+        }
+
         public T ConvertSecurityToken<T>(SecurityToken token)
             where T : SecurityToken => ConvertSecurityToken(token, typeof(T)) as T;
 
@@ -217,7 +227,8 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
         protected override ChannelFactory<TChannel> CreateChannelFactory<TChannel>(Binding binding, EndpointAddress endpointAddress, SoapChannelCreationContext context)
         {
             var factory = new WsTrustChannelFactory(binding, endpointAddress);
-            factory.TrustVersion = WsTrustConstants.Trust13;
+            factory.TrustVersion = context.Properties.TryGetValue("trustVersion", out var trustVersion)
+                ? (WsTrustConstants)trustVersion : WsTrustConstants.Trust13;
             if (context.Properties.TryGetValue("handler", out var handler))
             {
                 var other = factory.SecurityTokenHandlers.FirstOrDefault(h => h.GetType() == handler.GetType());

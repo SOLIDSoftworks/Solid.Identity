@@ -27,6 +27,12 @@ public class LifecycleTests : IClassFixture<WsTrustTestsFixture>
         var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
         Assert.NotNull(token);
 
+        var otherClient = _fixture.CreateWsTrust13UserNameClient("otherUser", "password");
+        await Assert.ThrowsAnyAsync<Exception>(() => otherClient.ValidateAsync(new WsTrustRequest(WsTrustConstants.Trust13.Actions.Validate)
+        {
+            ValidateTarget = new TokenTarget(token)
+        }));
+
         var validate = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Validate) { Context = issue.Context, ValidateTarget = new TokenTarget(token) };
         var valid = await client.ValidateAsync(validate);
         Assert.Equal("http://docs.oasis-open.org/ws-sx/ws-trust/200512/status/valid", valid.RequestSecurityTokenResponseCollection[0].Status.Code);
@@ -55,5 +61,45 @@ public class LifecycleTests : IClassFixture<WsTrustTestsFixture>
         var doc = new System.Xml.XmlDocument();
         doc.LoadXml("<Assertion xmlns='urn:unknown' ID='missing'/>");
         await Assert.ThrowsAnyAsync<Exception>(() => client.CancelAsync(new WsTrustRequest(WsTrustConstants.Trust13.Actions.Cancel) { CancelTarget = new TokenTarget(doc.DocumentElement) }));
+    }
+
+    [Fact]
+    public async Task Feb2005IssueValidateRenewCancelAtSoapLevel()
+    {
+        var client = _fixture.CreateWsTrustFeb2005UserNameClient("userName", "password");
+        var version = WsTrustConstants.TrustFeb2005;
+        var issued = await client.IssueAsync(new WsTrustRequest(version.Actions.Issue)
+        {
+            KeyType = version.KeyTypes.Bearer,
+            AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+        });
+        var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
+        var status = await client.ValidateAsync(new WsTrustRequest(version.Actions.Validate) { ValidateTarget = new TokenTarget(token) });
+        Assert.Equal(version.Namespace + "/status/valid", status.RequestSecurityTokenResponseCollection[0].Status.Code);
+        var renewed = await client.RenewAsync(new WsTrustRequest(version.Actions.Renew) { RenewTarget = new TokenTarget(token) });
+        var newToken = renewed.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
+        var cancelled = await client.CancelAsync(new WsTrustRequest(version.Actions.Cancel) { CancelTarget = new TokenTarget(newToken) });
+        Assert.True(cancelled.RequestSecurityTokenResponseCollection[0].RequestedTokenCancelled);
+    }
+
+    [Fact]
+    public async Task FailedRenewalKeepsOriginalTokenValid()
+    {
+        var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var version = WsTrustConstants.Trust13;
+        var issued = await client.IssueAsync(new WsTrustRequest(version.Actions.Issue)
+        {
+            KeyType = version.KeyTypes.Bearer,
+            AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+        });
+        var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
+        var expiredLifetime = new Lifetime(DateTime.UtcNow.AddHours(-2), DateTime.UtcNow.AddHours(-1));
+        await Assert.ThrowsAnyAsync<Exception>(() => client.RenewAsync(new WsTrustRequest(version.Actions.Renew)
+        {
+            RenewTarget = new TokenTarget(token), Lifetime = expiredLifetime
+        }));
+        var anotherClient = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var status = await anotherClient.ValidateAsync(new WsTrustRequest(version.Actions.Validate) { ValidateTarget = new TokenTarget(token) });
+        Assert.Equal(version.Namespace + "/status/valid", status.RequestSecurityTokenResponseCollection[0].Status.Code);
     }
 }

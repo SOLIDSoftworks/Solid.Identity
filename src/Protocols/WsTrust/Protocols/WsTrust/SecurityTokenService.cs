@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Tokens.Saml;
 using Solid.Identity.Tokens;
@@ -49,8 +50,7 @@ namespace Solid.Identity.Protocols.WsTrust
             IServiceProvider services, 
             ILoggerFactory loggerFactory,
             IOptions<WsTrustOptions> options,
-            TimeProvider systemClock,
-            IssuedTokenRegistry issuedTokens)
+            TimeProvider systemClock)
         {
             Logger = loggerFactory.CreateLogger(GetType().FullName);
 
@@ -62,7 +62,7 @@ namespace Solid.Identity.Protocols.WsTrust
             Services = services;
             Options = options.Value;
             TimeProvider = systemClock;
-            IssuedTokens = issuedTokens;
+            IssuedTokens = services.GetRequiredService<IssuedTokenRegistry>();
         }
 
         public virtual async ValueTask<WsTrustResponse> IssueAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
@@ -134,9 +134,17 @@ namespace Solid.Identity.Protocols.WsTrust
             issuedRequest.TokenType = entry.TokenType;
             issuedRequest.KeyType = entry.KeyType;
             if (request.Context != null) issuedRequest.Context = request.Context;
-            if (!IssuedTokens.TryCancel(request.RenewTarget.TokenElement, entry))
+            // Issue first so failed authorization/issuance does not invalidate the existing token.
+            var replacement = await IssueAsync(principal, issuedRequest, cancellationToken);
+            var newToken = replacement?.RequestSecurityTokenResponseCollection.FirstOrDefault()?.RequestedSecurityToken?.TokenElement;
+            IssuedTokenRegistry.Entry replacementEntry = null;
+            if (newToken == null || !IssuedTokens.TryGet(newToken, out replacementEntry) ||
+                !IssuedTokens.TryReplace(request.RenewTarget.TokenElement, entry, newToken, principal))
+            {
+                if (replacementEntry != null) IssuedTokens.TryRemove(newToken, replacementEntry);
                 throw new InvalidRequestException("Token was already renewed or cancelled.");
-            return await IssueAsync(principal, issuedRequest, cancellationToken);
+            }
+            return replacement;
         }
 
         public virtual ValueTask<WsTrustResponse> CancelAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
@@ -167,7 +175,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("Lifecycle request requires a matching RequestType and embedded issued token target.");
             if (!IssuedTokens.TryGet(target.TokenElement, out var entry))
                 throw new InvalidRequestException("Unknown issued token target.");
-            if (principal?.Identity?.IsAuthenticated != true || entry.Owner == null || principal.Identity.Name != entry.Owner)
+            if (!IssuedTokens.IsOwner(entry, principal))
                 throw new SecurityException("Only the original authenticated requestor can manage this token.");
             return entry;
         }

@@ -31,6 +31,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
                 var god = new Tokens.GodSecurityTokenHandler();
                 builder
                     .AddWsTrust13AsyncContract()
+                    .AddWsTrustFeb2005AsyncContract()
 
                     .AddPasswordValidator<TestPasswordValidator>()
                     .AddX509Validator<TestX509Validator>()
@@ -80,6 +81,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
         public void Configure(IApplicationBuilder builder)
         {
             builder.UseWsTrust13AsyncService();
+            builder.UseWsTrustFeb2005AsyncService("/trust/2005");
         }
     }
 }
