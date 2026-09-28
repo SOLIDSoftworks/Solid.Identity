@@ -11,6 +11,10 @@ nav:
   - Packages: packages.md
   - Guides:
       - HTTP client: http.md
+      - WS-Trust service:
+          - Overview: ws-trust.md
+          - Stores and claims: ws-trust/stores.md
+          - Credential validators: ws-trust/validators.md
       - SAML 2.0: saml2p.md
       - Testing web APIs: testing.md
       - SOAP services: soap.md
