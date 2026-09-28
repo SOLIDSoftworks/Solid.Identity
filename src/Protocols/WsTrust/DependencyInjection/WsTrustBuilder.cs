@@ -131,6 +131,22 @@ namespace Solid.Identity.DependencyInjection
             return this;
         }
 
+        /// <summary>Registers a shared WS-Trust exchange store using a service-provider factory.</summary>
+        public WsTrustBuilder AddWsTrustExchangeStore<TExchangeStore>(Func<IServiceProvider, TExchangeStore> factory)
+            where TExchangeStore : class, IWsTrustExchangeStore
+        {
+            Services.TryAddSingleton<IWsTrustExchangeStore>(factory);
+            return this;
+        }
+
+        /// <summary>Registers a shared WS-Trust exchange store.</summary>
+        public WsTrustBuilder AddWsTrustExchangeStore<TExchangeStore>()
+            where TExchangeStore : class, IWsTrustExchangeStore
+        {
+            Services.TryAddSingleton<IWsTrustExchangeStore, TExchangeStore>();
+            return this;
+        }
+
         public WsTrustBuilder AddIncomingClaimMapper<TMapper>()
             where TMapper : class, IClaimMapper
         {
