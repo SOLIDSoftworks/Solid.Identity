@@ -15,6 +15,7 @@ Then [set up an HTTP client](http.md), or choose a different package from the [p
 ## Guides
 
 - [HTTP client](http.md): configure the fluent client and serialize JSON, XML, or ZIP responses.
+- [WS-Trust service](ws-trust.md): host a SOAP token service with extensible identity-provider, relying-party, and claims processing.
 - [SAML 2.0](saml2p.md): integrate a service provider or identity provider with ASP.NET Core.
 - [Testing web APIs](testing.md): host an API and make assertions against its responses.
 - [SOAP services](soap.md): host a SOAP endpoint in ASP.NET Core.

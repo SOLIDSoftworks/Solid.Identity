@@ -17,7 +17,7 @@ Install packages from NuGet using `dotnet add package <package-name>`. The guide
 - [Solid.IdentityModel.Xml](https://www.nuget.org/packages/Solid.IdentityModel.Xml)
 - [Solid.IdentityModel.Protocols.WsTrust](https://www.nuget.org/packages/Solid.IdentityModel.Protocols.WsTrust)
 - [Solid.Identity.Protocols.Saml2p](https://www.nuget.org/packages/Solid.Identity.Protocols.Saml2p): SAML 2.0 integration. [SAML guide](saml2p.md).
-- [Solid.Identity.Protocols.WsTrust](https://www.nuget.org/packages/Solid.Identity.Protocols.WsTrust)
+- [Solid.Identity.Protocols.WsTrust](https://www.nuget.org/packages/Solid.Identity.Protocols.WsTrust): WS-Trust service hosting. [WS-Trust guide](ws-trust.md).
 
 ## Service model and SOAP
 
