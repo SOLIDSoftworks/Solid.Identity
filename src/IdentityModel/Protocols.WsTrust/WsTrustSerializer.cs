@@ -713,8 +713,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                         tokenResponse.Status = ReadStatus(reader, serializationContext);
                     else if (reader.IsStartElement(WsTrustElements.RequestedTokenCancelled, serializationContext.Trust.Namespace))
                     {
-                        if (!reader.IsEmptyElement) throw XmlUtil.LogReadException("RequestedTokenCancelled must be empty.");
-                        reader.ReadStartElement();
+                        if (reader.ReadElementContentAsString().Length != 0)
+                            throw XmlUtil.LogReadException("RequestedTokenCancelled must be empty.");
                         tokenResponse.RequestedTokenCancelled = true;
                     }
                     else if (reader.IsStartElement(WsTrustElements.BinaryExchange, serializationContext.Trust.Namespace))
