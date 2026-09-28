@@ -38,6 +38,7 @@ namespace Solid.Identity.Protocols.WsTrust
         protected TimeProvider TimeProvider { get; }
         protected ILogger Logger { get; }
         protected IdentityProviderProvider IdentityProviders { get; }
+        protected IssuedTokenRegistry IssuedTokens { get; }
 
         public SecurityTokenService(
             IdentityProviderProvider identityProviders,
@@ -47,8 +48,9 @@ namespace Solid.Identity.Protocols.WsTrust
             SecurityTokenHandlerProvider securityTokenHandlerProvider,
             IServiceProvider services, 
             ILoggerFactory loggerFactory,
-            IOptions<WsTrustOptions> options, 
-            TimeProvider systemClock)
+            IOptions<WsTrustOptions> options,
+            TimeProvider systemClock,
+            IssuedTokenRegistry issuedTokens)
         {
             Logger = loggerFactory.CreateLogger(GetType().FullName);
 
@@ -60,6 +62,7 @@ namespace Solid.Identity.Protocols.WsTrust
             Services = services;
             Options = options.Value;
             TimeProvider = systemClock;
+            IssuedTokens = issuedTokens;
         }
 
         public virtual async ValueTask<WsTrustResponse> IssueAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
@@ -104,17 +107,70 @@ namespace Solid.Identity.Protocols.WsTrust
             descriptor.Token = token;
             descriptor.TokenElement = token.ConvertToXmlElement(handler);
 
-            return await CreateResponseAsync(request, descriptor, cancellationToken);
+            var issuedResponse = await CreateResponseAsync(request, descriptor, cancellationToken);
+            IssuedTokens.Register(descriptor.TokenElement, principal, scope.RelyingParty.AppliesTo, descriptor.Expires ?? TimeProvider.GetUtcNow().UtcDateTime, request.TokenType, request.KeyType);
+            return issuedResponse;
         }
 
-        public virtual ValueTask<WsTrustResponse> RenewAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken) 
-            => throw new InvalidRequestException(ErrorMessages.ID3141, (request != null && request.RequestType != null ? request.RequestType : "Renew"));
+        public virtual async ValueTask<WsTrustResponse> RenewAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
+        {
+            var entry = GetLifecycleTarget(principal, request, request?.RenewTarget, Constants.Actions.Renew);
+            if (entry.Cancelled || entry.Expires <= TimeProvider.GetUtcNow().UtcDateTime)
+                throw new InvalidRequestException("Token has expired or was cancelled.");
+
+            var audience = request.AppliesTo?.EndpointReference?.Uri;
+            if (audience != null && audience != entry.AppliesTo)
+                throw new InvalidRequestException("Renewal audience does not match the issued token.");
+            request.AppliesTo = new AppliesTo(new EndpointReference(entry.AppliesTo));
+            var issuedRequest = new WsTrustRequest(Constants.Actions.Issue)
+            {
+                AppliesTo = request.AppliesTo
+            };
+            if (request.Lifetime != null) issuedRequest.Lifetime = request.Lifetime;
+            if (request.TokenType != null && request.TokenType != entry.TokenType)
+                throw new InvalidRequestException("Renewal token type does not match the issued token.");
+            if (request.KeyType != null && request.KeyType != entry.KeyType)
+                throw new InvalidRequestException("Renewal key type does not match the issued token.");
+            issuedRequest.TokenType = entry.TokenType;
+            issuedRequest.KeyType = entry.KeyType;
+            if (request.Context != null) issuedRequest.Context = request.Context;
+            if (!IssuedTokens.TryCancel(request.RenewTarget.TokenElement, entry))
+                throw new InvalidRequestException("Token was already renewed or cancelled.");
+            return await IssueAsync(principal, issuedRequest, cancellationToken);
+        }
 
         public virtual ValueTask<WsTrustResponse> CancelAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
-            => throw new InvalidRequestException(ErrorMessages.ID3141, (request != null && request.RequestType != null ? request.RequestType : "Cancel"));
+        {
+            var entry = GetLifecycleTarget(principal, request, request?.CancelTarget, Constants.Actions.Cancel);
+            if (entry.Cancelled || !IssuedTokens.TryCancel(request.CancelTarget.TokenElement, entry))
+                throw new InvalidRequestException("Token was already cancelled.");
+            var result = new RequestSecurityTokenResponse { RequestedTokenCancelled = true };
+            if (request.Context != null) result.Context = request.Context;
+            return new ValueTask<WsTrustResponse>(new WsTrustResponse(result));
+        }
 
         public virtual ValueTask<WsTrustResponse> ValidateAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken)
-            => throw new InvalidRequestException(ErrorMessages.ID3141, (request != null && request.RequestType != null ? request.RequestType : "Validate"));
+        {
+            var entry = GetLifecycleTarget(principal, request, request?.ValidateTarget, Constants.Actions.Validate);
+            var valid = !entry.Cancelled && entry.Expires > TimeProvider.GetUtcNow().UtcDateTime;
+            var result = new RequestSecurityTokenResponse
+            {
+                Status = new TrustStatus(Constants.Namespace + "/status/" + (valid ? "valid" : "invalid"))
+            };
+            if (request.Context != null) result.Context = request.Context;
+            return new ValueTask<WsTrustResponse>(new WsTrustResponse(result));
+        }
+
+        private IssuedTokenRegistry.Entry GetLifecycleTarget(ClaimsPrincipal principal, WsTrustRequest request, TokenTarget target, string action)
+        {
+            if (request == null || request.RequestType != action || target?.TokenElement == null)
+                throw new InvalidRequestException("Lifecycle request requires a matching RequestType and embedded issued token target.");
+            if (!IssuedTokens.TryGet(target.TokenElement, out var entry))
+                throw new InvalidRequestException("Unknown issued token target.");
+            if (principal?.Identity?.IsAuthenticated != true || entry.Owner == null || principal.Identity.Name != entry.Owner)
+                throw new SecurityException("Only the original authenticated requestor can manage this token.");
+            return entry;
+        }
         
         protected virtual ValueTask<SecurityToken> CreateSecurityTokenAsync(Scope scope, WsTrustRequest request, WsTrustSecurityTokenDescriptor descriptor, SecurityTokenHandler handler, CancellationToken cancellationToken)
             => new ValueTask<SecurityToken>(handler.CreateToken(descriptor));

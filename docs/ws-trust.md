@@ -2,7 +2,9 @@
 
 ## RST/RSTR wire coverage
 
-`WsTrustSerializer` reads and writes the following parameters in WS-Trust February 2005 and 1.3. The model is a wire-format capability; the default STS currently handles Issue requests only. SOAP contract availability depends on the registered binding.
+`WsTrustSerializer` reads and writes the following parameters in WS-Trust February 2005 and 1.3. SOAP contract availability depends on the registered binding.
+
+The default STS supports Issue, Renew, Cancel, and Validate for **embedded tokens issued by this STS**. A shared in-memory registry records the original authenticated requestor, audience, token type, key type, expiration, and cancellation state. Only that requestor may manage the token. Renew replaces the token and invalidates the old one; Cancel is single-use; Validate returns `status/valid` or `status/invalid` for known tokens. Unknown tokens and unsupported reference-only targets fault. Registry state lasts only as long as the server process; applications that require durable revocation or multiple nodes should replace the default STS/registry with a shared store. WS-Security proof-of-possession policy is tracked separately in #10.
 
 | Parameter family | Feb 2005 RST / RSTR | 1.3 RST / RSTR | Notes |
 | --- | --- | --- | --- |
