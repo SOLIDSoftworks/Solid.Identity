@@ -104,7 +104,7 @@ namespace Solid.Identity.Protocols.WsTrust
             if (action == constants.Actions.IssueResponse && constants == WsTrustConstants.Trust13)
             {
                 dispatchContext.ResponseMessage = await _soapContextAccessor.SoapContext.HttpContext.RequestServices
-                    .GetRequiredService<IWsTrustExchangeStore>()
+                    .GetRequiredService<WsTrustBinaryExchangeProcessor>()
                     .CompleteAsync(dispatchContext.Principal, dispatchContext.IncomingResponse, sts, dispatchContext.CancellationToken);
                 return;
             }
@@ -116,7 +116,7 @@ namespace Solid.Identity.Protocols.WsTrust
                 if (constants != WsTrustConstants.Trust13)
                     throw new InvalidRequestException("Binary challenge negotiation requires WS-Trust 1.3.");
                 dispatchContext.ResponseMessage = _soapContextAccessor.SoapContext.HttpContext.RequestServices
-                    .GetRequiredService<IWsTrustExchangeStore>()
+                    .GetRequiredService<WsTrustBinaryExchangeProcessor>()
                     .Begin(dispatchContext.Principal, request);
                 dispatchContext.ResponseAction = constants.Actions.IssueResponse;
                 return;

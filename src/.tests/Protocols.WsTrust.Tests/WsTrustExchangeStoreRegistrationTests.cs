@@ -44,9 +44,9 @@ public class WsTrustExchangeStoreRegistrationTests
 
     private sealed class TestExchangeStore : IWsTrustExchangeStore
     {
-        public WsTrustResponse Begin(ClaimsPrincipal principal, WsTrustRequest request) => throw new NotSupportedException();
-
-        public ValueTask<WsTrustResponse> CompleteAsync(ClaimsPrincipal principal, WsTrustResponse response,
-            ISecurityTokenService sts, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public bool TryAdd(string context, WsTrustPendingExchange exchange) => throw new NotSupportedException();
+        public bool TryGet(string context, out WsTrustPendingExchange exchange) => throw new NotSupportedException();
+        public bool TryUpdate(string context, WsTrustPendingExchange current, WsTrustPendingExchange next) => throw new NotSupportedException();
+        public bool TryRemove(string context, WsTrustPendingExchange current) => throw new NotSupportedException();
     }
 }

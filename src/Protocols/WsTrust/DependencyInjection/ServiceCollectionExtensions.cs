@@ -35,6 +35,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configure(builder);
             builder.AddSecurityTokenService<SecurityTokenService>();
             builder.AddWsTrustExchangeStore<WsTrustExchangeStore>();
+            builder.AddBinaryExchangeProcessor<EchoBinaryExchangeProcessor>();
             builder.AddTokenValidationParametersFactory<WsTrustTokenValidationParametersFactory>();
             builder.AddTokenTypeClaimStore<SamlClaimStore>();
             builder.Services.AddSaml2EncryptedSecurityTokenHandler<WsSecuritySaml2SecurityTokenHandler>();
@@ -68,6 +69,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IdentityProviderProvider>();
             services.TryAddSingleton<WsTrustSerializerFactory>();
             services.TryAddSingleton<SecurityTokenServiceFactory>();
+            services.TryAddSingleton<WsTrustBinaryExchangeProcessor>();
             services.TryAddSingleton<SecurityTokenHandlerProvider>();
             services.TryAddSingleton<UserNameSecurityTokenHandler>();
             services.TryAddSingleton<X509SecurityTokenHandler>();

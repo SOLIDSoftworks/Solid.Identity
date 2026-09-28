@@ -147,6 +147,22 @@ namespace Solid.Identity.DependencyInjection
             return this;
         }
 
+        /// <summary>Adds a BinaryExchange processor selected by its ValueType.</summary>
+        public WsTrustBuilder AddBinaryExchangeProcessor<TProcessor>()
+            where TProcessor : class, IBinaryExchangeProcessor
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBinaryExchangeProcessor, TProcessor>());
+            return this;
+        }
+
+        /// <summary>Adds a BinaryExchange processor using a service-provider factory.</summary>
+        public WsTrustBuilder AddBinaryExchangeProcessor<TProcessor>(Func<IServiceProvider, TProcessor> factory)
+            where TProcessor : class, IBinaryExchangeProcessor
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBinaryExchangeProcessor, TProcessor>(factory));
+            return this;
+        }
+
         public WsTrustBuilder AddIncomingClaimMapper<TMapper>()
             where TMapper : class, IClaimMapper
         {

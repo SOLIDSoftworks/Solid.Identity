@@ -32,7 +32,7 @@ public class ExchangeStoreTests
     [Fact]
     public async Task RetainedRequestIsBoundedAndDetachedFromCaller()
     {
-        var store = new WsTrustExchangeStore(TimeProvider.System);
+        var store = Processor();
         var user = Principal("same", "subject");
         Assert.Throws<InvalidRequestException>(() => store.Begin(user, Request(new string('x', 129))));
         var request = Request("oversized-extension");
@@ -63,7 +63,7 @@ public class ExchangeStoreTests
     [Fact]
     public async Task AdmissionNeverExceedsCapacityUnderConcurrency()
     {
-        var store = new WsTrustExchangeStore(TimeProvider.System);
+        var store = Processor();
         var user = Principal("name", "subject");
         var attempts = Enumerable.Range(0, 1300).Select(i => Task.Run(() =>
         {
@@ -79,7 +79,7 @@ public class ExchangeStoreTests
     [InlineData("same", "subject", "X509")]
     public async Task AnotherCredentialCannotCompleteTheExchange(string name, string subject, string method)
     {
-        var store = new WsTrustExchangeStore(TimeProvider.System);
+        var store = Processor();
         var first = store.Begin(Principal("same", "subject"), Request("credential-check"));
         var result = first.RequestSecurityTokenResponseCollection[0];
         var response = new WsTrustResponse(new RequestSecurityTokenResponse { Context = result.Context, BinaryExchange = result.BinaryExchange });
@@ -89,7 +89,7 @@ public class ExchangeStoreTests
     [Fact]
     public async Task MissingStableCredentialClaimsAreRejected()
     {
-        var store = new WsTrustExchangeStore(TimeProvider.System);
+        var store = Processor();
         var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "same") }, "Password");
         Assert.Throws<SecurityException>(() => store.Begin(new ClaimsPrincipal(identity), Request("no-subject")));
         var issued = store.Begin(Principal("same", "subject"), Request("subject"));
@@ -107,7 +107,7 @@ public class ExchangeStoreTests
     [InlineData("EncryptionAlgorithm")]
     public async Task IntermediateResponseRejectsAllOtherSupportedFields(string field)
     {
-        var store = new WsTrustExchangeStore(TimeProvider.System);
+        var store = Processor();
         var user = Principal("same", "subject");
         var challenge = store.Begin(user, Request("unexpected-field")).RequestSecurityTokenResponseCollection[0];
         var response = new RequestSecurityTokenResponse { Context = challenge.Context, BinaryExchange = challenge.BinaryExchange };
@@ -135,4 +135,7 @@ public class ExchangeStoreTests
         public ValueTask<WsTrustResponse> CancelAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken) => throw new NotSupportedException();
         public ValueTask<WsTrustResponse> ValidateAsync(ClaimsPrincipal principal, WsTrustRequest request, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
+
+    private static WsTrustBinaryExchangeProcessor Processor()
+        => new(new WsTrustExchangeStore(TimeProvider.System), new IBinaryExchangeProcessor[] { new EchoBinaryExchangeProcessor() }, TimeProvider.System);
 }
