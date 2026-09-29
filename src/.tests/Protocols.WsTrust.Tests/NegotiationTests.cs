@@ -63,6 +63,42 @@ public class NegotiationTests : IClassFixture<WsTrustTestsFixture>
         await Assert.ThrowsAnyAsync<Exception>(() => client.IssueAsync(message));
     }
 
+    [Theory]
+    [InlineData("Context")]
+    [InlineData("TokenType")]
+    [InlineData("KeyType")]
+    [InlineData("Extension")]
+    public async Task OversizedIssueBodyIsRejectedBeforeParsing(string field)
+    {
+        var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var version = WsTrustConstants.Trust13;
+        var huge = new string('x', 70000);
+        var context = field == "Context" ? huge : Guid.NewGuid().ToString("N");
+        var tokenType = field == "TokenType" ? $"<t:TokenType>{huge}</t:TokenType>" : "";
+        var keyType = field == "KeyType" ? $"<t:KeyType>{huge}</t:KeyType>" : "";
+        var extension = field == "Extension" ? $"<e:Data xmlns:e='urn:test'>{huge}</e:Data>" : "";
+        var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}' xmlns:wsp='http://schemas.xmlsoap.org/ws/2004/09/policy' xmlns:wsa='http://www.w3.org/2005/08/addressing' Context='{context}'><t:RequestType>{version.Actions.Issue}</t:RequestType>{tokenType}{keyType}<wsp:AppliesTo><wsa:EndpointReference><wsa:Address>urn:tests</wsa:Address></wsa:EndpointReference></wsp:AppliesTo>{extension}<t:BinaryExchange ValueType='{WsTrustNegotiation.EchoValueType}' EncodingType='{WsSecurityEncodingTypes.WsSecurity11.Base64}'>AQID</t:BinaryExchange></t:RequestSecurityToken>";
+        using var request = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueRequest, XmlReader.Create(new System.IO.StringReader(xml)));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => client.IssueAsync(request));
+    }
+
+    [Theory]
+    [InlineData("Context")]
+    [InlineData("Extension")]
+    public async Task OversizedIntermediateResponseIsRejectedBeforeParsing(string field)
+    {
+        var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var version = WsTrustConstants.Trust13;
+        var huge = new string('x', 70000);
+        var context = field == "Context" ? huge : "urn:unknown";
+        var extension = field == "Extension" ? $"<e:Data xmlns:e='urn:test'>{huge}</e:Data>" : "";
+        var xml = $"<t:RequestSecurityTokenResponse xmlns:t='{version.Namespace}' Context='{context}'>{extension}<t:BinaryExchange ValueType='{WsTrustNegotiation.EchoValueType}' EncodingType='{WsSecurityEncodingTypes.WsSecurity11.Base64}'>AQID</t:BinaryExchange></t:RequestSecurityTokenResponse>";
+        using var request = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueResponse, XmlReader.Create(new System.IO.StringReader(xml)));
+
+        await Assert.ThrowsAnyAsync<Exception>(() => client.IssueAsync(request));
+    }
+
     [Fact]
     public async Task AdditionalChallengeUsesIntermediateActionAndBody()
     {

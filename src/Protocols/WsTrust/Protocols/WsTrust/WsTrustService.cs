@@ -141,6 +141,14 @@ namespace Solid.Identity.Protocols.WsTrust
 
         protected virtual ValueTask<DispatchContext> CreateDispatchContextAsync(Message requestMessage, string requestAction, string responseAction, WsTrustConstants constants)
         {
+            // Apply a message quota before ReadRequest/ReadResponse can materialize strings or extension DOMs.
+            // This also bounds the response-action path, including RSTR collections.
+            if (constants == WsTrustConstants.Trust13 &&
+                (requestAction == constants.Actions.IssueRequest || requestAction == constants.Actions.IssueResponse))
+            {
+                using var bounded = requestMessage.CreateBufferedCopy(32768);
+                requestMessage = bounded.CreateMessage();
+            }
             var serializer = _serializerFactory.Create();
             var soapContext = _soapContextAccessor.SoapContext;
             var context = new  DispatchContext
