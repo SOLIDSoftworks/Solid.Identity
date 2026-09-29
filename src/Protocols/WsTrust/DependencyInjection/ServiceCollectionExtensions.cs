@@ -69,6 +69,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IdentityProviderProvider>();
             services.TryAddSingleton<WsTrustSerializerFactory>();
             services.TryAddSingleton<SecurityTokenServiceFactory>();
+            services.TryAddSingleton<IssuedTokenRegistry>();
+            services.TryAddSingleton<IIssuedTokenStore, InMemoryIssuedTokenStore>();
             services.TryAddSingleton(TimeProvider.System);
             services.TryAddSingleton<WsTrustBinaryExchangeProcessor>();
             services.TryAddSingleton<SecurityTokenHandlerProvider>();

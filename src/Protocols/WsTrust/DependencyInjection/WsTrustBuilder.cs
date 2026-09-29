@@ -89,6 +89,20 @@ namespace Solid.Identity.DependencyInjection
             return this;
         }
 
+        public WsTrustBuilder AddIssuedTokenStore<TStore>(Func<IServiceProvider, TStore> factory)
+            where TStore : class, IIssuedTokenStore
+        {
+            Services.Replace(ServiceDescriptor.Singleton<IIssuedTokenStore>(factory));
+            return this;
+        }
+
+        public WsTrustBuilder AddIssuedTokenStore<TStore>()
+            where TStore : class, IIssuedTokenStore
+        {
+            Services.Replace(ServiceDescriptor.Singleton<IIssuedTokenStore, TStore>());
+            return this;
+        }
+
         public WsTrustBuilder AddPasswordValidator<TPasswordValidator>()
             where TPasswordValidator : class, IPasswordValidator
         {

@@ -31,6 +31,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
                 var god = new Tokens.GodSecurityTokenHandler();
                 builder
                     .AddWsTrust13AsyncContract()
+                    .AddWsTrustFeb2005AsyncContract()
                     .AddBinaryExchangeProcessor<TwoRoundSoapProcessor>()
                     .AddSecurityTokenService<FinalBinaryExchangeSecurityTokenService>()
 
@@ -82,6 +83,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
         public void Configure(IApplicationBuilder builder)
         {
             builder.UseWsTrust13AsyncService();
+            builder.UseWsTrustFeb2005AsyncService("/trust/2005");
         }
     }
 }

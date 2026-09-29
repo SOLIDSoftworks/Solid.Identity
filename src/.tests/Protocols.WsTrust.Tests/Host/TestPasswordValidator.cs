@@ -10,6 +10,6 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
     class TestPasswordValidator : PasswordValidator
     {
         protected override ValueTask<bool> IsValidAsync(string userName, string password)
-            => new ValueTask<bool>(userName == "userName" && password == "password");
+            => new ValueTask<bool>((userName == "userName" || userName == "otherUser") && password == "password");
     }
 }
