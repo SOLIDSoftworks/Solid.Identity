@@ -101,6 +101,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// </summary>
         public const string EncryptionAlgorithm = "EncryptionAlgorithm";
 
+        /// <summary>Gets the 'Encryption' element value.</summary>
+        public const string Encryption = "Encryption";
+
         /// <summary>
         /// Gets the 'EncryptWith' element value.
         /// </summary>
@@ -205,6 +208,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// Gets the 'RequestedProofToken' element value.
         /// </summary>
         public const string RequestedSecurityToken = "RequestedSecurityToken";
+
+        /// <summary>Gets the 'RequestedTokenCancelled' element value.</summary>
+        public const string RequestedTokenCancelled = "RequestedTokenCancelled";
 
         /// <summary>
         /// Gets the 'RequestedUnattachedReference' element value.

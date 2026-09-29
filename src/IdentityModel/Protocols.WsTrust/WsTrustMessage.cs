@@ -94,7 +94,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         /// <para>see: http://docs.oasis-open.org/ws-sx/ws-trust/200512/ws-trust-1.3-os.html </para>
         /// </summary>
         /// <exception cref="ArgumentNullException">Thrown if BinaryExchange is null.</exception>
-        internal BinaryExchange BinaryExchange
+        public BinaryExchange BinaryExchange
         {
             get => _binaryExchange;
             set => _binaryExchange = value ?? throw LogHelper.LogArgumentNullException(nameof(value));

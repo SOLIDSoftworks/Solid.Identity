@@ -89,6 +89,20 @@ namespace Solid.Identity.DependencyInjection
             return this;
         }
 
+        public WsTrustBuilder AddIssuedTokenStore<TStore>(Func<IServiceProvider, TStore> factory)
+            where TStore : class, IIssuedTokenStore
+        {
+            Services.Replace(ServiceDescriptor.Singleton<IIssuedTokenStore>(factory));
+            return this;
+        }
+
+        public WsTrustBuilder AddIssuedTokenStore<TStore>()
+            where TStore : class, IIssuedTokenStore
+        {
+            Services.Replace(ServiceDescriptor.Singleton<IIssuedTokenStore, TStore>());
+            return this;
+        }
+
         public WsTrustBuilder AddPasswordValidator<TPasswordValidator>()
             where TPasswordValidator : class, IPasswordValidator
         {
@@ -128,6 +142,38 @@ namespace Solid.Identity.DependencyInjection
             where TIdentityProviderStore : class, IIdentityProviderStore
         {
             Services.TryAddSingleton<IIdentityProviderStore, TIdentityProviderStore>();
+            return this;
+        }
+
+        /// <summary>Registers a shared WS-Trust exchange store using a service-provider factory.</summary>
+        public WsTrustBuilder AddWsTrustExchangeStore<TExchangeStore>(Func<IServiceProvider, TExchangeStore> factory)
+            where TExchangeStore : class, IWsTrustExchangeStore
+        {
+            Services.TryAddSingleton<IWsTrustExchangeStore>(factory);
+            return this;
+        }
+
+        /// <summary>Registers a shared WS-Trust exchange store.</summary>
+        public WsTrustBuilder AddWsTrustExchangeStore<TExchangeStore>()
+            where TExchangeStore : class, IWsTrustExchangeStore
+        {
+            Services.TryAddSingleton<IWsTrustExchangeStore, TExchangeStore>();
+            return this;
+        }
+
+        /// <summary>Adds a BinaryExchange processor selected by its ValueType.</summary>
+        public WsTrustBuilder AddBinaryExchangeProcessor<TProcessor>()
+            where TProcessor : class, IBinaryExchangeProcessor
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBinaryExchangeProcessor, TProcessor>());
+            return this;
+        }
+
+        /// <summary>Adds a BinaryExchange processor using a service-provider factory.</summary>
+        public WsTrustBuilder AddBinaryExchangeProcessor<TProcessor>(Func<IServiceProvider, TProcessor> factory)
+            where TProcessor : class, IBinaryExchangeProcessor
+        {
+            Services.TryAddEnumerable(ServiceDescriptor.Singleton<IBinaryExchangeProcessor, TProcessor>(factory));
             return this;
         }
 

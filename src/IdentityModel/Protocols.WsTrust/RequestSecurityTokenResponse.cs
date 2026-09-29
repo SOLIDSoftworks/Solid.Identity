@@ -17,6 +17,12 @@ namespace Solid.IdentityModel.Protocols.WsTrust
         private SecurityTokenReference _unattachedReference;
         private Authenticator _authenticator;
 
+        /// <summary>Validation result.</summary>
+        public TrustStatus Status { get; set; }
+
+        /// <summary>Indicates that cancellation succeeded.</summary>
+        public bool RequestedTokenCancelled { get; set; }
+
         /// <summary>
         /// Creates an instance of <see cref="RequestSecurityTokenResponse"/>.
         /// </summary>
