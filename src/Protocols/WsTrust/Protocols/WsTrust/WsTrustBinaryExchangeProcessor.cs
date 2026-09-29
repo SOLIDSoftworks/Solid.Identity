@@ -121,6 +121,11 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("Unexpected BinaryExchange ValueType or data.");
 
             var step = processor.Continue(pending.State, exchange);
+            if (pending.Expires <= _clock.GetUtcNow())
+            {
+                _store.TryRemove(rstr.Context, pending);
+                throw new InvalidRequestException("Expired binary challenge response.");
+            }
             if (step == null) throw new InvalidRequestException("Binary exchange processor returned no result.");
             if (step.IsComplete)
             {

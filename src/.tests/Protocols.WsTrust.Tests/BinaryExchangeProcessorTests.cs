@@ -99,6 +99,46 @@ public class BinaryExchangeProcessorTests
         Assert.Null(store.Current);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ExpiryDuringContinueDoesNotIssueOrAdvance(bool completes)
+    {
+        var clock = new AdvancingClock();
+        var store = new RecordingStore();
+        var processor = new ExpiringProcessor(clock, completes);
+        var orchestrator = new WsTrustBinaryExchangeProcessor(store, new IBinaryExchangeProcessor[] { processor }, clock);
+        var issuer = new Issuer();
+        orchestrator.Begin(Principal(), Request(processor.ValueType, "expires-during-continue"));
+
+        await Assert.ThrowsAsync<InvalidRequestException>(async () => await orchestrator.CompleteAsync(
+            Principal(), Reply("expires-during-continue", processor.ValueType, 1), issuer, default));
+
+        Assert.Null(issuer.Request);
+        Assert.Null(store.Current);
+    }
+
+    private sealed class AdvancingClock : TimeProvider
+    {
+        private DateTimeOffset _now = DateTimeOffset.Parse("2026-09-29T12:00:00Z");
+        public override DateTimeOffset GetUtcNow() => _now;
+        public void Advance(TimeSpan duration) => _now += duration;
+    }
+
+    private sealed class ExpiringProcessor : IBinaryExchangeProcessor
+    {
+        private readonly AdvancingClock _clock;
+        private readonly bool _completes;
+        public ExpiringProcessor(AdvancingClock clock, bool completes) { _clock = clock; _completes = completes; }
+        public string ValueType => "urn:test:expires-during-continue";
+        public BinaryExchangeStep Begin(BinaryExchange exchange) => BinaryExchangeStep.Challenge(new byte[] { 1 }, new byte[] { 1 });
+        public BinaryExchangeStep Continue(byte[] state, BinaryExchange exchange)
+        {
+            _clock.Advance(TimeSpan.FromMinutes(2));
+            return _completes ? BinaryExchangeStep.Completed() : BinaryExchangeStep.Challenge(new byte[] { 2 }, new byte[] { 2 });
+        }
+    }
+
     private sealed class RecordingStore : IWsTrustExchangeStore
     {
         public WsTrustPendingExchange Current { get; private set; }
