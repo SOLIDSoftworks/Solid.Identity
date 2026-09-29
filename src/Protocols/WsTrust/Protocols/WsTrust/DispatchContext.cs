@@ -36,6 +36,9 @@ namespace Solid.Identity.Protocols.WsTrust
         /// </summary>
         public WsTrustResponse ResponseMessage { get; set; }
 
+        /// <summary>The intermediate RSTR supplied to a response-action endpoint.</summary>
+        public WsTrustResponse IncomingResponse { get; set; }
+
         /// <summary>
         /// The <see cref="SecurityTokenService"/> object which should process <see cref="RequestMessage"/>.
         /// </summary>
