@@ -85,6 +85,10 @@ namespace Solid.Identity.Protocols.WsTrust
 
         public async ValueTask<WsTrustResponse> CompleteAsync(ClaimsPrincipal principal, WsTrustResponse response,
             ISecurityTokenService sts, CancellationToken cancellationToken)
+            => (await CompleteExchangeAsync(principal, response, sts, cancellationToken)).Response;
+
+        internal async ValueTask<(WsTrustResponse Response, bool IsComplete)> CompleteExchangeAsync(
+            ClaimsPrincipal principal, WsTrustResponse response, ISecurityTokenService sts, CancellationToken cancellationToken)
         {
             var responses = response?.RequestSecurityTokenResponseCollection;
             if (responses?.Count != 1 || string.IsNullOrEmpty(responses[0].Context))
@@ -140,7 +144,7 @@ namespace Solid.Identity.Protocols.WsTrust
                         throw new InvalidRequestException("Completed binary exchange cannot contain a challenge or state.");
                     if (!_store.TryRemove(rstr.Context, claimed))
                         throw new InvalidRequestException("Exchange was already completed.");
-                    return await sts.IssueAsync(principal, claimed.Request, cancellationToken);
+                    return (await sts.IssueAsync(principal, claimed.Request, cancellationToken), true);
                 }
                 if (claimed.Round >= MaxRounds)
                     throw new InvalidRequestException("Binary exchange round limit exceeded.");
@@ -149,7 +153,7 @@ namespace Solid.Identity.Protocols.WsTrust
                     step.State, claimed.Expires, claimed.Round + 1);
                 if (!_store.TryUpdate(rstr.Context, claimed, next))
                     throw new InvalidRequestException("Exchange was already advanced.");
-                return Challenge(rstr.Context, claimed.ValueType, step.ChallengeData);
+                return (Challenge(rstr.Context, claimed.ValueType, step.ChallengeData), false);
             }
             catch
             {

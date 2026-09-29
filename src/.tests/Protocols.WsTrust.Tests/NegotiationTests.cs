@@ -49,6 +49,32 @@ public class NegotiationTests : IClassFixture<WsTrustTestsFixture>
     }
 
     [Fact]
+    public async Task FinalIssueResponseMayContainBinaryExchange()
+    {
+        var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var version = WsTrustConstants.Trust13;
+        var context = "final-binary-" + Guid.NewGuid().ToString("N");
+        var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}' xmlns:wsp='http://schemas.xmlsoap.org/ws/2004/09/policy' xmlns:wsa='http://www.w3.org/2005/08/addressing' Context='{context}'><t:RequestType>{version.Actions.Issue}</t:RequestType><wsp:AppliesTo><wsa:EndpointReference><wsa:Address>urn:tests</wsa:Address></wsa:EndpointReference></wsp:AppliesTo><t:BinaryExchange ValueType='{WsTrustNegotiation.EchoValueType}' EncodingType='{WsSecurityEncodingTypes.WsSecurity11.Base64}'>AQID</t:BinaryExchange></t:RequestSecurityToken>";
+        var serializer = new WsTrustSerializer();
+        using var request = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueRequest, XmlReader.Create(new System.IO.StringReader(xml)));
+        using var challenge = await client.IssueAsync(request);
+        using var challengeReader = challenge.GetReaderAtBodyContents();
+        var exchange = serializer.ReadResponse(challengeReader).RequestSecurityTokenResponseCollection[0].BinaryExchange;
+
+        using var reply = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueResponse,
+            new WsTrustResponse(new RequestSecurityTokenResponse { Context = context, BinaryExchange = exchange }),
+            new ResponseSerializer(serializer, version));
+        using var final = await client.IssueAsync(reply);
+
+        Assert.Equal(version.Actions.IssueFinal, final.Headers.Action);
+        using var reader = final.GetReaderAtBodyContents();
+        Assert.Equal(WsTrustElements.RequestSecurityTokenResponseCollection, reader.LocalName);
+        var result = Assert.Single(serializer.ReadResponse(reader).RequestSecurityTokenResponseCollection);
+        Assert.NotNull(result.RequestedSecurityToken);
+        Assert.Equal(new byte[] { 3 }, result.BinaryExchange.Data);
+    }
+
+    [Fact]
     public async Task WrongChallengeAndUnknownContextAreRejected()
     {
         var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");

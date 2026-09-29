@@ -32,6 +32,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
                 builder
                     .AddWsTrust13AsyncContract()
                     .AddBinaryExchangeProcessor<TwoRoundSoapProcessor>()
+                    .AddSecurityTokenService<FinalBinaryExchangeSecurityTokenService>()
 
                     .AddPasswordValidator<TestPasswordValidator>()
                     .AddX509Validator<TestX509Validator>()

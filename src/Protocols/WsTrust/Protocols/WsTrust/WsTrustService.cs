@@ -104,12 +104,11 @@ namespace Solid.Identity.Protocols.WsTrust
 
             if (action == constants.Actions.IssueResponse && constants == WsTrustConstants.Trust13)
             {
-                dispatchContext.ResponseMessage = await _soapContextAccessor.SoapContext.HttpContext.RequestServices
+                var result = await _soapContextAccessor.SoapContext.HttpContext.RequestServices
                     .GetRequiredService<WsTrustBinaryExchangeProcessor>()
-                    .CompleteAsync(dispatchContext.Principal, dispatchContext.IncomingResponse, sts, dispatchContext.CancellationToken);
-                if (dispatchContext.ResponseMessage is WsTrustResponse result &&
-                    result.RequestSecurityTokenResponseCollection.Count == 1 &&
-                    result.RequestSecurityTokenResponseCollection[0].BinaryExchange != null)
+                    .CompleteExchangeAsync(dispatchContext.Principal, dispatchContext.IncomingResponse, sts, dispatchContext.CancellationToken);
+                dispatchContext.ResponseMessage = result.Response;
+                if (!result.IsComplete)
                     dispatchContext.ResponseAction = constants.Actions.IssueResponse;
                 return;
             }
