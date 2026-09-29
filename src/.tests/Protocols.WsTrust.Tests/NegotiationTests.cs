@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Solid.IdentityModel.Protocols.WsTrust;
 using Solid.IdentityModel.Protocols.WsSecurity;
+using Solid.Identity.Protocols.WsTrust.Abstractions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -62,6 +63,42 @@ public class NegotiationTests : IClassFixture<WsTrustTestsFixture>
         await Assert.ThrowsAnyAsync<Exception>(() => client.IssueAsync(message));
     }
 
+    [Fact]
+    public async Task AdditionalChallengeUsesIntermediateActionAndBody()
+    {
+        var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
+        var version = WsTrustConstants.Trust13;
+        var context = Guid.NewGuid().ToString("N");
+        var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}' xmlns:wsp='http://schemas.xmlsoap.org/ws/2004/09/policy' xmlns:wsa='http://www.w3.org/2005/08/addressing' Context='{context}'><t:RequestType>{version.Actions.Issue}</t:RequestType><wsp:AppliesTo><wsa:EndpointReference><wsa:Address>urn:tests</wsa:Address></wsa:EndpointReference></wsp:AppliesTo><t:BinaryExchange ValueType='{TwoRoundSoapProcessor.Type}' EncodingType='{WsSecurityEncodingTypes.WsSecurity11.Base64}'>AA==</t:BinaryExchange></t:RequestSecurityToken>";
+        using var request = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueRequest, XmlReader.Create(new System.IO.StringReader(xml)));
+        using var first = await client.IssueAsync(request);
+        Assert.Equal(version.Actions.IssueResponse, first.Headers.Action);
+        var serializer = new WsTrustSerializer();
+        using var firstReader = first.GetReaderAtBodyContents();
+        Assert.Equal(WsTrustElements.RequestSecurityTokenResponse, firstReader.LocalName);
+        var challenge = serializer.ReadResponse(firstReader).RequestSecurityTokenResponseCollection[0];
+
+        using var response = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueResponse,
+            new WsTrustResponse(new RequestSecurityTokenResponse { Context = context, BinaryExchange = challenge.BinaryExchange }),
+            new ResponseSerializer(serializer, version));
+        using var second = await client.IssueAsync(response);
+        Assert.Equal(version.Actions.IssueResponse, second.Headers.Action);
+        using var secondReader = second.GetReaderAtBodyContents();
+        Assert.Equal(WsTrustElements.RequestSecurityTokenResponse, secondReader.LocalName);
+        var next = serializer.ReadResponse(secondReader).RequestSecurityTokenResponseCollection[0];
+        Assert.Equal(context, next.Context);
+        Assert.Equal(new byte[] { 2 }, next.BinaryExchange.Data);
+
+        using var completion = Message.CreateMessage(MessageVersion.Default, version.Actions.IssueResponse,
+            new WsTrustResponse(new RequestSecurityTokenResponse { Context = context, BinaryExchange = next.BinaryExchange }),
+            new ResponseSerializer(serializer, version));
+        using var final = await client.IssueAsync(completion);
+        Assert.Equal(version.Actions.IssueFinal, final.Headers.Action);
+        using var finalReader = final.GetReaderAtBodyContents();
+        Assert.Equal(WsTrustElements.RequestSecurityTokenResponseCollection, finalReader.LocalName);
+        Assert.NotNull(serializer.ReadResponse(finalReader).RequestSecurityTokenResponseCollection[0].RequestedSecurityToken);
+    }
+
     private sealed class ResponseSerializer : System.Runtime.Serialization.XmlObjectSerializer
     {
         private readonly WsTrustSerializer _serializer;
@@ -73,4 +110,17 @@ public class NegotiationTests : IClassFixture<WsTrustTestsFixture>
         public override void WriteEndObject(XmlDictionaryWriter writer) { }
         public override void WriteObjectContent(XmlDictionaryWriter writer, object graph) => _serializer.WriteResponse(writer, _version, (WsTrustResponse)graph);
     }
+}
+
+public sealed class TwoRoundSoapProcessor : IBinaryExchangeProcessor
+{
+    public const string Type = "urn:test:soap:two-round";
+    public string ValueType => Type;
+    public BinaryExchangeStep Begin(BinaryExchange exchange) => BinaryExchangeStep.Challenge(new byte[] { 1 }, new byte[] { 1 });
+    public BinaryExchangeStep Continue(byte[] state, BinaryExchange exchange)
+        => state[0] == 1 && exchange.Data[0] == 1
+            ? BinaryExchangeStep.Challenge(new byte[] { 2 }, new byte[] { 2 })
+            : state[0] == 2 && exchange.Data[0] == 2
+                ? BinaryExchangeStep.Completed()
+                : throw new InvalidOperationException("Unexpected challenge response.");
 }

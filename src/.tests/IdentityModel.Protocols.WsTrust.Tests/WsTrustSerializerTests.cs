@@ -119,6 +119,41 @@ namespace Solid.IdentityModel.Protocols.WsTrust.Tests
             TestUtilities.AssertFailIfErrors(context);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void ReadBinaryExchangeRejectsOversizedData(bool trust13, bool hex)
+        {
+            var version = trust13 ? WsTrustConstants.Trust13 : WsTrustConstants.TrustFeb2005;
+            var security = trust13 ? WsSecurityConstants.WsSecurity11 : WsSecurityConstants.WsSecurity10;
+            var encoding = hex ? security.EncodingTypes.HexBinary : security.EncodingTypes.Base64;
+            var payload = new byte[4097];
+            var reader = ReferenceXml.GetBinaryExchangeReader(version, encoding, "guid",
+                hex ? Convert.ToHexString(payload) : Convert.ToBase64String(payload));
+
+            Assert.Throws<XmlReadException>(() => WsTrustSerializer.ReadBinaryExchange(reader, new WsSerializationContext(version)));
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void ReadBinaryExchangeAcceptsMaximumData(bool trust13, bool hex)
+        {
+            var version = trust13 ? WsTrustConstants.Trust13 : WsTrustConstants.TrustFeb2005;
+            var security = trust13 ? WsSecurityConstants.WsSecurity11 : WsSecurityConstants.WsSecurity10;
+            var encoding = hex ? security.EncodingTypes.HexBinary : security.EncodingTypes.Base64;
+            var payload = new byte[4096];
+            for (var i = 0; i < payload.Length; i++) payload[i] = (byte)i;
+            var reader = ReferenceXml.GetBinaryExchangeReader(version, encoding, "guid",
+                hex ? Convert.ToHexString(payload) : Convert.ToBase64String(payload));
+
+            Assert.Equal(payload, WsTrustSerializer.ReadBinaryExchange(reader, new WsSerializationContext(version)).Data);
+        }
+
         public static TheoryData<WsTrustTheoryData> ReadBinaryExchangeTestCases
         {
             get

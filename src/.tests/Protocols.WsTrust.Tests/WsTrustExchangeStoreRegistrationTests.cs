@@ -19,7 +19,24 @@ public class WsTrustExchangeStoreRegistrationTests
             .BuildServiceProvider();
 
         Assert.IsType<WsTrustExchangeStore>(services.GetRequiredService<IWsTrustExchangeStore>());
+        Assert.NotNull(services.GetRequiredService<WsTrustBinaryExchangeProcessor>());
+        Assert.Same(TimeProvider.System, services.GetRequiredService<TimeProvider>());
     }
+
+    [Fact]
+    public void ApplicationClockIsPreserved()
+    {
+        var clock = new TestClock();
+        var collection = new ServiceCollection();
+        collection.AddSingleton<TimeProvider>(clock);
+        using var services = collection.AddWsTrust(_ => { }).BuildServiceProvider();
+
+        Assert.Same(clock, services.GetRequiredService<TimeProvider>());
+        Assert.NotNull(services.GetRequiredService<IWsTrustExchangeStore>());
+        Assert.NotNull(services.GetRequiredService<WsTrustBinaryExchangeProcessor>());
+    }
+
+    private sealed class TestClock : TimeProvider { }
 
     [Fact]
     public void BuilderAcceptsCustomStoreType()
