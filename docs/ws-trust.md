@@ -8,15 +8,15 @@
 | --- | --- | --- | --- |
 | RequestType, TokenType, KeyType, KeySize, Context | yes / TokenType, KeyType, KeySize, Context | same | Context is on each RSTR, including responses in a collection. |
 | Lifetime, Entropy (BinarySecret), AppliesTo | yes / yes | yes / yes | Encrypted entropy belongs to the token/key writer work (#9). |
-| Claims, OnBehalfOf, UseKey, ProofEncryption, PolicyReference, AdditionalContext | yes / — | yes / — | OnBehalfOf and UseKey support is limited to their existing token/reference implementations; ProofEncryption writing is tracked by #6. |
+| Claims, OnBehalfOf, UseKey, PolicyReference, AdditionalContext | yes / — | yes / — | OnBehalfOf and UseKey support is limited to their existing token/reference implementations. |
 | Algorithm choices (canonicalization, encryption, EncryptWith, SignWith, computed key) | yes / encryption algorithm | yes / encryption algorithm | SignatureAlgorithm and KeyWrapAlgorithm are also round-tripped in requests and responses. |
-| AuthenticationType, Forwardable, Delegatable, AllowPostdating, Renewing | yes / — | yes / — | Renewing uses `Allow` and `OK` attributes. |
+| AuthenticationType, Forwardable, Delegatable, AllowPostdating, Renewing | yes / — | yes / — | Renewing uses `Allow` and `OK` attributes; both empty XML element forms are accepted for Renewing and AllowPostdating. |
 | RenewTarget, CancelTarget, ValidateTarget | yes / — | yes / — | Typed `TokenTarget` contains a token XML element or a WS-Security 1.0 KeyIdentifier reference. |
 | Status, RequestedTokenCancelled | — / yes | — / yes | `Status` requires `Code` and permits `Reason`; cancellation is an empty marker. |
 | RequestedSecurityToken, RequestedProofToken, attached/unattached references, Authenticator | — / yes | — / yes | Supported token/key formats are limited by registered handlers and related issues #5 and #9. |
 | BinaryExchange | yes / yes | yes / yes | Base64 and hex encodings; the bounded 1.3 echo negotiation profile is described below. |
 | SecondaryParameters | unavailable | yes / — | Secondary fields remain separate from primary fields; explicit primary parameters take precedence. Nested secondary blocks and secondary RequestType are rejected. |
-| ActAs, DelegateTo, Issuer, Participants | unsupported | unsupported | Known unsupported trust parameters fail explicitly instead of being discarded. |
+| ProofEncryption, ActAs, DelegateTo, Issuer, Participants | unsupported | unsupported | Known unsupported trust parameters fail explicitly instead of being discarded. ProofEncryption support is tracked by #6. |
 
 Other-namespace extension XML is retained in request and response `AdditionalXmlElements`. Known but unsupported WS-Trust elements fail on read. The 1.4 namespace is recognized by the serializer but does not represent a tested 1.4 binding or complete profile.
 

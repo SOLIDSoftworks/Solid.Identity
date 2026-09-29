@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.IdentityModel.Xml;
 using Solid.IdentityModel.Protocols.WsSecurity;
 using Xunit;
 
@@ -128,5 +129,68 @@ public class WsTrustParameterWireTests
         using (var writer = XmlDictionaryWriter.CreateTextWriter(responseStream, Encoding.UTF8, false)) serializer.WriteRequestSecurityTokenResponse(writer, version, response);
         responseStream.Position = 0;
         Assert.Equal("retained", (string)XDocument.Load(responseStream).Root?.Element(XName.Get("Custom", "urn:extension"))?.Attribute("value"));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ProofEncryptionIsRejectedInsteadOfSilentlyDiscarded(bool feb2005)
+    {
+        var version = feb2005 ? WsTrustConstants.TrustFeb2005 : WsTrustConstants.Trust13;
+        var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}'><t:RequestType>{version.Actions.Issue}</t:RequestType><t:ProofEncryption/><t:TokenType>urn:token</t:TokenType></t:RequestSecurityToken>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+
+        Assert.Throws<XmlReadException>(() => new WsTrustSerializer().ReadRequest(reader));
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void UnsupportedAppliesToAfterKnownOneIsRetained(bool feb2005)
+    {
+        var version = feb2005 ? WsTrustConstants.TrustFeb2005 : WsTrustConstants.Trust13;
+        var xml = $"<t:RequestSecurityTokenResponse xmlns:t='{version.Namespace}' xmlns:wsp='http://schemas.xmlsoap.org/ws/2004/09/policy' xmlns:wsa='http://www.w3.org/2005/08/addressing' xmlns:ext='urn:extension'><wsp:AppliesTo><wsa:EndpointReference><wsa:Address>urn:known</wsa:Address></wsa:EndpointReference></wsp:AppliesTo><ext:AppliesTo><ext:Value>retained</ext:Value></ext:AppliesTo></t:RequestSecurityTokenResponse>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+
+        var result = new WsTrustSerializer().ReadRequestSecurityTokenResponse(reader, new WsSerializationContext(version));
+        Assert.Equal("urn:known", result.AppliesTo.EndpointReference.Uri);
+        var extension = Assert.Single(result.AdditionalXmlElements);
+        Assert.Equal("urn:extension", extension.NamespaceURI);
+        Assert.Equal("retained", extension.InnerText);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ExpandedEmptyRenewingAndAllowPostdatingAreAccepted(bool feb2005)
+    {
+        var version = feb2005 ? WsTrustConstants.TrustFeb2005 : WsTrustConstants.Trust13;
+        var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}'><t:RequestType>{version.Actions.Issue}</t:RequestType><t:Renewing Allow='true' OK='false'></t:Renewing><t:AllowPostdating></t:AllowPostdating></t:RequestSecurityToken>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+
+        var result = new WsTrustSerializer().ReadRequest(reader);
+        Assert.True(result.Renewing.Allow);
+        Assert.False(result.Renewing.RenewAfterExpiration);
+        Assert.True(result.AllowPostdating);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RenewingAndAllowPostdatingRejectNonemptyContent(bool feb2005)
+    {
+        var version = feb2005 ? WsTrustConstants.TrustFeb2005 : WsTrustConstants.Trust13;
+        foreach (var child in new[]
+        {
+            "<t:Renewing Allow='true'>content</t:Renewing>",
+            "<t:Renewing Allow='true'><t:TokenType>urn:token</t:TokenType></t:Renewing>",
+            "<t:AllowPostdating>content</t:AllowPostdating>",
+            "<t:AllowPostdating><t:TokenType>urn:token</t:TokenType></t:AllowPostdating>"
+        })
+        {
+            var xml = $"<t:RequestSecurityToken xmlns:t='{version.Namespace}'><t:RequestType>{version.Actions.Issue}</t:RequestType>{child}</t:RequestSecurityToken>";
+            using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+            Assert.Throws<XmlReadException>(() => new WsTrustSerializer().ReadRequest(reader));
+        }
     }
 }

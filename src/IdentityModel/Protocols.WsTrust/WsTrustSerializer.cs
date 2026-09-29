@@ -390,8 +390,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             var after = reader.GetAttribute("OK");
             if (allow != null) renewing.Allow = XmlConvert.ToBoolean(allow);
             if (after != null) renewing.RenewAfterExpiration = XmlConvert.ToBoolean(after);
-            if (!reader.IsEmptyElement) throw XmlUtil.LogReadException("Renewing must be empty.");
-            reader.ReadStartElement();
+            if (reader.ReadElementContentAsString().Length != 0)
+                throw XmlUtil.LogReadException("Renewing must be empty.");
             return renewing;
         }
 
@@ -574,8 +574,8 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     trustRequest.Delegatable = ReadBooleanElement(reader);
                 else if (reader.IsStartElement(WsTrustElements.AllowPostdating, serializationContext.Trust.Namespace))
                 {
-                    if (!reader.IsEmptyElement) throw XmlUtil.LogReadException("AllowPostdating must be empty.");
-                    reader.ReadStartElement();
+                    if (reader.ReadElementContentAsString().Length != 0)
+                        throw XmlUtil.LogReadException("AllowPostdating must be empty.");
                     trustRequest.AllowPostdating = true;
                 }
                 else if (reader.IsStartElement(WsTrustElements.Renewing, serializationContext.Trust.Namespace))
@@ -588,8 +588,9 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                     trustRequest.ValidateTarget = ReadTokenTarget(reader, serializationContext);
                 else if (reader.IsStartElement(WsTrustElements.Issuer, serializationContext.Trust.Namespace) || reader.IsStartElement(WsTrustElements.Participants, serializationContext.Trust.Namespace) || reader.IsStartElement(WsTrustElements.ActAs, serializationContext.Trust.Namespace) || reader.IsStartElement(WsTrustElements.DelegateTo, serializationContext.Trust.Namespace))
                     throw XmlUtil.LogReadException("Unsupported WS-Trust request parameter: " + reader.LocalName);
-                else if (reader.IsStartElement(WsTrustElements.Encryption, serializationContext.Trust.Namespace))
-                    throw XmlUtil.LogReadException("Unsupported WS-Trust request parameter: Encryption");
+                else if (reader.IsStartElement(WsTrustElements.Encryption, serializationContext.Trust.Namespace) ||
+                         reader.IsStartElement(WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace))
+                    throw XmlUtil.LogReadException("Unsupported WS-Trust request parameter: " + reader.LocalName);
                 else if (reader.IsStartElement(WsTrustElements.SecondaryParameters, serializationContext.Trust.Namespace))
                 {
                     if (secondary || serializationContext.Trust == WsTrustConstants.TrustFeb2005 || trustRequest.SecondaryParameters != null || reader.IsEmptyElement)
@@ -603,11 +604,6 @@ namespace Solid.IdentityModel.Protocols.WsTrust
                 else if (reader.IsStartElement(WsTrustElements.UseKey, serializationContext.Trust.Namespace))
                 {
                     trustRequest.UseKey = ReadUseKey(reader, serializationContext);
-                }
-                else if (reader.IsStartElement(WsTrustElements.ProofEncryption, serializationContext.Trust.Namespace))
-                {
-                    // TODO: Read proof encryption key
-                    reader.Read();
                 }
                 else if (reader.IsLocalName(WsSecurityPolicyElements.AppliesTo))
                 {
@@ -678,12 +674,12 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             {
                 bool isEmptyElement = reader.IsEmptyElement;
                 var tokenResponse = new RequestSecurityTokenResponse();
-                bool processed = false;
                 var context = reader.GetAttribute(WsTrustAttributes.Context);
                 if (!string.IsNullOrEmpty(context)) tokenResponse.Context = context;
                 reader.ReadStartElement();
                 while (reader.IsStartElement())
                 {
+                    bool processed = false;
                     if (reader.IsStartElement(WsTrustElements.TokenType, serializationContext.Trust.Namespace))
                     {
                         tokenResponse.TokenType = WsUtils.ReadStringElement(reader);
