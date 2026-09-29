@@ -31,6 +31,8 @@ namespace Solid.Identity.Protocols.WsTrust.Tests.Host
                 var god = new Tokens.GodSecurityTokenHandler();
                 builder
                     .AddWsTrust13AsyncContract()
+                    .AddBinaryExchangeProcessor<TwoRoundSoapProcessor>()
+                    .AddSecurityTokenService<FinalBinaryExchangeSecurityTokenService>()
 
                     .AddPasswordValidator<TestPasswordValidator>()
                     .AddX509Validator<TestX509Validator>()

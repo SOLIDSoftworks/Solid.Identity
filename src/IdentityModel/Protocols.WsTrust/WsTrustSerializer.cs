@@ -27,6 +27,7 @@ namespace Solid.IdentityModel.Protocols.WsTrust
     /// </summary>
     public class WsTrustSerializer
     {
+        private const int MaxBinaryExchangeBytes = 4096;
         private const BindingFlags getPropertyFlags = BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private const BindingFlags invokeMethodFlags = BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.NonPublic;
 
@@ -82,14 +83,24 @@ namespace Solid.IdentityModel.Protocols.WsTrust
 
                     reader.ReadStartElement();
 
-                    var data = null as byte[];
-                    if (encodingType == serializationContext.Security.EncodingTypes.HexBinary)
-                        data = reader.ReadContentAsBinHex();
-                    else // Defaults to base64
-                        data = reader.ReadContentAsBase64();
-                    
-                    if (data != null)
-                        binaryExchange.Data = data;
+                    // Decode into a fixed-size buffer with one extra byte to detect overflow.
+                    // The unbounded ReadContentAsBase64/BinHex overloads allocate before the
+                    // exchange processor can validate the resulting data.
+                    var buffer = new byte[MaxBinaryExchangeBytes + 1];
+                    var count = 0;
+                    int read;
+                    do
+                    {
+                        read = encodingType == serializationContext.Security.EncodingTypes.HexBinary
+                            ? reader.ReadContentAsBinHex(buffer, count, buffer.Length - count)
+                            : reader.ReadContentAsBase64(buffer, count, buffer.Length - count);
+                        count += read;
+                        if (count > MaxBinaryExchangeBytes)
+                            throw XmlUtil.LogReadException("BinaryExchange exceeds the 4096-byte limit.");
+                    } while (read != 0);
+                    if (count == 0)
+                        throw XmlUtil.LogReadException("BinaryExchange requires data.");
+                    binaryExchange.Data = buffer.AsSpan(0, count).ToArray();
 
                     reader.ReadEndElement();
 
@@ -985,7 +996,11 @@ namespace Solid.IdentityModel.Protocols.WsTrust
             //      ...
             //  </t:RequestSecurityTokenResponse>
 
-            XmlUtil.CheckReaderOnEntry(reader, WsTrustElements.RequestSecurityTokenResponseCollection);
+            if (reader == null) throw LogHelper.LogArgumentNullException(nameof(reader));
+            if (reader.NodeType != XmlNodeType.Element ||
+                (reader.LocalName != WsTrustElements.RequestSecurityTokenResponseCollection &&
+                 reader.LocalName != WsTrustElements.RequestSecurityTokenResponse))
+                XmlUtil.CheckReaderOnEntry(reader, WsTrustElements.RequestSecurityTokenResponseCollection);
 
             try
             {
