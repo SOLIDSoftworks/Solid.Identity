@@ -118,6 +118,97 @@ public class BinaryExchangeProcessorTests
         Assert.Null(store.Current);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ConcurrentRepliesRunProcessorOnlyOnce(bool completes)
+    {
+        var store = new RecordingStore();
+        using var processor = new BlockingProcessor(completes);
+        var processors = new IBinaryExchangeProcessor[] { processor };
+        var first = new WsTrustBinaryExchangeProcessor(store, processors, TimeProvider.System);
+        var second = new WsTrustBinaryExchangeProcessor(store, processors, TimeProvider.System);
+        var issuer = new Issuer();
+        first.Begin(Principal(), Request(processor.ValueType, "concurrent"));
+
+        var inFlight = Task.Run(async () => await first.CompleteAsync(Principal(), Reply("concurrent", processor.ValueType, 1), issuer, default));
+        try
+        {
+            Assert.True(processor.Entered.Wait(TimeSpan.FromSeconds(10)));
+            var competing = Task.Run(async () => await second.CompleteAsync(
+                Principal(), Reply("concurrent", processor.ValueType, 1), issuer, default));
+            Assert.Same(competing, await Task.WhenAny(competing, Task.Delay(TimeSpan.FromSeconds(3))));
+            await Assert.ThrowsAsync<InvalidRequestException>(async () => await competing);
+            Assert.Equal(1, processor.Calls);
+        }
+        finally
+        {
+            processor.Release.Set();
+        }
+
+        var result = await inFlight;
+        Assert.Equal(1, processor.Calls);
+        if (completes)
+        {
+            Assert.NotNull(issuer.Request);
+            Assert.Null(store.Current);
+        }
+        else
+        {
+            Assert.Null(issuer.Request);
+            Assert.Equal(2, store.Current.Round);
+            Assert.Equal(2, result.RequestSecurityTokenResponseCollection[0].BinaryExchange.Data[0]);
+        }
+    }
+
+    [Fact]
+    public async Task FailedProcessorConsumesClaimedRound()
+    {
+        var store = new RecordingStore();
+        var processor = new FailingProcessor();
+        var orchestrator = new WsTrustBinaryExchangeProcessor(store, new IBinaryExchangeProcessor[] { processor }, TimeProvider.System);
+        orchestrator.Begin(Principal(), Request(processor.ValueType, "failed-processor"));
+
+        await Assert.ThrowsAsync<InvalidRequestException>(async () => await orchestrator.CompleteAsync(
+            Principal(), Reply("failed-processor", processor.ValueType, 1), new Issuer(), default));
+        Assert.Null(store.Current);
+        await Assert.ThrowsAsync<InvalidRequestException>(async () => await orchestrator.CompleteAsync(
+            Principal(), Reply("failed-processor", processor.ValueType, 1), new Issuer(), default));
+        Assert.Equal(1, processor.Calls);
+    }
+
+    private sealed class FailingProcessor : IBinaryExchangeProcessor
+    {
+        public string ValueType => "urn:test:failed-processor";
+        public int Calls { get; private set; }
+        public BinaryExchangeStep Begin(BinaryExchange exchange) => BinaryExchangeStep.Challenge(new byte[] { 1 }, new byte[] { 1 });
+        public BinaryExchangeStep Continue(byte[] state, BinaryExchange exchange)
+        {
+            Calls++;
+            throw new InvalidRequestException("Failed challenge.");
+        }
+    }
+
+    private sealed class BlockingProcessor : IBinaryExchangeProcessor, IDisposable
+    {
+        private readonly bool _completes;
+        private int _calls;
+        public BlockingProcessor(bool completes) => _completes = completes;
+        public string ValueType => "urn:test:concurrent";
+        public ManualResetEventSlim Entered { get; } = new(false);
+        public ManualResetEventSlim Release { get; } = new(false);
+        public int Calls => Volatile.Read(ref _calls);
+        public BinaryExchangeStep Begin(BinaryExchange exchange) => BinaryExchangeStep.Challenge(new byte[] { 1 }, new byte[] { 1 });
+        public BinaryExchangeStep Continue(byte[] state, BinaryExchange exchange)
+        {
+            Interlocked.Increment(ref _calls);
+            Entered.Set();
+            if (!Release.Wait(TimeSpan.FromSeconds(10))) throw new TimeoutException("Processor was not released.");
+            return _completes ? BinaryExchangeStep.Completed() : BinaryExchangeStep.Challenge(new byte[] { 2 }, new byte[] { 2 });
+        }
+        public void Dispose() { Entered.Dispose(); Release.Dispose(); }
+    }
+
     private sealed class AdvancingClock : TimeProvider
     {
         private DateTimeOffset _now = DateTimeOffset.Parse("2026-09-29T12:00:00Z");

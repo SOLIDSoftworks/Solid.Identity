@@ -107,6 +107,8 @@ namespace Solid.Identity.Protocols.WsTrust
                 throw new InvalidRequestException("Unexpected result in intermediate RSTR.");
             if (!_store.TryGet(rstr.Context, out var pending))
                 throw new InvalidRequestException("Unknown or replayed exchange Context.");
+            if (pending.IsProcessing)
+                throw new InvalidRequestException("Exchange response is already being processed.");
             if (pending.Owner != GetOwner(principal))
                 throw new SecurityException("Exchange belongs to another requestor.");
             if (pending.Expires <= _clock.GetUtcNow())
@@ -120,32 +122,41 @@ namespace Solid.Identity.Protocols.WsTrust
                 !_processors.TryGetValue(pending.ValueType, out var processor))
                 throw new InvalidRequestException("Unexpected BinaryExchange ValueType or data.");
 
-            var step = processor.Continue(pending.State, exchange);
-            if (pending.Expires <= _clock.GetUtcNow())
+            // Claim the round in shared storage before invoking a processor that may have side effects.
+            var claimed = new WsTrustPendingExchange(pending.Owner, pending.ValueType, pending.Request,
+                pending.State, pending.Expires, pending.Round, isProcessing: true);
+            if (!_store.TryUpdate(rstr.Context, pending, claimed))
+                throw new InvalidRequestException("Exchange response is already being processed.");
+            BinaryExchangeStep step;
+            try
             {
-                _store.TryRemove(rstr.Context, pending);
-                throw new InvalidRequestException("Expired binary challenge response.");
+                step = processor.Continue(claimed.State, exchange);
+                if (claimed.Expires <= _clock.GetUtcNow())
+                    throw new InvalidRequestException("Expired binary challenge response.");
+                if (step == null) throw new InvalidRequestException("Binary exchange processor returned no result.");
+                if (step.IsComplete)
+                {
+                    if (step.ChallengeData != null || step.State != null)
+                        throw new InvalidRequestException("Completed binary exchange cannot contain a challenge or state.");
+                    if (!_store.TryRemove(rstr.Context, claimed))
+                        throw new InvalidRequestException("Exchange was already completed.");
+                    return await sts.IssueAsync(principal, claimed.Request, cancellationToken);
+                }
+                if (claimed.Round >= MaxRounds)
+                    throw new InvalidRequestException("Binary exchange round limit exceeded.");
+                ValidateChallenge(step);
+                var next = new WsTrustPendingExchange(claimed.Owner, claimed.ValueType, claimed.Request,
+                    step.State, claimed.Expires, claimed.Round + 1);
+                if (!_store.TryUpdate(rstr.Context, claimed, next))
+                    throw new InvalidRequestException("Exchange was already advanced.");
+                return Challenge(rstr.Context, claimed.ValueType, step.ChallengeData);
             }
-            if (step == null) throw new InvalidRequestException("Binary exchange processor returned no result.");
-            if (step.IsComplete)
+            catch
             {
-                if (step.ChallengeData != null || step.State != null)
-                    throw new InvalidRequestException("Completed binary exchange cannot contain a challenge or state.");
-                if (!_store.TryRemove(rstr.Context, pending))
-                    throw new InvalidRequestException("Exchange was already completed.");
-                return await sts.IssueAsync(principal, pending.Request, cancellationToken);
+                // Never retry a processor whose side effects may already have happened.
+                _store.TryRemove(rstr.Context, claimed);
+                throw;
             }
-            if (pending.Round >= MaxRounds)
-            {
-                _store.TryRemove(rstr.Context, pending);
-                throw new InvalidRequestException("Binary exchange round limit exceeded.");
-            }
-            ValidateChallenge(step);
-            var next = new WsTrustPendingExchange(pending.Owner, pending.ValueType, pending.Request,
-                step.State, pending.Expires, pending.Round + 1);
-            if (!_store.TryUpdate(rstr.Context, pending, next))
-                throw new InvalidRequestException("Exchange was already advanced.");
-            return Challenge(rstr.Context, pending.ValueType, step.ChallengeData);
         }
 
         private static void ValidateChallenge(BinaryExchangeStep step)

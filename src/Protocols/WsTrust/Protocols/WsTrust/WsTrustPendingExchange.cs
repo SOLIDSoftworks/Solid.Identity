@@ -9,7 +9,7 @@ namespace Solid.Identity.Protocols.WsTrust
         private readonly byte[] _state;
 
         public WsTrustPendingExchange(string owner, string valueType, WsTrustRequest request, byte[] state,
-            DateTimeOffset expires, int round)
+            DateTimeOffset expires, int round, bool isProcessing = false)
         {
             Owner = owner ?? throw new ArgumentNullException(nameof(owner));
             ValueType = valueType ?? throw new ArgumentNullException(nameof(valueType));
@@ -17,6 +17,7 @@ namespace Solid.Identity.Protocols.WsTrust
             _state = (byte[])(state ?? throw new ArgumentNullException(nameof(state))).Clone();
             Expires = expires;
             Round = round;
+            IsProcessing = isProcessing;
         }
 
         public string Owner { get; }
@@ -26,5 +27,7 @@ namespace Solid.Identity.Protocols.WsTrust
         public byte[] State => (byte[])_state.Clone();
         public DateTimeOffset Expires { get; }
         public int Round { get; }
+        /// <summary>True while one response has atomically claimed this round for processing.</summary>
+        public bool IsProcessing { get; }
     }
 }
