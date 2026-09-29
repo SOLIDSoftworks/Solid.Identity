@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Xml;
+using Microsoft.Extensions.DependencyInjection;
+using Solid.Identity.Protocols.WsTrust.Abstractions;
 using Solid.Identity.Protocols.WsTrust.Exceptions;
 using Xunit;
 
@@ -81,5 +83,65 @@ public class IssuedTokenRegistryTests
         Assert.False(registry.TryReplace(original, current, next, Principal()));
         Assert.True(registry.TryGet(next, out var stillPresent));
         Assert.Same(winningEntry, stillPresent);
+    }
+
+    [Fact]
+    public void SharedStorePreservesLifecycleAcrossRegistryInstances()
+    {
+        var store = new InMemoryIssuedTokenStore(TimeProvider.System);
+        var first = new IssuedTokenRegistry(TimeProvider.System, store);
+        var second = new IssuedTokenRegistry(TimeProvider.System, store);
+        var token = Token("shared");
+        first.Register(token, Principal(), "urn:audience", DateTime.UtcNow.AddMinutes(5), "type", "key");
+        Assert.True(second.TryGet(token, out var entry));
+        Assert.True(second.TryCancel(token, entry));
+        Assert.True(first.TryGet(token, out var cancelled));
+        Assert.True(cancelled.Cancelled);
+        Assert.False(first.TryCancel(token, entry));
+    }
+
+    [Fact]
+    public void BuilderRegistersCustomStoreForRegistry()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(TimeProvider.System);
+        services.AddWsTrust(builder => builder.AddIssuedTokenStore<TestIssuedTokenStore>());
+        using var provider = services.BuildServiceProvider();
+        Assert.IsType<TestIssuedTokenStore>(provider.GetRequiredService<IIssuedTokenStore>());
+        Assert.IsType<TestIssuedTokenStore>(provider.GetRequiredService<IssuedTokenRegistry>().Store);
+    }
+
+    [Fact]
+    public void BuilderFactoryRegistersCustomStoreForRegistry()
+    {
+        var store = new TestIssuedTokenStore(TimeProvider.System);
+        var services = new ServiceCollection();
+        services.AddSingleton(TimeProvider.System);
+        services.AddWsTrust(builder => builder.AddIssuedTokenStore(_ => store));
+        using var provider = services.BuildServiceProvider();
+        Assert.Same(store, provider.GetRequiredService<IssuedTokenRegistry>().Store);
+    }
+
+    [Fact]
+    public void StaleRevisionCannotCancelOrRemoveUpdatedEntryAcrossRegistries()
+    {
+        var store = new InMemoryIssuedTokenStore(TimeProvider.System);
+        var first = new IssuedTokenRegistry(TimeProvider.System, store);
+        var second = new IssuedTokenRegistry(TimeProvider.System, store);
+        var original = Token("old-node");
+        var replacement = Token("new-node");
+        first.Register(original, Principal(), "urn:audience", DateTime.UtcNow.AddMinutes(5), "type", "key");
+        second.Register(replacement, Principal(), "urn:audience", DateTime.UtcNow.AddMinutes(5), "type", "key");
+        Assert.True(first.TryGet(original, out var entry));
+        Assert.True(second.TryReplace(original, entry, replacement, Principal()));
+        Assert.False(first.TryCancel(original, entry));
+        Assert.False(first.TryRemove(original, entry));
+        Assert.True(first.TryGet(original, out var cancelled));
+        Assert.True(cancelled.Cancelled);
+    }
+
+    private sealed class TestIssuedTokenStore : InMemoryIssuedTokenStore
+    {
+        public TestIssuedTokenStore(TimeProvider clock) : base(clock) { }
     }
 }

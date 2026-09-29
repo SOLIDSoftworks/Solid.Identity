@@ -79,6 +79,10 @@ services.AddWsTrust(builder => builder
 
 The built-in options collections still work alongside custom stores: lookups check the store first, then the configured options. Supply the example stores' dependencies through dependency injection.
 
+## Issued-token lifecycle store
+
+The default `InMemoryIssuedTokenStore` tracks up to 1024 live token digests per process and evicts expired entries on access. For multiple STS nodes, implement `IIssuedTokenStore` against shared storage and register it with `builder.AddIssuedTokenStore<YourIssuedTokenStore>()` or `builder.AddIssuedTokenStore(provider => ...)`. The registry handles token XML hashing and requestor binding; the store receives digest keys and `IssuedTokenRegistry.Entry` values, including ownership, expiry, cancellation state, and a `Revision` identifier. Persist the entry's digest and revision; the public entry constructor accepts the revision when rehydrating an entry. `TryUpdate` and `TryRemove` must compare the supplied entry's `Revision` atomically with the stored revision; a successful update must persist the new entry with its new revision. `TryGet` must exclude expired entries, and `Register` should reject already-expired entries and enforce a retention/capacity policy. Register the shared implementation as a singleton and use shared atomic compare-and-swap operations (for example, a database transaction) across all nodes so competing renewals and cancellations cannot both succeed. A newly issued replacement is registered before the original is invalidated; failed transitions remove the losing replacement by revision.
+
 ## Claims for a relying party
 
 The application also uses relying-party claim stores to add audience-specific claims. Derive from `ClaimStore` and advertise the offered claim types:

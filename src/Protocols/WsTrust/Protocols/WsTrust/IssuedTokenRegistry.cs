@@ -1,39 +1,35 @@
 using System;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Cryptography.Xml;
 using System.Xml;
 using Solid.Identity.Protocols.WsSecurity;
+using Solid.Identity.Protocols.WsTrust.Abstractions;
 using Solid.Identity.Protocols.WsTrust.Exceptions;
 
 namespace Solid.Identity.Protocols.WsTrust
 {
-    /// <summary>Bounded, in-memory lifecycle state for tokens issued by this STS.</summary>
+    /// <summary>Tracks lifecycle state for tokens issued by this STS using a configurable store.</summary>
     public class IssuedTokenRegistry
     {
-        private const int MaxEntries = 1024;
-        private readonly ConcurrentDictionary<string, Entry> _tokens = new ConcurrentDictionary<string, Entry>();
-        private readonly object _gate = new object();
         private readonly TimeProvider _clock;
+        public IIssuedTokenStore Store { get; }
 
-        public IssuedTokenRegistry(TimeProvider clock) => _clock = clock;
+        public IssuedTokenRegistry(TimeProvider clock) : this(clock, new InMemoryIssuedTokenStore(clock)) { }
+
+        public IssuedTokenRegistry(TimeProvider clock, IIssuedTokenStore store)
+        {
+            _clock = clock;
+            Store = store ?? throw new ArgumentNullException(nameof(store));
+        }
 
         public void Register(XmlElement token, ClaimsPrincipal owner, string appliesTo, DateTime expires, string tokenType, string keyType)
         {
             if (token == null) throw new InvalidRequestException("Issued token XML is required for lifecycle tracking.");
             var subject = GetOwner(owner);
             var digest = GetDigest(token);
-            lock (_gate)
-            {
-                Prune();
-                if (expires <= _clock.GetUtcNow().UtcDateTime)
-                    throw new InvalidRequestException("Issued token has already expired.");
-                if (_tokens.Count >= MaxEntries && !_tokens.ContainsKey(GetKey(digest)))
-                    throw new InvalidRequestException("Issued-token registry capacity exceeded.");
-                _tokens[GetKey(digest)] = new Entry(subject, appliesTo, expires, tokenType, keyType, digest);
-            }
+            Store.Register(GetKey(digest), new Entry(subject, appliesTo, expires, tokenType, keyType, digest));
         }
 
         public bool TryGet(XmlElement token, out Entry entry)
@@ -41,12 +37,8 @@ namespace Solid.Identity.Protocols.WsTrust
             entry = null;
             if (token == null) return false;
             var digest = GetDigest(token);
-            lock (_gate)
-            {
-                Prune();
-                return _tokens.TryGetValue(GetKey(digest), out entry) &&
-                    CryptographicOperations.FixedTimeEquals(digest, entry.Digest);
-            }
+            return Store.TryGet(GetKey(digest), out entry) &&
+                CryptographicOperations.FixedTimeEquals(digest, entry.Digest);
         }
 
         public bool IsOwner(Entry entry, ClaimsPrincipal principal)
@@ -55,14 +47,7 @@ namespace Solid.Identity.Protocols.WsTrust
         public bool TryCancel(XmlElement token, Entry entry)
         {
             if (token == null || entry == null) return false;
-            lock (_gate)
-            {
-                var key = GetKey(GetDigest(token));
-                if (!_tokens.TryGetValue(key, out var current) || !ReferenceEquals(current, entry) || entry.Cancelled)
-                    return false;
-                _tokens[key] = entry.Cancel();
-                return true;
-            }
+            return !entry.Cancelled && Store.TryUpdate(GetKey(GetDigest(token)), entry, entry.Cancel());
         }
 
         public bool TryReplace(XmlElement oldToken, Entry entry, XmlElement newToken, ClaimsPrincipal principal)
@@ -72,38 +57,18 @@ namespace Solid.Identity.Protocols.WsTrust
             var newDigest = GetDigest(newToken);
             var oldKey = GetKey(GetDigest(oldToken));
             var newKey = GetKey(newDigest);
-            lock (_gate)
-            {
-                if (!_tokens.TryGetValue(oldKey, out var current) || !ReferenceEquals(current, entry) ||
-                    entry.Cancelled || entry.Expires <= _clock.GetUtcNow().UtcDateTime || entry.Owner != owner)
-                    return false;
-                if (oldKey == newKey) return false;
-                // The replacement was registered by IssueAsync. Publish its lifecycle transition only after
-                // issuance has succeeded and only if the old entry is still current.
-                if (!_tokens.TryGetValue(newKey, out var replacement) || replacement.Owner != owner ||
-                    !CryptographicOperations.FixedTimeEquals(newDigest, replacement.Digest)) return false;
-                _tokens[oldKey] = entry.Cancel();
-                return true;
-            }
+            if (entry.Cancelled || entry.Expires <= _clock.GetUtcNow().UtcDateTime || entry.Owner != owner || oldKey == newKey)
+                return false;
+            // The replacement was registered by IssueAsync. The store arbitrates competing renewals/cancellations.
+            if (!Store.TryGet(newKey, out var replacement) || replacement.Owner != owner ||
+                !CryptographicOperations.FixedTimeEquals(newDigest, replacement.Digest)) return false;
+            return Store.TryUpdate(oldKey, entry, entry.Cancel());
         }
 
         public bool TryRemove(XmlElement token, Entry entry)
         {
             if (token == null || entry == null) return false;
-            lock (_gate)
-            {
-                var key = GetKey(GetDigest(token));
-                if (!_tokens.TryGetValue(key, out var current) || !ReferenceEquals(current, entry)) return false;
-                return _tokens.TryRemove(key, out _);
-            }
-        }
-
-        private void Prune()
-        {
-            var now = _clock.GetUtcNow().UtcDateTime;
-            foreach (var pair in _tokens)
-                if (pair.Value.Expires <= now)
-                    _tokens.TryRemove(pair.Key, out _);
+            return Store.TryRemove(GetKey(GetDigest(token)), entry);
         }
 
         public static string GetOwner(ClaimsPrincipal principal)
@@ -135,7 +100,7 @@ namespace Solid.Identity.Protocols.WsTrust
 
         public sealed class Entry
         {
-            public Entry(string owner, string appliesTo, DateTime expires, string tokenType, string keyType, byte[] digest, bool cancelled = false)
+            public Entry(string owner, string appliesTo, DateTime expires, string tokenType, string keyType, byte[] digest, bool cancelled = false, Guid revision = default)
             {
                 Owner = owner;
                 AppliesTo = appliesTo;
@@ -143,7 +108,8 @@ namespace Solid.Identity.Protocols.WsTrust
                 TokenType = tokenType;
                 KeyType = keyType;
                 Cancelled = cancelled;
-                Digest = digest;
+                _digest = (byte[])digest.Clone();
+                Revision = revision == Guid.Empty ? Guid.NewGuid() : revision;
             }
 
             public string Owner { get; }
@@ -152,8 +118,12 @@ namespace Solid.Identity.Protocols.WsTrust
             public bool Cancelled { get; }
             public string TokenType { get; }
             public string KeyType { get; }
-            internal byte[] Digest { get; }
-            internal Entry Cancel() => new Entry(Owner, AppliesTo, Expires, TokenType, KeyType, Digest, true);
+            private readonly byte[] _digest;
+            /// <summary>SHA-256 digest of the canonical issued token. Persist this with the entry in shared stores.</summary>
+            public byte[] Digest => (byte[])_digest.Clone();
+            /// <summary>Unique revision used for atomic store transitions across registry instances.</summary>
+            public Guid Revision { get; }
+            internal Entry Cancel() => new Entry(Owner, AppliesTo, Expires, TokenType, KeyType, _digest, true);
         }
     }
 }
