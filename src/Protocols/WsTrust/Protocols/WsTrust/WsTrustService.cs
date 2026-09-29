@@ -68,7 +68,8 @@ namespace Solid.Identity.Protocols.WsTrust
             var serializer = _serializerFactory.Create();
             _logger.LogInformation($"Serializing response for '{context.ResponseAction}'.");
             var response = Message.CreateMessage(context.MessageVersion, context.ResponseAction, context.ResponseMessage,
-                new WsTrustResponseObjectSerializer(version, serializer, context.ResponseAction == version.Actions.IssueResponse));
+                new WsTrustResponseObjectSerializer(version, serializer,
+                    version == WsTrustConstants.Trust13 && context.ResponseAction == version.Actions.IssueResponse));
             return response;
         }
 
