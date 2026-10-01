@@ -39,7 +39,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var client = _fixture.CreateWsTrust13IssuedTokenClient("userName", appliesTo: WsTrustTestsFixture.Issuer);
             var token = await client.IssueAsync(request);
@@ -53,7 +53,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var client = _fixture.CreateWsTrust13IssuedTokenClient("userName", appliesTo: $"{_fixture.TestingServer.BaseAddress}trust/13");
             var response = await client.IssueAsync(request);
@@ -72,7 +72,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var client = _fixture.CreateWsTrust13IssuedTokenClient("userName", clientTokenType: clientTokenType);
             var response = await client.IssueAsync(request);
@@ -89,7 +89,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var client = _fixture.CreateWsTrust13IssuedTokenClient("userName", issuer: "urn:test:issuer:embedded_cert", clientTokenType: clientTokenType);
             var response = await client.IssueAsync(request);
@@ -105,7 +105,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var settings = new XmlWriterSettings { Indent = true };
             var client = _fixture.CreateWsTrust13CertificateClient(certificate, settings);
@@ -130,7 +130,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var client = _fixture.CreateWsTrust13UserNameClient(data.UserName, data.Password);
 
@@ -164,7 +164,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
             };
             var certificate = CertificateStore.GetOrCreate(data.Descriptor);
             var client = _fixture.CreateWsTrust13CertificateClient(certificate);
@@ -201,7 +201,7 @@ namespace Solid.Identity.Protocols.WsTrust.Tests
             var request = new WsTrustRequest(WsTrustActions.Trust13.Issue)
             {
                 KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                AppliesTo = new AppliesTo(new EndpointReference("urn:tests")),
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" }),
                 TokenType = data.TokenTypeIdentifier
             };
             var client = _fixture.CreateWsTrust13IssuedTokenClient("userName");

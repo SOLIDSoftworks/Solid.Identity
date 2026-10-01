@@ -121,7 +121,7 @@ namespace Solid.Identity.Protocols.WsTrust
             var audience = request.AppliesTo?.EndpointReference?.Uri;
             if (audience != null && audience != entry.AppliesTo)
                 throw new InvalidRequestException("Renewal audience does not match the issued token.");
-            request.AppliesTo = new AppliesTo(new EndpointReference(entry.AppliesTo));
+            request.AppliesTo = new AppliesTo(new EndpointReference { Uri = entry.AppliesTo });
             var issuedRequest = new WsTrustRequest(Constants.Actions.Issue)
             {
                 AppliesTo = request.AppliesTo
@@ -218,7 +218,7 @@ namespace Solid.Identity.Protocols.WsTrust
             //    response.ReplyTo = descriptor.ReplyToAddress;
 
             if (!string.IsNullOrEmpty(descriptor.Audience))
-                response.AppliesTo = new AppliesTo(new EndpointReference(descriptor.Audience));
+                response.AppliesTo = new AppliesTo(new EndpointReference { Uri = descriptor.Audience });
 
             var proofToken = await CreateRequestedProofTokenAsync(descriptor, cancellationToken);
             if (proofToken != null)
@@ -566,7 +566,7 @@ namespace Solid.Identity.Protocols.WsTrust
         protected virtual async ValueTask ApplyDefaultIssueValuesAsync(WsTrustRequest request, CancellationToken cancellationToken)
         {
             if (request.AppliesTo == null && Options.DefaultAppliesTo != null)
-                request.AppliesTo = new AppliesTo(new EndpointReference(Options.DefaultAppliesTo));
+                request.AppliesTo = new AppliesTo(new EndpointReference { Uri = Options.DefaultAppliesTo });
 
             // TODO: try to do this only once
             var party = await GetRelyingPartyAsync(request.AppliesTo, cancellationToken);

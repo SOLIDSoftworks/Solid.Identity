@@ -20,7 +20,7 @@ public class WsPolicySerializerTests
     {
         using var stream = new MemoryStream();
         using (var writer = XmlDictionaryWriter.CreateTextWriter(stream, Encoding.UTF8, false))
-            WsPolicySerializer.WriteAppliesTo(writer, Context, new AppliesTo(new EndpointReference("https://example.test/")));
+            WsPolicySerializer.WriteAppliesTo(writer, Context, new AppliesTo(new EndpointReference { Uri = "https://example.test/" }));
 
         stream.Position = 0;
         using var reader = XmlDictionaryReader.CreateTextReader(stream, XmlDictionaryReaderQuotas.Max);
