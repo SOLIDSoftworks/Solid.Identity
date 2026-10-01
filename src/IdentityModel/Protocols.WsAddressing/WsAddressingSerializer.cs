@@ -111,14 +111,24 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
         protected virtual void ReadEndpointReferenceChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, EndpointReferenceContents reference)
         {
             if (reader.LocalName == WsAddressingElements.Address && reader.NamespaceURI == context.Addressing.Namespace)
+            {
+                if (reference.HasReadChild)
+                    throw new XmlException("The WS-Addressing Address element must occur exactly once as the first child of EndpointReference.");
+
+                reference.HasReadChild = true;
                 reference.Uri = reader.ReadElementContentAsString();
+            }
             else
+            {
+                reference.HasReadChild = true;
                 ReadAdditionalXmlElement(reader, reference);
+            }
         }
 
         protected class EndpointReferenceContents : XmlOpenItem
         {
             public string Uri { get; set; }
+            public bool HasReadChild { get; set; }
         }
 
         protected override WsSerializationContext CreateContext(string ns)
