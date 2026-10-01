@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IdentityModel", "IdentityModel", "{AF787407-387C-45D7-B84A-99D618E7B74B}"
+	ProjectSection(SolutionItems) = preProject
+		IdentityModel\AGENTS.md = IdentityModel\AGENTS.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utility", "Utility", "{D248F42A-5953-4E19-9CB8-25C90EF1459B}"
 EndProject

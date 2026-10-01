@@ -265,7 +265,7 @@ public class BinaryExchangeProcessorTests
 
     private static WsTrustRequest Request(string valueType, string context) => new(WsTrustConstants.Trust13.Actions.Issue)
     {
-        Context = context, AppliesTo = new AppliesTo(new EndpointReference("urn:tests")),
+        Context = context, AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" }),
         BinaryExchange = new BinaryExchange(new byte[] { 0 }, valueType)
     };
 

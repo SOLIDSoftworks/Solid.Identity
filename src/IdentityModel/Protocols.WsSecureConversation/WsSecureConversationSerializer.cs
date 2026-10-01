@@ -14,28 +14,32 @@ public class WsSecureConversationSerializer : ProtocolSerializer, IProtocolSeria
     protected override WsProtocolConstants GetProtocolConstants(WsSerializationContext context)
         => context.SecureConversation ?? throw new ArgumentNullException(nameof(context.SecureConversation));
 
-    public SecurityContextToken ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
-    {
-        if (reader == null)
-            throw LogHelper.LogArgumentNullException(nameof(reader));
+    protected override string[] SupportedEntities => [WsSecureConversationElements.SecurityContextToken];
 
-        reader.MoveToContent();
-        if (!WsSecureConversationConstants.KnownNamespaces.TryGetValue(reader.NamespaceURI, out var constants))
+    protected override WsSerializationContext CreateContext(string ns)
+    {
+        if (!WsSecureConversationConstants.KnownNamespaces.TryGetValue(ns, out var constants))
             throw XmlUtil.LogReadException(LogMessages.IDX15011,
                 WsSecureConversationConstants.SecureConversation13.Namespace,
-                WsSecureConversationElements.SecurityContextToken, reader.NamespaceURI, reader.LocalName);
+                WsSecureConversationElements.SecurityContextToken, ns, WsSecureConversationElements.SecurityContextToken);
 
-        return ReadEntity(reader, serializer, new WsSerializationContext
+        return new WsSerializationContext
         {
             SecureConversation = constants,
             SecurityUtility = WsSecurityUtilityConstants.SecurityUtility10
-        });
+        };
     }
 
+    public SecurityContextToken ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
+        => ReadSecurityContextToken(reader, serializer, CreateContext(reader));
+
     public SecurityContextToken ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
+        => ReadSecurityContextToken(reader, serializer, context);
+
+    private SecurityContextToken ReadSecurityContextToken(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
     {
         AssertReader(reader, WsSecureConversationElements.SecurityContextToken, context);
-        _ = TryReadEntity(reader, serializer, context, out var token);
+        _ = TryReadSecurityContextToken(reader, serializer, context, out var token);
         return token;
     }
 
@@ -43,19 +47,16 @@ public class WsSecureConversationSerializer : ProtocolSerializer, IProtocolSeria
     {
         if (reader == null)
             throw LogHelper.LogArgumentNullException(nameof(reader));
-
         reader.MoveToContent();
-        if (!WsSecureConversationConstants.KnownNamespaces.TryGetValue(reader.NamespaceURI, out var constants))
+        if (reader.LocalName != WsSecureConversationElements.SecurityContextToken || !WsSecureConversationConstants.KnownNamespaces.ContainsKey(reader.NamespaceURI))
             return Out.False(out entity);
-
-        return TryReadEntity(reader, serializer, new WsSerializationContext
-        {
-            SecureConversation = constants,
-            SecurityUtility = WsSecurityUtilityConstants.SecurityUtility10
-        }, out entity);
+        return TryReadSecurityContextToken(reader, serializer, CreateContext(reader), out entity);
     }
 
     public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out SecurityContextToken entity)
+        => TryReadSecurityContextToken(reader, serializer, context, out entity);
+
+    protected virtual bool TryReadSecurityContextToken(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out SecurityContextToken entity)
     {
         if (reader == null)
             throw LogHelper.LogArgumentNullException(nameof(reader));
@@ -63,37 +64,12 @@ public class WsSecureConversationSerializer : ProtocolSerializer, IProtocolSeria
             throw LogHelper.LogArgumentNullException(nameof(context));
         var constants = GetProtocolConstants(context);
         reader.MoveToContent();
-        if (!reader.IsStartElement(WsSecureConversationElements.SecurityContextToken, constants.Namespace))
+        if (reader.LocalName != WsSecureConversationElements.SecurityContextToken || reader.NamespaceURI != constants.Namespace)
             return Out.False(out entity);
 
-        var token = new SecurityContextToken();
-        var utilityNamespace = context.SecurityUtility?.Namespace ?? WsSecurityUtilityConstants.SecurityUtility10.Namespace;
-        token.Id = reader.GetAttribute(WsSecurityUtilityAttributes.Id, utilityNamespace);
-        foreach (var attribute in XmlAttributeDescriptor.ReadAttributes(reader))
-        {
-            if (attribute.LocalName != WsSecurityUtilityAttributes.Id || attribute.NamespaceUri != utilityNamespace)
-                token.AdditionalXmlAttributes.Add(attribute);
-        }
-
-        bool empty = reader.IsEmptyElement;
-        reader.ReadStartElement();
-        if (!empty)
-        {
-            reader.MoveToContent();
-            while (reader.NodeType == XmlNodeType.Element)
-            {
-                if (reader.IsStartElement(WsSecureConversationElements.Identifier, constants.Namespace))
-                    token.Identifier = new Identifier { Value = reader.ReadElementContentAsString() };
-                else if (reader.IsStartElement(WsSecureConversationElements.Instance, constants.Namespace))
-                    token.Instance = reader.ReadElementContentAsString();
-                else
-                    ReadAdditionalXmlElement(reader, token);
-
-                reader.MoveToContent();
-            }
-
-            reader.ReadEndElement();
-        }
+        var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+        var token = CreateSecurityContextToken(context, attributes);
+        ReadNode(reader, serializer, context, token, ReadSecurityContextTokenChildNode);
 
         if (!Uri.TryCreate(token.Identifier?.Value, UriKind.Absolute, out _))
             throw XmlUtil.LogReadException(LogMessages.IDX15011,
@@ -103,7 +79,35 @@ public class WsSecureConversationSerializer : ProtocolSerializer, IProtocolSeria
         return true;
     }
 
+    protected virtual SecurityContextToken CreateSecurityContextToken(WsSerializationContext context, XmlAttributeDescriptor[] attributes)
+    {
+        var token = new SecurityContextToken();
+        var utilityNamespace = context.SecurityUtility?.Namespace ?? WsSecurityUtilityConstants.SecurityUtility10.Namespace;
+        foreach (var attribute in attributes)
+        {
+            if (attribute.LocalName == WsSecurityUtilityAttributes.Id && attribute.NamespaceUri == utilityNamespace)
+                token.Id = attribute.Value;
+            else
+                token.AdditionalXmlAttributes.Add(attribute);
+        }
+        return token;
+    }
+
+    protected virtual void ReadSecurityContextTokenChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, SecurityContextToken token)
+    {
+        var constants = GetProtocolConstants(context);
+        if (reader.LocalName == WsSecureConversationElements.Identifier && reader.NamespaceURI == constants.Namespace)
+            token.Identifier = new Identifier { Value = reader.ReadElementContentAsString() };
+        else if (reader.LocalName == WsSecureConversationElements.Instance && reader.NamespaceURI == constants.Namespace)
+            token.Instance = reader.ReadElementContentAsString();
+        else
+            ReadAdditionalXmlElement(reader, token);
+    }
+
     public void WriteEntity(XmlDictionaryWriter writer, SecurityContextToken entity, WsSerializer serializer, WsSerializationContext context)
+        => WriteSecurityContextToken(writer, entity, serializer, context);
+
+    protected virtual void WriteSecurityContextToken(XmlDictionaryWriter writer, SecurityContextToken entity, WsSerializer serializer, WsSerializationContext context)
     {
         WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
         var constants = GetProtocolConstants(context);

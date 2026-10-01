@@ -22,7 +22,7 @@ public class LifecycleTests : IClassFixture<WsTrustTestsFixture>
     public async Task IssueValidateRenewCancelAndRejectRepeatedCancel()
     {
         var client = _fixture.CreateWsTrust13UserNameClient("userName", "password");
-        var issue = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Issue) { Context = Guid.NewGuid().ToString("N"), KeyType = WsTrustConstants.Trust13.KeyTypes.Bearer, AppliesTo = new AppliesTo(new EndpointReference("urn:tests")) };
+        var issue = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Issue) { Context = Guid.NewGuid().ToString("N"), KeyType = WsTrustConstants.Trust13.KeyTypes.Bearer, AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" }) };
         var issued = await client.IssueAsync(issue);
         var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
         Assert.NotNull(token);
@@ -71,7 +71,7 @@ public class LifecycleTests : IClassFixture<WsTrustTestsFixture>
         var issued = await client.IssueAsync(new WsTrustRequest(version.Actions.Issue)
         {
             KeyType = version.KeyTypes.Bearer,
-            AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+            AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
         });
         var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
         var status = await client.ValidateAsync(new WsTrustRequest(version.Actions.Validate) { ValidateTarget = new TokenTarget(token) });
@@ -90,7 +90,7 @@ public class LifecycleTests : IClassFixture<WsTrustTestsFixture>
         var issued = await client.IssueAsync(new WsTrustRequest(version.Actions.Issue)
         {
             KeyType = version.KeyTypes.Bearer,
-            AppliesTo = new AppliesTo(new EndpointReference("urn:tests"))
+            AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" })
         });
         var token = issued.RequestSecurityTokenResponseCollection[0].RequestedSecurityToken.TokenElement;
         var expiredLifetime = new Lifetime(DateTime.UtcNow.AddHours(-2), DateTime.UtcNow.AddHours(-1));

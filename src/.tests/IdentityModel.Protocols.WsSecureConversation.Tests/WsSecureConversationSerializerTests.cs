@@ -67,6 +67,17 @@ public class WsSecureConversationSerializerTests
         Assert.Contains("Metadata", result.ReadOuterXml());
     }
 
+    [Theory]
+    [InlineData("http://schemas.xmlsoap.org/ws/2005/02/sc")]
+    [InlineData("http://docs.oasis-open.org/ws-sx/ws-secureconversation/200512")]
+    public void ReadsSecurityContextTokenWithoutContext(string ns)
+    {
+        var xml = $"<wsc:SecurityContextToken xmlns:wsc=\"{ns}\"><wsc:Identifier>urn:uuid:token</wsc:Identifier></wsc:SecurityContextToken>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+        var token = new WsSerializer([new WsSecureConversationSerializer()]).ReadEntity<SecurityContextToken>(reader);
+        Assert.Equal("urn:uuid:token", token.Identifier.Value);
+    }
+
     [Fact]
     public void MissingIdentifierIsRejected()
     {

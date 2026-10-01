@@ -3,12 +3,15 @@ using System.Linq;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Xml;
+using XmlException = System.Xml.XmlException;
 
 namespace Solid.IdentityModel.Protocols;
 
 public abstract class ProtocolSerializer
 {
     protected abstract WsProtocolConstants GetProtocolConstants(WsSerializationContext context);
+    protected abstract WsSerializationContext CreateContext(string ns);
+    protected abstract string[] SupportedEntities { get; }
     
     protected void AssertReader(XmlReader reader, string element, WsSerializationContext context)
     {
@@ -38,7 +41,50 @@ public abstract class ProtocolSerializer
         doc.LoadXml(reader.ReadOuterXml());
         entity.AdditionalXmlElements.Add(doc.DocumentElement!);
     }
-    
+
+    protected void ReadNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, ReadChildNode<TEntity, TEntityReadState> readChildren)
+        where TEntity : class
+        where TEntityReadState: class, new()
+    {
+        var state = new TEntityReadState();
+        ReadNode(reader, serializer, context, entity, state, readChildren);
+    }
+
+    protected void ReadNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, TEntityReadState state, ReadChildNode<TEntity, TEntityReadState> readChildren)
+        where TEntity : class
+        where TEntityReadState: class
+    {
+        var empty = reader.IsEmptyElement;
+        reader.ReadStartElement();
+        if (empty)
+            return;
+
+        reader.MoveToContent();
+        while (reader.NodeType == XmlNodeType.Element)
+        {
+            readChildren(reader, serializer, context, entity, state);
+            reader.MoveToContent();
+        }
+        reader.ReadEndElement();
+    }
+
+    protected void ReadNode<TEntity>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, ReadChildNode<TEntity> readChildren)
+        where TEntity : class
+        => ReadNode<TEntity, object>(reader, serializer, context, entity, (r, s, c, e, _) => readChildren(r, s, c, e));
+
+    protected void ReadNode<T>(XmlDictionaryReader reader, T entity, ReadNodeValue<T> readValue)
+        where T : class
+    {
+        var empty = reader.IsEmptyElement;
+        reader.ReadStartElement();
+        if (empty)
+            return;
+
+        reader.MoveToContent();
+        readValue(reader, entity);
+        reader.ReadEndElement();
+    }
+
     protected void WriteXmlOpenItemAttributes(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlOpenItem item)
     {
         foreach (var attribute in item.AdditionalXmlAttributes)
@@ -102,7 +148,23 @@ public abstract class ProtocolSerializer
             throw XmlUtil.LogWriteException(LogMessages.IDX15407, ex, attribute.LocalName, ex);
         }
     }
-    
+
+
+    protected WsSerializationContext CreateContext(XmlDictionaryReader reader)
+    {
+        if (reader == null)
+            throw LogHelper.LogArgumentNullException(nameof(reader));
+
+        reader.MoveToContent();
+        var name = reader.LocalName;
+        if (!SupportedEntities.Contains(name))
+            throw new XmlException("Cannot create WS serialization context for " + name);
+
+        var ns = reader.NamespaceURI;
+        return CreateContext(ns);
+    }
+
+
     private void WriteXmlAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute attribute)
     {
         WsUtils.ValidateParamsForWriting(writer, serializationContext, attribute, nameof(attribute));
@@ -148,3 +210,13 @@ public abstract class ProtocolSerializer
     private string NormalizePrefix(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute attribute)
         =>  NormalizePrefix(writer, serializationContext, attribute.Prefix, attribute.NamespaceURI);
 }
+
+public delegate void ReadChildNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, TEntityReadState state)
+    where TEntity : class
+    where TEntityReadState : class;
+
+public delegate void ReadChildNode<TEntity>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity)
+    where TEntity : class;
+
+public delegate void ReadNodeValue<TEntity>(XmlDictionaryReader reader, TEntity entity)
+    where TEntity : class;

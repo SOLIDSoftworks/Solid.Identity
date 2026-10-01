@@ -62,7 +62,7 @@ namespace WsTrust.Client.Sample
                 var request = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Issue)
                 {
                     KeyType = WsTrustKeyTypes.Trust13.Bearer,
-                    AppliesTo = new AppliesTo(new EndpointReference("urn:sample:relyingparty"))
+                    AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:sample:relyingparty" })
                 };
                 var response = await channel.IssueAsync(request);
                 var requestedToken = response.GetRequestedSecurityToken() as GenericXmlSecurityToken;

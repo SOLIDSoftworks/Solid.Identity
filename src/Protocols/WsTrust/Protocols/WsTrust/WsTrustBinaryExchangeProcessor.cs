@@ -66,7 +66,7 @@ namespace Solid.Identity.Protocols.WsTrust
             var retained = new WsTrustRequest(WsTrustConstants.Trust13.Actions.Issue)
             {
                 Context = request.Context,
-                AppliesTo = new AppliesTo(new EndpointReference(audience))
+                AppliesTo = new AppliesTo(new EndpointReference { Uri = audience })
             };
             if (request.TokenType != null) retained.TokenType = request.TokenType;
             if (request.KeyType != null) retained.KeyType = request.KeyType;

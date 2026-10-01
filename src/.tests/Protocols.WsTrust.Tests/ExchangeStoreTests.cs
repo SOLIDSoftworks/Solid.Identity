@@ -25,7 +25,7 @@ public class ExchangeStoreTests
     private static WsTrustRequest Request(string context) => new(WsTrustConstants.Trust13.Actions.Issue)
     {
         Context = context,
-        AppliesTo = new AppliesTo(new EndpointReference("urn:tests")),
+        AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" }),
         BinaryExchange = new BinaryExchange(new byte[] { 1 }, WsTrustNegotiation.EchoValueType)
     };
 
@@ -42,12 +42,12 @@ public class ExchangeStoreTests
         Assert.Throws<InvalidRequestException>(() => store.Begin(user, request));
 
         request = Request("oversized-audience");
-        request.AppliesTo = new AppliesTo(new EndpointReference("urn:" + new string('a', 2049)));
+        request.AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:" + new string('a', 2049) });
         Assert.Throws<InvalidRequestException>(() => store.Begin(user, request));
 
         request = Request("detached");
         var challenge = store.Begin(user, request).RequestSecurityTokenResponseCollection[0];
-        request.AppliesTo = new AppliesTo(new EndpointReference("urn:changed"));
+        request.AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:changed" });
         request.TokenType = "urn:changed";
         var service = new CapturingService();
         await store.CompleteAsync(user, new WsTrustResponse(new RequestSecurityTokenResponse
@@ -114,7 +114,7 @@ public class ExchangeStoreTests
         switch (field)
         {
             case "Lifetime": response.Lifetime = new Lifetime(DateTime.UtcNow, DateTime.UtcNow.AddMinutes(1)); break;
-            case "AppliesTo": response.AppliesTo = new AppliesTo(new EndpointReference("urn:tests")); break;
+            case "AppliesTo": response.AppliesTo = new AppliesTo(new EndpointReference { Uri = "urn:tests" }); break;
             case "KeySize": response.KeySizeInBits = 256; break;
             case "AttachedReference": response.AttachedReference = new Solid.IdentityModel.Protocols.WsSecurity.SecurityTokenReference(); break;
             case "Authenticator": response.Authenticator = new Authenticator(); break;
