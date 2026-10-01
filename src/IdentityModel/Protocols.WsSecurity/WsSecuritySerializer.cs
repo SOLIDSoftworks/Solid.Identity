@@ -1,9 +1,4 @@
 using System;
-using System.Dynamic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Xml;
@@ -23,67 +18,89 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         IProtocolSerializer<SecurityHeader>,
         IProtocolSerializer<KeyIdentifier>
     {
+        protected override string[] SupportedEntities => [WsSecurityElements.SecurityTokenReference, WsSecurityElements.Security, WsSecurityElements.KeyIdentifier];
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, out KeyIdentifier entity)
-            => TryReadKeyIdentifier(reader, CreateContext(reader), serializer, out entity);
+        {
+            if (!CanRead(reader, WsSecurityElements.KeyIdentifier))
+                return Out.False(out entity);
+            return TryReadKeyIdentifier(reader, serializer, CreateContext(reader), out entity);
+        }
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context,
             out KeyIdentifier entity)
-            => TryReadKeyIdentifier(reader, context, serializer, out entity);
+            => TryReadKeyIdentifier(reader, serializer, context, out entity);
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, out SecurityHeader entity)
-            => TryReadSecurityHeader(reader, CreateContext(reader), serializer, out entity);
+        {
+            if (!CanRead(reader, WsSecurityElements.Security))
+                return Out.False(out entity);
+            return TryReadSecurityHeader(reader, serializer, CreateContext(reader), out entity);
+        }
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context,
             out SecurityHeader entity)
-            => TryReadSecurityHeader(reader, context, serializer, out entity);
+            => TryReadSecurityHeader(reader, serializer, context, out entity);
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, out SecurityTokenReference entity)
-            => TryReadSecurityTokenReference(reader, CreateContext(reader), serializer, out entity);
+        {
+            if (!CanRead(reader, WsSecurityElements.SecurityTokenReference))
+                return Out.False(out entity);
+            return TryReadSecurityTokenReference(reader, serializer, CreateContext(reader), out entity);
+        }
+
+        private static bool CanRead(XmlDictionaryReader reader, string element)
+        {
+            if (reader == null)
+                throw LogHelper.LogArgumentNullException(nameof(reader));
+            reader.MoveToContent();
+            return reader.LocalName == element && WsSecurityConstants.KnownNamespaces.ContainsKey(reader.NamespaceURI);
+        }
 
         public bool TryReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context,
             out SecurityTokenReference entity)
-            => TryReadSecurityTokenReference(reader, context, serializer, out entity);
+            => TryReadSecurityTokenReference(reader, serializer, context, out entity);
         
-        protected virtual bool TryReadSecurityTokenReference(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, out SecurityTokenReference reference)
+        protected virtual bool TryReadSecurityTokenReference(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out SecurityTokenReference reference)
         {
             if(reader.LocalName != WsSecurityElements.SecurityTokenReference || reader.NamespaceURI != context.Security.Namespace)
                 return Out.False(out reference);
 
             var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
-            var r = new SecurityTokenReference
-            {
-                Id = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace),
-                // TokenType is always WS-Security 1.1
-                TokenType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.TokenType, WsSecurityConstants.WsSecurity11.Namespace),
-                Usage = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.Usage, context.Security.Namespace)
-            };
-
-            var empty = reader.IsEmptyElement;
-            reader.ReadStartElement();
-            if (empty)
-                return Out.True(r, out reference);
-            reader.MoveToContent();
-            while (reader.NodeType == XmlNodeType.Element)
-            {
-                ReadSecurityTokenReferenceChildNode(reader, context, serializer, r);
-                reader.MoveToContent();
-            }
-            reader.ReadEndElement();
+            var r = CreateSecurityTokenReference(context, attributes);
+            ReadNode(reader, serializer, context, r, ReadSecurityTokenReferenceChildNode);
 
             reference = r;
             return true;
         }
 
-        protected virtual void ReadSecurityTokenReferenceChildNode(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, SecurityTokenReference reference)
+        protected virtual SecurityTokenReference CreateSecurityTokenReference(WsSerializationContext context, XmlAttributeDescriptor[] attributes)
+            => new SecurityTokenReference
+            {
+                Id = GetQualifiedAttribute(attributes, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace),
+                // WS-Security 1.1 defines TokenType in its namespace; older messages also use an unqualified attribute.
+                TokenType = GetQualifiedAttribute(attributes, WsSecurityAttributes.TokenType, WsSecurityConstants.WsSecurity11.Namespace)
+                    ?? GetQualifiedAttribute(attributes, WsSecurityAttributes.TokenType, string.Empty),
+                Usage = GetQualifiedAttribute(attributes, WsSecurityAttributes.Usage, string.Empty)
+            };
+
+        private static string GetQualifiedAttribute(XmlAttributeDescriptor[] attributes, string name, string ns)
         {
-            if (TryReadKeyIdentifier(reader, context, serializer, out var identifier))
+            foreach (var attribute in attributes)
+                if (attribute.LocalName == name && attribute.NamespaceUri == ns)
+                    return attribute.Value;
+            return null;
+        }
+
+        protected virtual void ReadSecurityTokenReferenceChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, SecurityTokenReference reference)
+        {
+            if (TryReadKeyIdentifier(reader, serializer, context, out var identifier))
                 reference.KeyIdentifier = identifier;
             else
                 reader.Skip();
         }
 
-        protected virtual bool TryReadKeyIdentifier(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, out KeyIdentifier identifier)
+        protected virtual bool TryReadKeyIdentifier(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out KeyIdentifier identifier)
         {
             if(reader.LocalName != WsSecurityElements.KeyIdentifier || reader.NamespaceURI != context.Security.Namespace)
                 return Out.False(out identifier);
@@ -94,28 +111,26 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             //      ...
             //  </wsse:KeyIdentifier>
 
-            var empty = reader.IsEmptyElement;
             var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
-
-            var keyIdentifier = new KeyIdentifier
-            {
-                Id = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace),
-                ValueType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.ValueType, context.Security.Namespace),
-                EncodingType = XmlAttributeDescriptor.GetAttribute(attributes, WsSecurityAttributes.EncodingType, context.Security.Namespace)
-            };
-
-            reader.ReadStartElement();
-            if (!empty)
-            {
-                keyIdentifier.Value = reader.ReadContentAsString();
-                reader.ReadEndElement();
-            }
+            var keyIdentifier = CreateKeyIdentifier(context, attributes);
+            ReadNode(reader, keyIdentifier, ReadKeyIdentifierValue);
 
             identifier = keyIdentifier;
             return true;
         }
 
-        protected virtual bool TryReadSecurityHeader(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, out SecurityHeader header)
+        protected virtual KeyIdentifier CreateKeyIdentifier(WsSerializationContext context, XmlAttributeDescriptor[] attributes)
+            => new KeyIdentifier
+            {
+                Id = GetQualifiedAttribute(attributes, WsSecurityUtilityAttributes.Id, context.SecurityUtility.Namespace),
+                ValueType = GetQualifiedAttribute(attributes, WsSecurityAttributes.ValueType, string.Empty),
+                EncodingType = GetQualifiedAttribute(attributes, WsSecurityAttributes.EncodingType, string.Empty)
+            };
+
+        private void ReadKeyIdentifierValue(XmlDictionaryReader reader, KeyIdentifier entity)
+            => entity.Value = reader.ReadString();
+
+        protected virtual bool TryReadSecurityHeader(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, out SecurityHeader header)
         {
             //  <wsse:Security wsu:Id="...">
             //    <wsu:Timestamp>
@@ -127,29 +142,23 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             if(reader.LocalName != WsSecurityElements.Security || reader.NamespaceURI != context.Security.Namespace)
                 return Out.False(out header);
             
-            var h = new SecurityHeader();
-            foreach(var attribute in XmlAttributeDescriptor.ReadAttributes(reader))
-                h.AdditionalXmlAttributes.Add(attribute);
-            
-            var empty = reader.IsEmptyElement;
-            reader.ReadStartElement();
-            if (empty)
-                return Out.True(h, out header);
-
-            reader.MoveToContent();
-            while (reader.NodeType == XmlNodeType.Element)
-            {
-                ReadSecurityHeaderChildNode(reader, context, serializer, h);
-                reader.MoveToContent();
-            }
-
-            reader.ReadEndElement();
+            var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
+            var h = CreateSecurityHeader(context, attributes);
+            ReadNode(reader, serializer, context, h, ReadSecurityHeaderChildNode);
             
             header = h;
             return true;
         }
 
-        protected virtual void ReadSecurityHeaderChildNode(XmlDictionaryReader reader, WsSerializationContext context, WsSerializer serializer, SecurityHeader header)
+        protected virtual SecurityHeader CreateSecurityHeader(WsSerializationContext context, XmlAttributeDescriptor[] attributes)
+        {
+            var header = new SecurityHeader();
+            foreach (var attribute in attributes)
+                header.AdditionalXmlAttributes.Add(attribute);
+            return header;
+        }
+
+        protected virtual void ReadSecurityHeaderChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, SecurityHeader header)
         {
             if (serializer.TryReadEntity<Timestamp>(reader, context, out var timestamp))
                 header.Timestamp = timestamp;
@@ -166,30 +175,7 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
             return constants;
         }
 
-        protected IProtocolSerializer<SecurityHeader> SecurityHeaderSerializer
-            => this;
-
-        protected IProtocolSerializer<SecurityTokenReference> SecurityTokenReferenceSerializer
-            => this;
-
-        protected IProtocolSerializer<KeyIdentifier> KeyIdentifierSerializer
-            => this;
-
-        private WsSerializationContext CreateContext(XmlDictionaryReader reader)
-        {
-            if (reader == null)
-                throw LogHelper.LogArgumentNullException(nameof(reader));
-
-            reader.MoveToContent();
-            var name = reader.LocalName;
-            if (!WsSecurityElements.All.Contains(name))
-                throw new XmlException("Cannot create WS serialization context for " + name);
-
-            var ns = reader.NamespaceURI;
-            return CreateContext(ns);
-        }
-
-        private WsSerializationContext CreateContext(string ns)
+        protected override WsSerializationContext CreateContext(string ns)
         {
             if(!WsSecurityConstants.KnownNamespaces.TryGetValue(ns, out var ws))
                 // Create IDX error
@@ -203,21 +189,25 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         }
 
         KeyIdentifier IProtocolSerializer<KeyIdentifier>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
-        {
-            var context = CreateContext(reader);
-            return KeyIdentifierSerializer.ReadEntity(reader, serializer, context);
-        }
+            => ReadKeyIdentifier(reader, serializer, CreateContext(reader));
         
         KeyIdentifier IProtocolSerializer<KeyIdentifier>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
+            => ReadKeyIdentifier(reader, serializer, context);
+
+        private KeyIdentifier ReadKeyIdentifier(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
         {
             AssertReader(reader, WsSecurityElements.KeyIdentifier, context);
-            _ = TryReadKeyIdentifier(reader, context, serializer, out var identifier);
+            _ = TryReadKeyIdentifier(reader, serializer, context, out var identifier);
             return identifier;
         }
         
         void IProtocolSerializer<KeyIdentifier>.WriteEntity(XmlDictionaryWriter writer, KeyIdentifier entity, WsSerializer serializer,
             WsSerializationContext context)
+            => WriteKeyIdentifier(writer, entity, serializer, context);
+
+        protected virtual void WriteKeyIdentifier(XmlDictionaryWriter writer, KeyIdentifier entity, WsSerializer serializer, WsSerializationContext context)
         {
+            WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
             //  <wsse:KeyIdentifier wsu:Id="..."
             //                      ValueType="..."
             //                      EncodingType="...">
@@ -242,20 +232,23 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         }
 
         SecurityHeader IProtocolSerializer<SecurityHeader>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
-        {
-            var context = CreateContext(reader);
-            return SecurityHeaderSerializer.ReadEntity(reader, serializer, context);
-        }
+            => ReadSecurityHeader(reader, serializer, CreateContext(reader));
 
         SecurityHeader IProtocolSerializer<SecurityHeader>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
+            => ReadSecurityHeader(reader, serializer, context);
+
+        private SecurityHeader ReadSecurityHeader(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
         {
             AssertReader(reader, WsSecurityElements.Security, context);
-            _ = TryReadSecurityHeader(reader, context, serializer, out var header);
+            _ = TryReadSecurityHeader(reader, serializer, context, out var header);
             return header;
         }
 
         void IProtocolSerializer<SecurityHeader>.WriteEntity(XmlDictionaryWriter writer, SecurityHeader entity, WsSerializer serializer,
             WsSerializationContext context)
+            => WriteSecurityHeader(writer, entity, serializer, context);
+
+        protected virtual void WriteSecurityHeader(XmlDictionaryWriter writer, SecurityHeader entity, WsSerializer serializer, WsSerializationContext context)
         {
             WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
             writer.WriteStartElement(context.Security.DefaultPrefix, WsSecurityElements.Security, context.Security.Namespace);
@@ -267,20 +260,24 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
         }
 
         SecurityTokenReference IProtocolSerializer<SecurityTokenReference>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer)
-        {
-            var context = CreateContext(reader);
-            return SecurityTokenReferenceSerializer.ReadEntity(reader, serializer, context);
-        }
+            => ReadSecurityTokenReference(reader, serializer, CreateContext(reader));
 
         SecurityTokenReference IProtocolSerializer<SecurityTokenReference>.ReadEntity(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
+            => ReadSecurityTokenReference(reader, serializer, context);
+
+        private SecurityTokenReference ReadSecurityTokenReference(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context)
         {
             AssertReader(reader, WsSecurityElements.SecurityTokenReference, context);
-            _ = TryReadSecurityTokenReference(reader, context, serializer, out var reference);
+            _ = TryReadSecurityTokenReference(reader, serializer, context, out var reference);
             return reference;
         }
 
         void IProtocolSerializer<SecurityTokenReference>.WriteEntity(XmlDictionaryWriter writer, SecurityTokenReference entity, WsSerializer serializer, WsSerializationContext context)
+            => WriteSecurityTokenReference(writer, entity, serializer, context);
+
+        protected virtual void WriteSecurityTokenReference(XmlDictionaryWriter writer, SecurityTokenReference entity, WsSerializer serializer, WsSerializationContext context)
         {
+            WsUtils.ValidateParamsForWriting(writer, context, entity, nameof(entity));
             // <wsse:SecurityTokenReference>
             //      <wsse:KeyIdentifier wsu:Id="..."
             //                          ValueType="..."
@@ -302,7 +299,7 @@ namespace Solid.IdentityModel.Protocols.WsSecurity
                 writer.WriteAttributeString(WsSecurityAttributes.Usage, entity.Usage);
 
             if (entity.KeyIdentifier != null)
-                KeyIdentifierSerializer.WriteEntity(writer, entity.KeyIdentifier, serializer, context);
+                WriteKeyIdentifier(writer, entity.KeyIdentifier, serializer, context);
 
             writer.WriteEndElement();
         }

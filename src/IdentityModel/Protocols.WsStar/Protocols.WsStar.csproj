@@ -7,4 +7,8 @@
         <PackageReference Include="Microsoft.IdentityModel.Xml" Version="$(MicrosoftIdentityModelVersion)" />
         <PackageReference Include="Microsoft.IdentityModel.Logging" Version="$(MicrosoftIdentityModelVersion)" />
     </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="WsSecurityExampleSerializer.cs" />
+        <Content Include="WsSecurityExampleSerializer.cs" Pack="false" CopyToOutputDirectory="Never" />
+    </ItemGroup>
 </Project>

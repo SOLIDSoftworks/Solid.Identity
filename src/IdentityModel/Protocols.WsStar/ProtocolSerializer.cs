@@ -3,12 +3,15 @@ using System.Linq;
 using System.Xml;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Xml;
+using XmlException = System.Xml.XmlException;
 
 namespace Solid.IdentityModel.Protocols;
 
 public abstract class ProtocolSerializer
 {
     protected abstract WsProtocolConstants GetProtocolConstants(WsSerializationContext context);
+    protected abstract WsSerializationContext CreateContext(string ns);
+    protected abstract string[] SupportedEntities { get; }
     
     protected void AssertReader(XmlReader reader, string element, WsSerializationContext context)
     {
@@ -39,6 +42,37 @@ public abstract class ProtocolSerializer
         entity.AdditionalXmlElements.Add(doc.DocumentElement!);
     }
     
+
+    protected void ReadNode<T>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, T entity, ReadChildNode<T> readChildren)
+        where T : class
+    {
+        var empty = reader.IsEmptyElement;
+        reader.ReadStartElement();
+        if (empty)
+            return;
+
+        reader.MoveToContent();
+        while (reader.NodeType == XmlNodeType.Element)
+        {
+            readChildren(reader, serializer, context, entity);
+            reader.MoveToContent();
+        }
+        reader.ReadEndElement();
+    }
+
+    protected void ReadNode<T>(XmlDictionaryReader reader, T entity, ReadNodeValue<T> readValue)
+        where T : class
+    {
+        var empty = reader.IsEmptyElement;
+        reader.ReadStartElement();
+        if (empty)
+            return;
+
+        reader.MoveToContent();
+        readValue(reader, entity);
+        reader.ReadEndElement();
+    }
+
     protected void WriteXmlOpenItemAttributes(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlOpenItem item)
     {
         foreach (var attribute in item.AdditionalXmlAttributes)
@@ -102,7 +136,23 @@ public abstract class ProtocolSerializer
             throw XmlUtil.LogWriteException(LogMessages.IDX15407, ex, attribute.LocalName, ex);
         }
     }
-    
+
+
+    protected WsSerializationContext CreateContext(XmlDictionaryReader reader)
+    {
+        if (reader == null)
+            throw LogHelper.LogArgumentNullException(nameof(reader));
+
+        reader.MoveToContent();
+        var name = reader.LocalName;
+        if (!SupportedEntities.Contains(name))
+            throw new XmlException("Cannot create WS serialization context for " + name);
+
+        var ns = reader.NamespaceURI;
+        return CreateContext(ns);
+    }
+
+
     private void WriteXmlAttribute(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute attribute)
     {
         WsUtils.ValidateParamsForWriting(writer, serializationContext, attribute, nameof(attribute));
@@ -148,3 +198,9 @@ public abstract class ProtocolSerializer
     private string NormalizePrefix(XmlDictionaryWriter writer, WsSerializationContext serializationContext, XmlAttribute attribute)
         =>  NormalizePrefix(writer, serializationContext, attribute.Prefix, attribute.NamespaceURI);
 }
+
+public delegate void ReadChildNode<T>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, T entity)
+    where T : class;
+
+public delegate void ReadNodeValue<T>(XmlDictionaryReader reader, T entity)
+    where T : class;

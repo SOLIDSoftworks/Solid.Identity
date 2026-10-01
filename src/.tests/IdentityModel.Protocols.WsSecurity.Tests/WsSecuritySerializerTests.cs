@@ -1,5 +1,7 @@
 using System;
 using System.IdentityModel.Tokens;
+using System.Text;
+using System.Xml;
 using Microsoft.IdentityModel.Xml;
 using Xunit;
 
@@ -40,6 +42,46 @@ public class WsSecuritySerializerTests : IClassFixture<WsSecuritySerializerTestF
         {
             _fixture.Compare(data, ex);
         }
+    }
+
+    [Theory]
+    [InlineData("http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd")]
+    public void ReadsKeyIdentifierWithoutContext(string ns)
+    {
+        var xml = $"<wsse:KeyIdentifier xmlns:wsse=\"{ns}\" ValueType=\"urn:type\">identifier</wsse:KeyIdentifier>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+        var identifier = _fixture.Serializer.ReadEntity<KeyIdentifier>(reader);
+        Assert.Equal("identifier", identifier.Value);
+        Assert.Equal("urn:type", identifier.ValueType);
+    }
+
+    [Fact]
+    public void ReadsTimestampWithoutContext()
+    {
+        var ns = WsSecurityUtilityConstants.SecurityUtility10.Namespace;
+        var xml = $"<wsu:Timestamp xmlns:wsu=\"{ns}\" wsu:Id=\"timestamp\"><wsu:Created>2024-01-01T00:00:00Z</wsu:Created><wsu:Expires>2024-01-01T01:00:00Z</wsu:Expires></wsu:Timestamp>";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+        var timestamp = _fixture.Serializer.ReadEntity<Timestamp>(reader);
+        Assert.Equal("timestamp", timestamp.Id);
+        Assert.Equal(new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc), timestamp.Created);
+    }
+
+    [Fact]
+    public void TryReadKeyIdentifierWithUnknownNamespaceDoesNotConsumeElement()
+    {
+        const string xml = "<wsse:KeyIdentifier xmlns:wsse=\"urn:unknown\" />";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+        Assert.False(((IProtocolSerializer<KeyIdentifier>)new WsSecuritySerializer()).TryReadEntity(reader, _fixture.Serializer, out _));
+        Assert.Equal("KeyIdentifier", reader.LocalName);
+    }
+
+    [Fact]
+    public void TryReadTimestampWithUnknownNamespaceDoesNotConsumeElement()
+    {
+        const string xml = "<wsu:Timestamp xmlns:wsu=\"urn:unknown\" />";
+        using var reader = XmlDictionaryReader.CreateTextReader(Encoding.UTF8.GetBytes(xml), XmlDictionaryReaderQuotas.Max);
+        Assert.False(((IProtocolSerializer<Timestamp>)new WsSecurityUtilitySerializer()).TryReadEntity(reader, _fixture.Serializer, out _));
+        Assert.Equal("Timestamp", reader.LocalName);
     }
 
     public static TheoryData<WsSecurityTestData> ReadSecurityTokenReferenceTestCases
