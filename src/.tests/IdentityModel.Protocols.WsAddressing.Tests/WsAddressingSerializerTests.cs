@@ -69,7 +69,7 @@ public class WsAddressingSerializerTests
         var context = new WsSerializationContext { Addressing = WsAddressingConstants.Addressing10 };
         using var stream = new MemoryStream();
         using (var writer = XmlDictionaryWriter.CreateTextWriter(stream, Encoding.UTF8, false))
-            new WsAddressingSerializer().WriteEntity(writer, new EndpointReference("https://example.test/service"), null, context);
+            new WsAddressingSerializer().WriteEntity(writer, new EndpointReference { Uri = "https://example.test/service" }, null, context);
 
         stream.Position = 0;
         using var reader = XmlDictionaryReader.CreateTextReader(stream, XmlDictionaryReaderQuotas.Max);

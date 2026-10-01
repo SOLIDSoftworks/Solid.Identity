@@ -9,17 +9,6 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
 {
     public class EndpointReference : XmlOpenItem
     {
-        public EndpointReference(string uri)
-        {
-            if (uri == null)
-                throw LogHelper.LogArgumentNullException(nameof(uri));
-
-            if (!System.Uri.IsWellFormedUriString(uri, UriKind.Absolute))
-                throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant($"uri is not absolute: {uri}")));
-
-            Uri = uri;
-        }
-
-        public string Uri { get; }
+        public string Uri { get; set; } = null!;
     }
 }

@@ -41,10 +41,18 @@ public abstract class ProtocolSerializer
         doc.LoadXml(reader.ReadOuterXml());
         entity.AdditionalXmlElements.Add(doc.DocumentElement!);
     }
-    
 
-    protected void ReadNode<T>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, T entity, ReadChildNode<T> readChildren)
-        where T : class
+    protected void ReadNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, ReadChildNode<TEntity, TEntityReadState> readChildren)
+        where TEntity : class
+        where TEntityReadState: class, new()
+    {
+        var state = new TEntityReadState();
+        ReadNode(reader, serializer, context, entity, state, readChildren);
+    }
+
+    protected void ReadNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, TEntityReadState state, ReadChildNode<TEntity, TEntityReadState> readChildren)
+        where TEntity : class
+        where TEntityReadState: class
     {
         var empty = reader.IsEmptyElement;
         reader.ReadStartElement();
@@ -54,11 +62,15 @@ public abstract class ProtocolSerializer
         reader.MoveToContent();
         while (reader.NodeType == XmlNodeType.Element)
         {
-            readChildren(reader, serializer, context, entity);
+            readChildren(reader, serializer, context, entity, state);
             reader.MoveToContent();
         }
         reader.ReadEndElement();
     }
+
+    protected void ReadNode<TEntity>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, ReadChildNode<TEntity> readChildren)
+        where TEntity : class
+        => ReadNode<TEntity, object>(reader, serializer, context, entity, (r, s, c, e, _) => readChildren(r, s, c, e));
 
     protected void ReadNode<T>(XmlDictionaryReader reader, T entity, ReadNodeValue<T> readValue)
         where T : class
@@ -199,8 +211,12 @@ public abstract class ProtocolSerializer
         =>  NormalizePrefix(writer, serializationContext, attribute.Prefix, attribute.NamespaceURI);
 }
 
-public delegate void ReadChildNode<T>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, T entity)
-    where T : class;
+public delegate void ReadChildNode<TEntity, TEntityReadState>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity, TEntityReadState state)
+    where TEntity : class
+    where TEntityReadState : class;
 
-public delegate void ReadNodeValue<T>(XmlDictionaryReader reader, T entity)
-    where T : class;
+public delegate void ReadChildNode<TEntity>(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, TEntity entity)
+    where TEntity : class;
+
+public delegate void ReadNodeValue<TEntity>(XmlDictionaryReader reader, TEntity entity)
+    where TEntity : class;

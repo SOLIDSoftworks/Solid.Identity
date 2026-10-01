@@ -10,10 +10,6 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
 {
     public class WsAddressingSerializer : ProtocolSerializer, IProtocolSerializer<EndpointReference>
     {
-        public WsAddressingSerializer()
-        {
-        }
-
         /// <summary>
         /// Reads an <see cref="EndpointReference"/>
         /// </summary>
@@ -64,15 +60,13 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
                 return Out.False(out entity);
             
             var attributes = XmlAttributeDescriptor.ReadAttributes(reader);
-            var contents = new EndpointReferenceContents();
-            ReadNode(reader, serializer, context, contents, ReadEndpointReferenceChildNode);
+            var result = CreateEndpointReference(context, attributes);
+            ReadNode<EndpointReference, EndpointReferenceReadState>(reader, serializer, context, result, ReadEndpointReferenceChildNode);
 
-            if (string.IsNullOrEmpty(contents.Uri))
+            if (string.IsNullOrEmpty(result.Uri))
                 throw XmlUtil.LogReadException(LogMessages.IDX15011, context.Addressing.Namespace, WsAddressingElements.Address, reader.NamespaceURI, reader.LocalName);
 
-            var endpointReference = CreateEndpointReference(context, attributes, contents);
-
-            entity = endpointReference;
+            entity = result;
             return true;
         }
 
@@ -98,37 +92,31 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
         protected override WsProtocolConstants GetProtocolConstants(WsSerializationContext context)
             => context.Addressing;
 
-        protected virtual EndpointReference CreateEndpointReference(WsSerializationContext context, XmlAttributeDescriptor[] attributes, EndpointReferenceContents contents)
+        protected virtual EndpointReference CreateEndpointReference(WsSerializationContext context, XmlAttributeDescriptor[] attributes)
         {
-            var reference = new EndpointReference(contents.Uri);
+            var reference = new EndpointReference();
             foreach (var attribute in attributes)
                 reference.AdditionalXmlAttributes.Add(attribute);
-            foreach (var element in contents.AdditionalXmlElements)
-                reference.AdditionalXmlElements.Add(element);
             return reference;
         }
 
-        protected virtual void ReadEndpointReferenceChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, EndpointReferenceContents reference)
+        protected virtual void ReadEndpointReferenceChildNode(XmlDictionaryReader reader, WsSerializer serializer, WsSerializationContext context, EndpointReference reference, EndpointReferenceReadState state)
         {
             if (reader.LocalName == WsAddressingElements.Address && reader.NamespaceURI == context.Addressing.Namespace)
             {
-                if (reference.HasReadChild)
+                if (state.FirstElementRead)
                     throw new XmlException("The WS-Addressing Address element must occur exactly once as the first child of EndpointReference.");
 
-                reference.HasReadChild = true;
-                reference.Uri = reader.ReadElementContentAsString();
+                var uri = reader.ReadElementContentAsString();
+                if (!Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+                    throw LogHelper.LogExceptionMessage(new ArgumentException(LogHelper.FormatInvariant($"uri is not absolute: {uri}")));
+                
+                reference.Uri = uri;
             }
             else
-            {
-                reference.HasReadChild = true;
                 ReadAdditionalXmlElement(reader, reference);
-            }
-        }
 
-        protected class EndpointReferenceContents : XmlOpenItem
-        {
-            public string Uri { get; set; }
-            public bool HasReadChild { get; set; }
+            state.FirstElementRead = true;
         }
 
         protected override WsSerializationContext CreateContext(string ns)
@@ -143,5 +131,10 @@ namespace Solid.IdentityModel.Protocols.WsAddressing
                 AddressingVersion = addressing.AddressingVersion
             };
         }
+    }
+    
+    public class EndpointReferenceReadState
+    {
+        public bool FirstElementRead { get; set; }
     }
 }
